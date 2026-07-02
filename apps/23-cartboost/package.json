@@ -1,0 +1,41 @@
+{
+  "name": "cartboost",
+  "version": "0.1.0",
+  "private": true,
+  "description": "One-click post-purchase upsells for Shopify, flat-priced",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "worker": "tsx src/worker/index.ts",
+    "extension:dev": "shopify app dev",
+    "lint": "next lint",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
+  },
+  "dependencies": {
+    "next": "^15.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "@shopify/shopify-api": "^11.6.0",
+    "@shopify/app-bridge-react": "^4.1.0",
+    "@shopify/polaris": "^13.9.0",
+    "drizzle-orm": "^0.38.0",
+    "postgres": "^3.4.0",
+    "bullmq": "^5.30.0",
+    "ioredis": "^5.4.0",
+    "zod": "^3.24.0",
+    "date-fns": "^4.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@shopify/cli": "^3.71.0",
+    "tsx": "^4.19.0",
+    "drizzle-kit": "^0.30.0",
+    "tailwindcss": "^3.4.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^15.1.0"
+  }
+}

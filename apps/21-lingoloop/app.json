@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "LingoLoop",
+    "slug": "lingoloop",
+    "version": "0.1.0",
+    "scheme": "lingoloop",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "bundleIdentifier": "app.lingoloop.mobile",
+      "infoPlist": { "NSMicrophoneUsageDescription": "LingoLoop uses the microphone for speaking practice." }
+    },
+    "android": {
+      "package": "app.lingoloop.mobile",
+      "permissions": ["RECORD_AUDIO"]
+    },
+    "plugins": ["expo-router", "expo-av", "expo-secure-store"]
+  }
+}
