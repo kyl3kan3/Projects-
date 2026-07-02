@@ -1,0 +1,44 @@
+{
+  "name": "answerdesk",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Embeddable AI support chatbot trained on your docs, with honest deflection analytics",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build && npm run build:widget",
+    "build:widget": "vite build --config src/widget/vite.config.ts",
+    "start": "next start",
+    "worker:crawler": "tsx src/crawler/worker.ts",
+    "lint": "next lint",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
+  },
+  "dependencies": {
+    "next": "^15.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "drizzle-orm": "^0.38.0",
+    "postgres": "^3.4.0",
+    "@anthropic-ai/sdk": "^0.39.0",
+    "openai": "^4.77.0",
+    "playwright": "^1.49.0",
+    "bullmq": "^5.30.0",
+    "ioredis": "^5.4.0",
+    "stripe": "^17.5.0",
+    "resend": "^4.0.0",
+    "@slack/web-api": "^7.8.0",
+    "turndown": "^7.2.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "tsx": "^4.19.0",
+    "vite": "^6.0.0",
+    "drizzle-kit": "^0.30.0",
+    "tailwindcss": "^3.4.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^15.1.0"
+  }
+}

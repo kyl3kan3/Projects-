@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "Streakly",
+    "slug": "streakly",
+    "version": "0.1.0",
+    "scheme": "streakly",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "bundleIdentifier": "app.streakly.mobile",
+      "supportsTablet": false
+    },
+    "android": {
+      "package": "app.streakly.mobile"
+    },
+    "plugins": ["expo-router", "expo-sqlite", "expo-notifications"]
+  }
+}

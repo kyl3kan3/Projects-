@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "SubSage",
+    "slug": "subsage",
+    "version": "0.1.0",
+    "scheme": "subsage",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "bundleIdentifier": "app.subsage.mobile",
+      "supportsTablet": false
+    },
+    "android": {
+      "package": "app.subsage.mobile"
+    },
+    "plugins": ["expo-router", "expo-sqlite", "expo-notifications", "expo-secure-store"]
+  }
+}
