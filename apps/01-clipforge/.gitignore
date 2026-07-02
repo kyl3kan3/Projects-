@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.*
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+
+# Build output
+dist/
+build/
+
+# Environment (keep .env.example tracked)
+.env
+.env.*
+!.env.example
+
+# Testing & coverage
+coverage/
+.nyc_output/
+
+# Drizzle
+drizzle/*.sql
+drizzle/meta/
+
+# Media scratch (worker temp renders/downloads)
+tmp/
+*.mp4
+*.mp3
+*.wav
+*.m4a
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Vercel
+.vercel

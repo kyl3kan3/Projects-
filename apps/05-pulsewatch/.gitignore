@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Environment files — keep .env.example tracked
+.env
+.env.*
+!.env.example
+
+# Drizzle migration artifacts kept in repo; local snapshots/journal temp files are not
+drizzle/meta/_journal.json.bak
+
+# Fly.io
+# fly.toml IS tracked (no secrets belong in it — use `fly secrets set`).
+# Ignore any local secret overrides:
+fly.*.local.toml
+.fly/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Testing / coverage
+coverage/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Vercel
+.vercel/
+
+# Misc local
+*.local
+.cache/

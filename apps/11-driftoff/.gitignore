@@ -1,0 +1,35 @@
+# dependencies
+node_modules/
+
+# expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# native builds (EAS / prebuild output)
+ios/
+android/
+*.ipa
+*.apk
+*.aab
+
+# environment
+.env
+.env.*
+!.env.example
+
+# macOS
+.DS_Store
+
+# logs & caches
+npm-debug.log*
+yarn-error.log
+*.tsbuildinfo
+.metro-health-check*
+
+# testing
+coverage/
+
+# audio source masters (kept out of git; distributed via R2)
+content/masters/

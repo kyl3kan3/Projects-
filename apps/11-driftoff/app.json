@@ -1,0 +1,52 @@
+{
+  "expo": {
+    "name": "DriftOff",
+    "slug": "driftoff",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "driftoff",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0B1026",
+    "newArchEnabled": true,
+    "ios": {
+      "bundleIdentifier": "app.driftoff.ios",
+      "supportsTablet": false,
+      "infoPlist": {
+        "UIBackgroundModes": ["audio"],
+        "NSMotionUsageDescription": "DriftOff uses motion data overnight to find a light-sleep moment inside your wake window for a gentler alarm."
+      }
+    },
+    "android": {
+      "package": "app.driftoff.android",
+      "edgeToEdgeEnabled": true
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      [
+        "expo-notifications",
+        {
+          "sounds": ["./assets/alarm/sunrise-ramp.wav"]
+        }
+      ],
+      [
+        "expo-av",
+        {
+          "microphonePermission": false
+        }
+      ],
+      "@sentry/react-native/expo"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "00000000-0000-0000-0000-000000000000"
+      }
+    }
+  }
+}

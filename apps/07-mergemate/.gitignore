@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Next.js dashboard
+.next/
+out/
+
+# Environment files (never commit secrets)
+.env
+.env.*
+!.env.example
+
+# GitHub App private keys
+*.pem
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Logs
+*.log
+npm-debug.log*
+pino-*.log
+
+# Drizzle local artifacts (generated SQL migrations ARE committed; local meta junk is not)
+drizzle/.tmp/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Local scratch
+tmp/
+.cache/
