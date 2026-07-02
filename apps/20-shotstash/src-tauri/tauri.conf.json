@@ -1,0 +1,23 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "ShotStash",
+  "version": "0.1.0",
+  "identifier": "app.shotstash.desktop",
+  "build": {
+    "beforeDevCommand": "npm run frontend:dev",
+    "beforeBuildCommand": "npm run frontend:build",
+    "devUrl": "http://localhost:5173",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      { "title": "ShotStash", "width": 1100, "height": 720, "minWidth": 800, "minHeight": 560 }
+    ],
+    "trayIcon": { "iconPath": "icons/tray.png" }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": ["icons/icon.icns", "icons/icon.ico", "icons/128x128.png"]
+  }
+}
