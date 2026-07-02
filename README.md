@@ -1,6 +1,6 @@
 # Profitable App Scaffolds
 
-A curated portfolio of **20 buildable, high-profit-potential software products** — each researched, specified, and scaffolded so it can be lifted out of this repo and built as a standalone project.
+A curated portfolio of **30 buildable, high-profit-potential software products** — each researched, specified, and scaffolded so it can be lifted out of this repo and built as a standalone project.
 
 > **Nothing here is built.** Every folder is a *launchpad*: a full product spec, market/profitability research, architecture, roadmap, and code scaffolding with stub files. Pick one, extract it, and start building.
 
@@ -22,7 +22,7 @@ git push -u origin main
 
 No app folder references files outside itself. See [SCAFFOLD_GUIDE.md](./SCAFFOLD_GUIDE.md) for the conventions every scaffold follows.
 
-## The Top 20, ranked
+## The list, ranked
 
 Ranked by a blend of: **proven willingness to pay, margin profile, realistic solo/small-team buildability, recurring-revenue strength, and distribution clarity** — based on 2025–2026 market data (RevenueCat/Adapty subscription reports, indie-hacker revenue benchmarks, micro-SaaS market analyses; sources in each app's README).
 
@@ -48,8 +48,18 @@ Ranked by a blend of: **proven willingness to pay, margin profile, realistic sol
 | 18 | [AnswerDesk](apps/18-answerdesk) | Web SaaS | Embeddable AI support chatbot trained on your docs/site | $39–$199/mo | $10k–$80k MRR |
 | 19 | [NicheHub](apps/19-nichehub) | Website engine | Programmatic niche-directory engine (SEO traffic → listings/ads/affiliate) | Sponsored listings, ads, affiliate | $2k–$30k/mo per directory |
 | 20 | [ShotStash](apps/20-shotstash) | Desktop app | Screenshot manager with local OCR search (privacy-first utility) | One-time $29 + Pro subscription | $3k–$25k MRR |
+| 21 | [LingoLoop](apps/21-lingoloop) | Mobile app | AI voice conversation tutor for language learners (education = top-grossing category) | $14.99/mo, $79.99/yr w/ trial | $10k–$100k MRR |
+| 22 | [CallCatch](apps/22-callcatch) | B2B SaaS | AI receptionist + missed-call text-back for local businesses | $99–$299/mo + setup fee | $15k–$100k+ MRR |
+| 23 | [CartBoost](apps/23-cartboost) | Shopify app | One-click post-purchase upsells, flat-priced (no revenue share) | $29–$79/mo | $8k–$60k MRR |
+| 24 | [TradeLog](apps/24-tradelog) | Web SaaS | Auto-importing trading journal with leak detection for retail traders | $19–$49/mo | $10k–$60k MRR |
+| 25 | [ResumeRocket](apps/25-resumerocket) | Web app | AI resume/cover-letter studio that tailors to each job posting + ATS X-ray | $9.95/wk pass, $19.95/mo | $10k–$80k MRR |
+| 26 | [RoomGenius](apps/26-roomgenius) | Web app | AI interior design: restyle your room photo, then shop the look | Credit packs + $29/mo pro staging + affiliate | $8k–$60k/mo |
+| 27 | [StepDocs](apps/27-stepdocs) | Chrome extension + SaaS | Record a workflow once → polished step-by-step SOP guide (Scribe alternative) | $12–$25/seat/mo | $8k–$50k MRR |
+| 28 | [ClientDock](apps/28-clientdock) | Web SaaS | White-label client portals for agencies (status, files, approvals, invoices) | $29–$149/mo flat | $10k–$60k MRR |
+| 29 | [MailProbe](apps/29-mailprobe) | API product | Email verification API with honest confidence scoring | Usage-based ~$0.006/check + plans | $5k–$50k MRR |
+| 30 | [CloudSpend](apps/30-cloudspend) | B2B SaaS | Cloud cost monitoring for startups: anomaly alerts + deploy correlation | $49–$199/mo flat | $10k–$70k MRR |
 
-## Why these 20
+## Why these 30
 
 Key findings from the research that drove selection and ranking:
 
@@ -61,6 +71,12 @@ Key findings from the research that drove selection and ranking:
 - **Developer tools have the clearest distribution** (GitHub Marketplace, dev communities) and devs pay for anything that saves an hour (→ MergeMate, ParseFlow, VaultBack, PulseWatch).
 - **One-time-purchase AI photo tools** monetize virality better than subscriptions (→ LumaShot).
 - **Content/SEO websites** (directories) are the lowest-build-effort recurring income of the set (→ NicheHub).
+- **Education/language learning is a top-grossing subscription category**, and AI finally delivers its missing feature — speaking practice (→ LingoLoop).
+- **Local businesses pay B2B prices for anything that saves a lost job** — a missed call costs more than a year of software (→ CallCatch).
+- **Marketplace/app-store distribution channels** (Shopify App Store, Chrome Web Store) put buyers with wallets open in front of the product (→ CartBoost, StepDocs, InboxPilot).
+- **Passionate-hobbyist niches with money on the line** (retail traders) sustain some of the highest ARPUs in consumer SaaS (→ TradeLog).
+- **Evergreen consumer urgency** (job seeking, home decorating) delivers endless new demand at high volume, monetized fast via passes and credit packs (→ ResumeRocket, RoomGenius).
+- **Infrastructure APIs and cost tools** churn near zero once embedded — swap-cost revenue (→ MailProbe, CloudSpend, ParseFlow).
 
 ## What's inside every app folder
 

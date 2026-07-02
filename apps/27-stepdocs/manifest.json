@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "StepDocs — SOP & Guide Recorder",
+  "version": "0.1.0",
+  "description": "Record any workflow once and get a polished step-by-step guide with screenshots.",
+  "permissions": ["storage", "activeTab", "tabs", "scripting"],
+  "host_permissions": ["<all_urls>"],
+  "background": { "service_worker": "src/background/service-worker.ts", "type": "module" },
+  "content_scripts": [
+    { "matches": ["<all_urls>"], "js": ["src/content/recorder.ts"], "run_at": "document_idle" }
+  ],
+  "action": { "default_popup": "src/popup/index.html" },
+  "icons": { "16": "icons/16.png", "48": "icons/48.png", "128": "icons/128.png" }
+}
