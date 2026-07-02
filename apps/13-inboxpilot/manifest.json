@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "InboxPilot — AI Email Assistant for Gmail",
+  "version": "0.1.0",
+  "description": "One-click AI reply drafts in your voice, inside Gmail.",
+  "permissions": ["storage", "identity"],
+  "host_permissions": ["https://mail.google.com/*"],
+  "background": { "service_worker": "src/background/service-worker.ts", "type": "module" },
+  "content_scripts": [
+    {
+      "matches": ["https://mail.google.com/*"],
+      "js": ["src/content/gmail.ts"],
+      "run_at": "document_end"
+    }
+  ],
+  "action": { "default_popup": "src/popup/index.html" },
+  "icons": { "16": "icons/16.png", "48": "icons/48.png", "128": "icons/128.png" }
+}
