@@ -1,61 +1,90 @@
 # VaultBack — Design Specification
 
-## Design vision
-A bank vault for databases. Massive, machined, mechanical — the aesthetic of
-precision-engineered steel: brushed metal, deep shadows, brass tumblers, the
-*chunk* of a lock engaging. Everything communicates one promise: your data is
-behind a door nothing gets through, and you can open it any time you like.
-Industrial luxury; zero whimsy.
+## Vision
+Backup assurance for people who deliberately chose not to run servers. VaultBack looks
+like precision-engineered steel — machined surfaces, deep shadows, brass on the parts
+that lock — and communicates one promise: your data is safe *and verified*, and you can
+open the vault any time. Industrial calm, zero whimsy.
 
-## Brand identity
+## Mobile layout (390 × 844 — the primary spec)
+This is insurance you check on, not operate — a phone glance to confirm last night ran
+and the restore drill passed. The phone view answers "am I covered?" instantly.
 
-| Role | Color | Hex |
-|---|---|---|
-| Vault dark | Gunmetal | `#0F1214` |
-| Panel | Machined steel | `#191E22` |
+- **Nav:** bottom tab bar — Vault · Restore · Drills · Settings — above the safe-area
+  inset. Brass on the active item only.
+- **Vault dashboard:** a single scrolling column of database rows. Each row: engine
+  glyph, database name, **last backup age** (mono), size, a **verified seal** (green
+  only once the checksum passes), and a sparkline of backup sizes. Health reads at a
+  glance — green means proven, not merely attempted.
+- **Primary action** in the thumb zone: a full-width **Connect a database** on the
+  empty state; contextually **Run backup now** / **Restore** pinned bottom on a
+  database detail.
+- **Restore (money screen)** on a phone: a vertical list of point-in-time snapshots
+  (timestamp, size, checksum), tap to select the moment, then a plain-language
+  "here's exactly what will happen" panel, then a **key-turn confirm** in the thumb
+  zone.
+- **Key components at phone width:** database health row; snapshot list item;
+  restore-drill report card (pass/fail, table counts, checksums); a live pipeline
+  strip during a running backup (dump → compress → encrypt → upload → verify) as
+  labeled stations, scrollable in its own track.
+
+## Identity
+| Role | Hex |
+|---|---|
+| Vault dark (gunmetal) | `#0F1214` |
+| Panel (machined steel) | `#191E22` |
 | Steel light | `#3A444C` |
-| Brand | Brass bolt | `#D9A441` |
-| Verified | Seal green | `#4CC38A` |
-| Danger | Torch red | `#E5534B` |
+| Brass bolt | `#D9A441` |
+| Seal green (verified) | `#4CC38A` |
+| Torch red (danger) | `#E5534B` |
 | Text | `#E9EDF0` / muted `#8A96A0` |
 
-- **Display:** `Neue Haas Grotesk` (fallback `Archivo`) — engineering-drawing authority, medium and bold only.
-- **Mono:** `IBM Plex Mono` for checksums, byte sizes, cron expressions — the artifacts of proof.
-- **Logo:** a square-jawed "V" formed by two vault-door bolts meeting; wordmark VAULTBACK in spaced caps (+8% tracking).
-- **Voice:** engineer's log. "02:00 UTC — dumped, encrypted, verified. 4.2 GB. Checksum matched."
+- **Display:** `Neue Haas Grotesk` (fallback `Archivo`) — engineering-drawing
+  authority; body ≥16px on mobile.
+- **Data/mono:** `IBM Plex Mono` for checksums, byte sizes, cron expressions — the
+  artifacts of proof.
+- Corners are chamfered (2px 45° notch) rather than fully rounded; brass appears only
+  on interactive/locking elements; **green appears only on verified states** — the
+  design enforces the product's honesty (a backup isn't green until its checksum
+  passes).
+- **Signature detail — the checksum lock.** When a backup verifies, its checksum string
+  scrambles (mono characters cycling, ~300ms) then locks in character-by-character
+  left→right into the final hash, ending on the seal-green tick. Small, mono, textual —
+  it reads as proof, runs at 60fps on a phone, and needs no 3D. The in-product backup
+  row also does a 24px bolt-slide on completion.
 
-## Art direction
-- Surfaces read as machined metal: vertical brushed-texture gradient (2% amplitude) on panels, chamfered corners (2px 45° notch on card corners instead of full radius), bolt-head details at panel corners on marketing.
-- Brass appears only on interactive/locking elements. Green appears only on *verified* states (a backup isn't green until its checksum passes — design enforces the product's honesty).
-- Diagram language: schematic lines with 90° bends, like a blueprint of pipes from DB → encryption → vault.
+## Responsive
+The phone's single column of database rows becomes a denser table on desktop with the
+live pipeline shown inline. Restore's snapshot list scales to a two-pane view
+(snapshots + impact panel). **Optional desktop-only enhancement:** the marketing hero's
+photoreal 3D vault door (R3F, PBR steel) may swing shut with a bolt-slide on scroll,
+lazy-loaded behind a static poster of the sealed door; it never loads on mobile, where
+the hero is the sealed-door poster plus a blueprint-style pipeline schematic. The
+point-in-time "dial" is a desktop affordance; on phone it's a tap-to-select list.
 
-## The signature moment — "The Door"
-Marketing hero: a photoreal-adjacent **3D vault door** (R3F, PBR brushed-steel
-material, single warm key light + cool rim) filling 55% of the viewport, ajar.
-On scroll: the door swings shut (1.1s `ease-in-out-soft` with a final 60ms
-deceleration *thunk* — 2px camera shake), the handwheel spins (720°,
-`ease-out-expo`), and six bolts slide home radially with 45ms stagger, each with
-a brass glint. A green seal stamp appears: "Nightly. Encrypted. Yours." Reverse
-scroll re-opens it revealing a glowing database cylinder inside. In-product echo:
-completing a backup runs a 24px 2D version of the bolt-slide on the backup row.
+## Motion & touch
+- Shared tokens. Live backup: brass dashes travel a schematic pipe; stages light as
+  stations. Retention pruning: expired rows compress vertically to 0 with a soft ease,
+  storage meter rebalances (`spring-gentle`).
+- Restore drill: a brass key outline draws and turns 90° (`spring-snappy`), then the
+  report card unfolds beneath.
+- **Touch:** targets ≥44px; the key-turn confirm and "Run backup" in the thumb zone.
+- **Gestures:** swipe a database row for quick actions (also overflow menu). Destructive
+  delete is **hold-to-confirm** — holding unscrews a bolt (rotation tied to progress,
+  ~900ms); releasing early re-tightens. Native haptic on the mobile client for verify
+  and key-turn; web silent.
 
-## Motion system
-- **Backup run (live):** a schematic pipe from the DB glyph to the vault glyph; data flow rendered as brass dashes traveling the pipe (dash-offset animation); stages (dump → compress → encrypt → upload → verify) light up as stations along the pipe.
-- **Checksum verify:** the checksum string scrambles (mono characters cycling, 300ms) then locks character-by-character left→right into the final hash, ending with the seal-green tick.
-- **Restore drill:** runs as a "key test" — a brass key outline draws, turns 90° (`spring-snappy`), and the drill report card unfolds beneath with results.
-- **Retention pruning:** expired snapshots compact — rows compress vertically to 0 with a soft hydraulic ease and the storage meter rebalances with `spring-gentle`.
-- **Danger zone (delete):** hold-to-confirm where holding physically *unscrews* a bolt (rotation tied to hold progress, 900ms) — releasing early re-tightens it.
+## Key screens (mobile-first)
+1. **Vault dashboard:** per-database health rows with verified seals and size
+   sparklines.
+2. **Restore:** snapshot list → impact panel → key-turn confirm.
+3. **Drill report:** pass/fail with table counts and checksums — the evidence the
+   compliance PDF is built from.
+4. **Connect database:** one-screen connection-string flow with provider auto-detect
+   and reachability/permission checks.
 
-## Key screens
-1. **Marketing hero:** The Door; beneath it, a schematic strip of the pipeline with the stations labeled in blueprint style; pricing as three vault sizes (Hobby/Startup/Business drawn as increasing door diameters).
-2. **Vault dashboard:** per-database rows — DB engine glyph, last backup age (mono), size, verified seal, sparkline of backup sizes; the pipe animation runs live during backups.
-3. **Money screen — Restore:** a point-in-time dial (brass rotary control, snaps to snapshot detents with haptic-feel ticks) selecting the moment to restore; right panel shows exactly what will happen in engineer's-log language; the confirm is the key-turn.
-
-## Component language
-- Buttons: chamfered rectangles; primary brass with gunmetal text; secondary steel-outline. Press = 1px sink + brief specular sweep.
-- Cards: chamfered corners, hairline steel borders; verified rows carry the small embossed seal.
-- Empty state: an open, empty vault interior, softly lit: "Nothing in the vault. Connect a database."
-- Progress: station-lighting along pipes, never bars alone.
-
-## Reduced motion & fallback
-Door → poster (door closed, sealed). Pipes → static schematic with stage checkmarks appearing. Scramble effects → direct text swap. Camera shake removed entirely.
+## Reduced-motion & fallback
+Checksum scramble → direct text swap ending on the seal tick. Pipe/station animation →
+static schematic with stage checkmarks. Vault door → sealed poster. Bolt-unscrew
+confirm → a plain press-and-hold progress ring. Camera shake removed entirely. Every
+state (verified, failed, pruned) is also plain text.

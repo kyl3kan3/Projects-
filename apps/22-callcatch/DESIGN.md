@@ -1,66 +1,85 @@
 # CallCatch — Design Specification
 
-## Design vision
-A dispatcher's desk that never sleeps, designed for people who work with their
-hands. CallCatch's buyer is a plumber, a salon owner — the design must read as
-*dependable equipment*, not startup software: high-visibility clarity, safety-
-orange accents borrowed from work gear, big honest numbers, and one recurring
-piece of theater: the catch — a call that would have been lost, visibly saved.
+## Vision
+A dispatcher's desk that never sleeps, built for people who work with their hands.
+CallCatch's buyer is a plumber or a salon owner, so it must read as dependable equipment,
+not startup software: high-visibility clarity, safety-orange borrowed from work gear, big
+honest numbers, and one recurring truth — a call that would have been lost, visibly
+caught. Restraint, not theater.
 
-## Brand identity
+## Mobile layout (390 × 844)
+The owner is under a sink or between clients; they check this on a phone, fast.
+- **Nav:** bottom tab bar (Activity · Caught · Calendar · Setup), 56px, safe-area-aware.
+- **Home = the money number first:** "Caught this month" tally with the estimated value
+  in dispatch green, set at signage weight, filling the top third — legible at arm's
+  length in daylight.
+- **Activity feed:** caught / booked / message events as job-ticket cards, one column,
+  newest on top. Each card: caller, job type stamp, value estimate, time in mono.
+- **Live-call bar:** during an active AI call a slim on-air bar pins to the top with the
+  caller number and a live transcription ticker; a 44px "Listen" joins muted.
+- **Primary action** ("Test my AI" during setup, "Call back" on a lead) is a full-width
+  button in the thumb zone.
+- Long transcripts scroll inside their own container as a two-column dispatch log; the
+  page body never scrolls sideways.
 
-| Role | Color | Hex |
+## Identity
+| Role | Name | Hex |
 |---|---|---|
 | Shop floor | Deep slate | `#131A22` |
-| Panel | `#1B2530` |
+| Panel | Panel | `#1B2530` |
 | Brand | Work orange | `#FF7A1A` |
 | Answered | Dispatch green | `#3ECF8E` |
-| Missed→caught | Rescue cyan | `#39C7DD` |
-| Lost (pre-CallCatch) | Ash | `#5B6672` |
-| Text | `#EEF2F6` / muted `#8C99A8` |
+| Caught | Rescue cyan | `#39C7DD` |
+| Lost | Ash | `#5B6672` |
 
-- **Display:** `Roc Grotesk` (fallback `Archivo`) 700 — signage weight; big numbers set like the prices on a service truck.
-- **UI:** `Inter`; call durations/timestamps in `IBM Plex Mono`.
-- **Logo:** a phone handset caught in a baseball-glove curve. Icon: the glove-curve cradling a dot.
-- **Voice:** dispatcher-plain. "Caught a call at 7:42pm. Booked a water-heater job. $1,400 est."
+Text `#EEF2F6`, muted `#8C99A8`.
 
-## Art direction
-- Equipment aesthetic: chunky 12px-radius panels with a 2px top edge highlight (roll-cage feel), toggle switches drawn like real rocker switches, status lights with physical bezels.
-- Orange discipline: reserved for live activity and primary actions; the money numbers (revenue recovered) render in dispatch green.
-- Client-facing surfaces (the owner's dashboard is also shown to *their* customers? no —) the dashboard is owner-only; call/SMS transcripts styled like clean job tickets.
+- **Display:** `Roc Grotesk` (fallback `Archivo`) 700 — signage weight; the money numbers
+  set like prices on a service truck. **UI:** `Inter`, 16px min. **Data:** `IBM Plex
+  Mono` for call durations and timestamps.
+- **Signature detail — the catch:** every real caught call arrives in the activity feed
+  with a small, restrained motion — the ticket slides up and settles with a single firm
+  `spring-snappy` snap (a 1px "landed" nudge), its fields stamping in as the AI captures
+  them (job type, urgency, value estimate). Orange is reserved for live activity only;
+  the recovered value rolls up once in dispatch green. No glove animation, no mascot — the
+  weight of the snap is the whole feeling, and it runs at 60fps on a cheap phone.
 
-## The signature moment — "The Catch"
-Marketing hero: a phone rings on screen — a ring ripple expanding from a phone
-glyph (concentric rings, 1.2s intervals). Ring one... ring two... a ghosted
-caller card starts sliding toward a dark "LOST" drain at screen edge (this is
-the industry's status quo, rendered). At ring three, **CallCatch's glove-curve
-sweeps in** (400ms `ease-out-expo` arc) and *catches* the card mid-slide — the
-card snaps into the glove with a satisfying leather-thud settle (`spring-snappy`
-+ 2px shake), flips over, and fills itself in live: transcription lines typing,
-job type stamping ("WATER HEATER — URGENT"), an estimated-value counter rolling
-to $1,400, and a booked-appointment chip clicking onto the calendar strip below.
-A tally in the corner increments: "Caught this month: 23 · ~$18,600." Loop with
-varied scenarios (salon, dental, HVAC). In-product echo: every real caught call
-lands in the activity feed with a miniature glove-catch (300ms).
+## Responsive
+Phone-first. At `md` the activity feed sits beside the calendar strip and on-air dock;
+the setup wizard gains a preview pane. **Optional desktop enhancement:** the marketing
+hero may run a looping recorded demo-call player (audio proof sells this product) styled
+as a job ticket — real audio, not a rendered scene; the app never depends on it.
 
-## Motion system
-- **Live call state:** an on-air bar slides down from the dashboard top during active AI calls — ring ripple, caller number, live transcription ticker (words fade in as spoken); the owner can tap "listen" (joins muted) — the bar's border pulses orange at speech cadence.
-- **Missed-call rescue (SMS path):** the timeline shows the missed-call moment, then the text-back firing at +5s as a visible reflex arc (a cyan line snaps from the missed event to the SMS event).
-- **Lead qualification progress:** job-ticket fields (job type / location / urgency / contact) fill as the AI conversation captures them — each field stamps in with a press; partially captured tickets show honest empty slots.
-- **Booking:** the calendar strip's chosen slot expands with `spring-gentle` and the confirmation SMS renders as a sent receipt sliding off.
-- **Revenue-recovered dashboard:** the monthly figure rolls up on load; below it, caught-call cards stack like completed job tickets on a spike.
+## Motion & touch
+- Shared tokens: ticket arrival `spring-snappy`; field stamps `dur-micro`; value roll-up
+  `ease-out-quart`, once. On-air bar border pulses gently at speech cadence.
+- Missed-call rescue: the timeline shows the missed moment, then the +5s text-back as a
+  short cyan reflex line snapping from missed → SMS event.
+- Targets ≥44px; toggles drawn as rocker switches with a 1-frame orange arc on flip.
+- Haptic tick when a new call is caught (native push-driven).
 
 ## Key screens
-1. **Marketing hero:** The Catch, full theater; below, a real recorded demo call player styled as a job ticket with a play button (audio proof sells this product), then per-vertical sections with the ripple recolored.
-2. **Owner dashboard (money screen):** top: "Caught this month" tally + estimated value in dispatch green; middle: activity feed of tickets (caught/booked/message) with the mini-glove animation on arrival; right: the on-air bar dock and calendar strip.
-3. **Setup wizard:** business profile as a laminated info card being filled; vertical pack selection as equipment presets ("Plumbing kit — 42 FAQs loaded"); the live test-call step renders the ripple and lets the owner hear their AI answer — the trust moment, staged carefully.
-4. **Call detail:** full transcript as a two-column dispatch log (caller left, AI right), confidence-gated moments marked ("took a message here — pricing question beyond profile"), audio scrubber with speaker-colored waveform.
+1. **Owner dashboard (money screen):** "Caught this month" tally + estimated value in
+   green; activity feed of tickets with the catch snap on arrival; on-air bar dock and
+   calendar strip.
+2. **Setup wizard:** business profile as a laminated info card being filled; vertical pack
+   selection as equipment presets ("Plumbing kit — 42 FAQs loaded"); a live test-call
+   step where the owner hears their AI answer — the trust moment, staged carefully.
+3. **Call detail:** full transcript as a two-column dispatch log (caller left, AI right),
+   confidence-gated moments marked ("took a message — pricing beyond profile"), audio
+   scrubber with speaker-colored waveform.
+4. **Marketing hero:** a plain, honest "how many calls did you miss this week?" statement
+   with the recorded demo-call player and per-vertical proof sections.
 
 ## Component language
-- Buttons: bold 10px-radius, orange fill with slate text; the "test my AI" button styled as a push-to-talk switch.
-- Cards: job-ticket styling — clipped corner top-right, stamped status chips.
-- Toggles: rocker switches with a 1-frame orange arc flash on flip.
-- Empty state: an open glove under a spotlight: "Forward your number. We'll catch the next one."
+- Buttons: bold 10px radius, orange fill / slate text; "Test my AI" styled as a
+  push-to-talk switch. ≥44px.
+- Cards: job-ticket styling — clipped top-right corner, stamped status chips, 2px top
+  edge highlight (roll-cage feel).
+- Empty state: an open glove under a spotlight: "Forward your number. We'll catch the
+  next one."
 
-## Reduced motion & fallback
-The Catch → three static panels (ringing / caught / ticket filled). Ripples → static rings. Live ticker → batched line updates. Glove micro-animations → cyan flash on new items. Value counters → direct set with green flash.
+## Reduced-motion & fallback
+Catch snap → ticket appears with a cyan flash on new items. Field stamps → batched text.
+Value roll-up → direct set with a green flash. On-air ticker → batched line updates.
+Ripples off. Every number is fully readable without motion.

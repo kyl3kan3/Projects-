@@ -1,60 +1,89 @@
 # LumaShot — Design Specification
 
-## Design vision
-A high-end photo studio you walk into from your browser: black cyc wall, softboxes
-humming, that champagne-flash moment when the strobe fires. LumaShot sells a
-*transformation* — selfie to executive — so the design is built entirely around
-staging the reveal. Fashion-editorial confidence, studio-hardware textures, light
-as the main character.
+## 1. Vision
+LumaShot sells one transformation: your camera roll becomes a studio headshot in
+under 30 minutes. The design is photography-first and quiet — the interface gets
+out of the way so real generated headshots carry the product. Editorial
+confidence, warm studio light as the only decoration, no theme-park staging.
 
-## Brand identity
+## 2. Mobile layout (390×844)
+The whole flow is thumb-driven because most selfies live on the phone.
 
-| Role | Color | Hex |
+- **Nav:** a lightweight top bar (logo left, account right) plus a persistent
+  bottom action bar that holds the one primary CTA for the current step. No
+  hamburger; the flow is linear (Pick pack → Upload → Track → Gallery).
+- **Landing:** a single full-bleed 4:5 hero headshot, one editorial line over it
+  (*"Studio headshots from your camera roll."*), and one filled champagne CTA in
+  the bottom third — **"See the styles."** Below the fold: a swipeable
+  before/after strip and three pack cards stacked vertically ($19 / $29 / $49),
+  each a tap-target-sized row with price, count, styles.
+- **Upload:** a 3-column contact-sheet grid of thumbnails fills the screen;
+  system photo picker opens on tap. A sticky bottom counter ("6 of 8 minimum")
+  doubles as the CTA and only arms — champagne fill — at 8 valid shots.
+- **Gallery (money screen):** 2-column masonry of finished headshots, style
+  chips as a horizontal scroller under the top bar. Tap opens a full-screen
+  pager (swipe between shots); actions (favorite, LinkedIn crop, download) sit in
+  a bottom sheet within thumb reach.
+- Body ≥16px; all rows ≥56px; primary actions never in a corner.
+
+## 3. Identity
+| Role | Name | Hex |
 |---|---|---|
-| Cyc black | `#0A0A0C` |
+| Base | Cyc black | `#0A0A0C` |
 | Panel | Studio gray | `#161618` |
-| Brand | Champagne strobe | `#F4D8A6` |
+| Brand | Champagne | `#F4D8A6` |
 | Accent | Tungsten | `#FFB86B` |
-| Cool key | Softbox white | `#F7F5F2` |
-| Text | `#F2F0EC` / muted `#95918A` |
+| Text | Softbox white | `#F2F0EC` |
+| Muted | Ash | `#95918A` |
 
-- **Display:** `Editorial New` (fallback `Playfair Display`) italic for emotional beats ("*This could be you, Tuesday.*"); `Neue Montreal` (fallback `Archivo`) for UI.
-- **Logo:** "LUMA/SHOT" with the slash as a beam of light at 63° — the beam angle recurs across the interface (gradients, dividers, the reveal wipe).
-- **Voice:** flattering but straight. "8 great selfies in. 100 headshots out. 90 minutes."
+- **Display:** `Editorial New` (fallback `Playfair Display`) italic — used only for
+  the one emotional line per screen. **UI/text:** `Neue Montreal` (fallback
+  `Archivo`). No data font needed; counts sit in the UI face.
+- **Logo:** `LUMA/SHOT`, the slash a thin 63° light beam — reused once as the
+  results divider, nowhere else.
+- **Signature detail — the key-light sweep.** When a headshot finishes and lands
+  in the gallery, a soft champagne highlight sweeps once across it left-to-right
+  (~600ms, `ease-out-quart`), then settles. Pure CSS gradient mask over the
+  image; runs at 60fps on any phone. That single sweep is the "it's ready"
+  moment — no strobe, no 3D studio.
 
-## Art direction
-- Photography-first: interface chrome is nearly invisible; real generated headshots (with model consent/samples) do all the talking, always shown in generous 4:5 crops.
-- Light behaves physically: CTAs carry a champagne key-light from upper-left with a soft falloff; hovering "turns on" a rim light (1px warm edge).
-- Texture: a faint studio-floor reflection under hero imagery (flipped 8% opacity gradient mask).
+## 4. Responsive
+Mobile is the master. Tablet widens the gallery to 3 columns and puts pack cards
+in a row. Desktop adds a two-pane upload (contact sheet + live guidance) and a
+larger editorial hero, but the layout, type scale, and the key-light sweep are
+identical. **Optional desktop-only enhancement:** on the marketing hero, a subtle
+cursor-follow key light that repositions the highlight on the hero portrait —
+lazy, pointer-only, never loaded on touch devices, and the static lit portrait is
+the complete default.
 
-## The signature moment — "The Strobe Reveal"
-Marketing hero: a 3D studio vignette (R3F) — a softbox, a paper backdrop roll,
-and a floating portrait frame showing a real *selfie*. The user's cursor is the
-light: moving it repositions the key light on the scene (shader-lit). Clicking
-the shutter button fires the sequence: screen flashes champagne (120ms, ease-out),
-the softbox blooms, and the selfie in the frame is **replaced by the studio
-headshot** — revealed by a 63° beam wipe with a chromatic edge (600ms). A film
-counter advances `01 → 02` and a new pair loads. Three clicks in, copy appears:
-"Your camera roll is enough." In-product echo: every finished headshot pack
-arrives with the beam wipe over its grid.
+## 5. Motion & touch
+- Uses shared tokens: reveals `ease-out-quart`; layout `ease-in-out-soft`;
+  buttons `spring-snappy`; sheets `dur-emphasis`.
+- **Upload validation:** each thumb resolves from blur to sharp (`dur-standard`)
+  as it passes; rejects get a quiet red corner tick and a plain reason ("face too
+  small — move closer"), no shake.
+- **Training progress:** an honest stepped state (Uploading → Validating →
+  Training → Generating → Ready) with a slim determinate bar tied to real
+  progress; copy gives a live ETA. No darkroom theatrics.
+- **Results:** headshots deal in with 24ms stagger, ≤8 at once, scale 1.02→1.
+- **Touch:** targets ≥44px; swipe between headshots in the pager (with visible
+  ‹ › arrows as equivalents); pull-to-refresh on the status screen; long-press a
+  shot to favorite (star button is the equivalent).
+- **Haptics** (where the platform allows): light tick on favorite, success notch
+  when the pack turns Ready.
 
-## Motion system
-- **Upload flow:** selfies drop into a contact-sheet grid; each thumb gets a quick focus-pull (blur 8px→0, 300ms) as it validates; rejected shots (blurry/no face) get a red grease-pencil X drawn over them with a shake-free apology tooltip.
-- **Training progress:** not a bar — a **darkroom sequence**: a blank sheet in developer fluid, the portrait faintly emerging in stages tied to real progress (5 keyframed opacity/contrast steps). Copy: "Developing your model — 40 min."
-- **Results grid:** headshots deal in with 30ms stagger, slight scale 1.02→1 settle; hovering any shot re-lights it (subtle exposure +5%).
-- **Style switcher:** style tabs slide a physical backdrop roll behind the preview (paper-roll texture translates horizontally, 420ms `ease-in-out-soft`).
-- **Pack purchase:** the checkout button's key-light intensifies as the cursor approaches (proximity glow, 120px radius).
+## 6. Key screens (mobile-first)
+1. **Landing:** full-bleed hero portrait + one italic line + champagne CTA in the
+   thumb zone; before/after strip and three pack rows below.
+2. **Upload & brief:** contact-sheet grid, inline do/don't hints as a collapsible
+   note, sticky arming counter/CTA at the bottom.
+3. **Status:** one card with the stepped pipeline, live ETA, and a visible
+   deletion countdown ("Photos auto-delete in 7 days · Delete now").
+4. **Gallery (money):** masonry grid, style-chip scroller, full-screen pager with
+   a bottom action sheet (favorite / LinkedIn crop / download all).
 
-## Key screens
-1. **Marketing hero:** The Strobe Reveal; below, an editorial marquee of before/after pairs auto-advancing (crossfade 4s hold), then pack pricing as three film-box cards (40/100/200 exposures).
-2. **Upload & brief:** contact-sheet grid left, guidance right ("vary angles, no sunglasses") illustrated with tiny do/don't thumbnails; the CTA arms only when 8 valid shots are in (button light warms up per valid shot — 8 stops of brightness).
-3. **Money screen — The Gallery:** the delivered pack as a lit exhibition: styles as backdrop sections, favorites tray at bottom, one-click "LinkedIn crop" per shot, download-all as a film canister icon that spins closed.
-
-## Component language
-- Buttons: pill, champagne fill with cyc-black text; secondary is 1px warm outline. Disabled = light off (true gray, no glow).
-- Cards: photos edge-to-edge, 8px radius, floor-reflection under featured items.
-- Empty state: an unlit studio, single tungsten practical glowing: "Lights are ready when you are."
-- Progress: darkroom develop, beam wipes, focus pulls — never bars or spinners.
-
-## Reduced motion & fallback
-Strobe flash removed (photosensitivity: flash is opacity 0.4 max and disabled under reduced motion). Reveal → crossfade. Cursor-lighting off; static key light. Develop sequence → stepped stills with captions.
+## 7. Reduced-motion & fallback
+Key-light sweep → a single 100ms opacity settle as the image appears. Validation
+blur-to-sharp → instant with the corner tick. Stagger off; headshots appear
+together. Progress bar stays (it's information). Desktop cursor light disabled;
+static lit portrait shown.

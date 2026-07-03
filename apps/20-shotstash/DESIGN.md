@@ -1,63 +1,84 @@
 # ShotStash — Design Specification
 
-## Design vision
-A native desktop instrument with one superpower rendered visible: *light reading
-your screenshots*. ShotStash should feel like it shipped with the OS — platform-
-faithful chrome, translucent materials, instant response — and then surprise you
-with the scan: a beam of light that sweeps a screenshot and leaves searchable
-text glowing in its wake. Utility-app humility, flagship-feature theater.
+## Vision
+A native desktop instrument with one superpower made just visible enough: your
+screenshots become searchable text. ShotStash should feel like it shipped with the OS —
+platform-faithful chrome, instant response, obsessive spacing — with restraint, not
+theater. The wow is retrieval speed and honesty, not spectacle.
 
-## Brand identity
+## Primary layout (desktop app, Tauri)
+Not a phone app — but restraint and responsive small-window behavior are still the spec.
+- **Window:** a three-region layout — left rail (collections, tags, app/date filters),
+  center virtualized grid (4–8 columns, 8px gutters), right inspector (the selected
+  shot's OCR text, selectable, with an optional faint word-box overlay).
+- **Global quick-search palette** is the daily gesture: a hotkey summons a floating bar,
+  visible <100ms from keypress; results populate per-keystroke with zero animation —
+  only *new* result thumbnails fade in 60ms. Perceived latency is the brand.
+- **Menu-bar / tray quick look:** clicking the tray icon drops a mini recent-grid; every
+  shot in it is already searchable.
+- Keyboard-first throughout: hotkey hints in muted mono; the keyboard-selection state and
+  pointer-hover state share one visual language (a 2px cyan focus edge).
 
-| Role | Color | Hex |
+## Small-window & responsive behavior
+Below ~900px the inspector collapses to a toggle (grid reclaims the width); below ~640px
+the left rail becomes an icon strip, grid drops to 2–3 columns, and the toolbar collapses
+overflow controls into a "…" menu. The quick-search palette is width-fluid and never
+clips. Content regions each own their scroll; the window chrome never scrolls sideways.
+
+## Identity
+| Role | Name | Hex |
 |---|---|---|
 | Base (dark) | OS charcoal | `#1B1D21` |
-| Material | Translucent panel | system vibrancy / `#26292F` at 88% |
+| Material | Translucent panel | vibrancy / `#26292F` @88% |
 | Brand | Scan cyan | `#3EE0F0` |
 | OCR glow | Ice | `#BFF6FB` |
-| Match highlight | `#FFD84D` |
-| Text | `#ECEEF2` / muted `#8E96A3` — light mode mirrors system |
+| Match | Highlight yellow | `#FFD84D` |
+| Text | Bright / muted | `#ECEEF2` / `#8E96A3` |
 
-- **UI:** system stack (SF Pro / Segoe UI / Inter on Linux) — native faithfulness beats brand vanity in a utility; **search queries & OCR text:** `JetBrains Mono` in overlays.
-- **Logo:** a screenshot frame with a diagonal scan-beam crossing it, beam in cyan. Menu-bar icon: monochrome frame-with-beam, template-style.
-- **Voice:** terse utility. "4,182 screenshots indexed. 61,204 words findable."
+Light mode mirrors the system.
 
-## Art direction
-- Platform-first: real vibrancy materials on macOS, Mica on Windows; our identity lives in the cyan beam, the yellow match marks, and obsessive spacing — not custom chrome.
-- Screenshots are sacred objects: always pixel-accurate, never cropped decoratively, displayed on a subtle checkerboard when transparent.
-- Density: a library grid at 4–8 columns with 8px gutters; keyboard-first affordances visible (hotkey hints in muted mono throughout).
+- **UI:** system stack (SF Pro / Segoe UI / Inter on Linux) — native faithfulness beats
+  brand vanity in a utility. **Data:** `JetBrains Mono` for search queries and OCR text.
+- **Signature detail — the honest match highlight:** search is the hero, so the signature
+  is retrieval made visible, not the capture animation. Matched words light up yellow
+  *in-image* using the real OCR bounding boxes; opening a result zooms to the first match
+  with a single highlight pulse; Enter cycles matches inside a shot. On capture, a brief
+  cyan scan sweep (one pass, ~300ms, no additive-glow wall) marks that indexing ran —
+  restrained, and it renders from actual word geometry, so it never over-claims.
 
-## The signature moment — "The Beam"
-On every capture (and during bulk import), the **OCR scan is staged as light**:
-the new screenshot's thumbnail appears, then a cyan beam sweeps it diagonally
-(63°, 400ms, additive glow), and *the words it passes ignite* — each detected
-word's bounding box flashes ice-white for 80ms then fades, leaving a faint
-1-frame afterglow trail. During bulk import this becomes a mesmerizing wall:
-the grid fills as beams sweep thumbnail after thumbnail (max 3 concurrent beams,
-queued), a mono counter climbing ("indexed 1,148 / 4,182 · 380 words/sec").
-Search completes the theater in reverse: matched words in results **light up
-yellow in-image** (the real bounding boxes from OCR data), and opening a result
-zooms to the first match with the highlight pulsing once. The beam is honest —
-it renders from actual OCR word geometry, not decoration.
+## Responsive / progressive enhancement
+Platform-first materials: real vibrancy on macOS, Mica on Windows, a flat charcoal
+equivalent on Linux — our identity lives in the cyan accent, the yellow match marks, and
+spacing, not custom chrome. No 3D anywhere. Bulk import shows a calm progress counter
+("indexed 1,148 / 4,182") rather than a mesmerizing beam wall — honesty over hypnosis.
 
-## Motion system
-- **Quick-search palette (the daily gesture):** hotkey summons a floating bar that drops in 8px with `spring-snappy` (target: visible <100ms from keypress — perceived latency is the brand); results populate per-keystroke with 0ms animation (instant), only *new* result thumbnails fade in 60ms.
-- **Capture flow:** hotkey → dim overlay + crosshair; the selection rectangle has live 1px cyan edges with mono dimensions ticking beside the cursor; release fires a 120ms white shutter-edge flash (border only, not full-screen) and the shot flies to the corner as a thumbnail (450ms `ease-out-expo` with scale-down) where the Beam scans it.
-- **Annotation:** tools apply with zero latency; the blur tool shows a live frosted preview under the brush.
-- **Tag/collection filing:** dragging a shot onto a collection makes the collection chip inhale slightly (scale 1.06) and the shot deals into it.
-- **Menu-bar quick look:** clicking the tray icon drops a mini recent-grid (200ms) — every shot in it already searchable.
+## Motion & touch
+- Shared tokens: palette drop-in `spring-snappy` at 8px; capture thumbnail flies to the
+  corner with `ease-out-quart`; match-to-match camera pans `ease-in-out-soft` at
+  `dur-emphasis`. All latency budgets are unchanged by motion — speed is accessibility.
+- Capture flow: hotkey → dim overlay + crosshair with live 1px cyan edges and mono
+  dimensions; release fires a 120ms border-only shutter flash (never full-screen).
+- Targets ≥32px for a dense desktop tool, but all primary buttons and menu rows ≥40px.
+- Drag a shot onto a collection: the chip inhales (scale 1.06) and the shot deals in.
 
 ## Key screens
-1. **Marketing page:** a faithful app-window mockup running the bulk-import Beam wall as the hero (screen recording, not WebGL — authenticity sells utilities); beneath, the search demo with in-image yellow matches; a privacy strip in mono: "OCR on-device. Index on-device. Nothing leaves."
-2. **Library (core):** toolbar (search, filters by app/date/tag), virtualized grid, right inspector with the shot's OCR text selectable (mono, faint word-box overlay toggle) — seeing your screenshot as text is a quiet second wow.
-3. **Money screen — Search results:** query bar with token chips (`app:figma before:march "api key"`), results grid where every thumbnail shows its yellow match marks; hit Enter to cycle matches inside a shot with camera pans (300ms `ease-in-out-soft`).
-4. **Onboarding:** one screen: "Point me at your screenshot folders." → folder pick → the import Beam wall begins immediately — the wow *is* the onboarding.
+1. **Library (core):** toolbar (search, filters), virtualized grid, right inspector with
+   selectable OCR text — seeing your screenshot as text is the quiet second wow.
+2. **Search results (money screen):** query bar with token chips
+   (`app:figma before:march "api key"`); every thumbnail shows its yellow match marks.
+3. **Onboarding:** one screen — "Point me at your screenshot folders" → folder pick →
+   import begins immediately with a calm counter. The wow *is* the onboarding.
+4. **Marketing page:** a faithful app-window screen recording (not WebGL — authenticity
+   sells utilities), the search demo with in-image matches, and a mono privacy strip:
+   "OCR on-device. Index on-device. Nothing leaves."
 
 ## Component language
 - Buttons: native styling per platform; primary actions get the cyan tint.
-- Cards/thumbnails: 6px radius, 1px hairline, hover raises a 2px cyan focus edge (also the keyboard-selection state — pointer and keyboard share one visual language).
-- Empty state: an empty frame with a resting beam: "Take a screenshot — ⇧⌘5 anytime."
-- Toasts: bottom-right, mono, self-dismissing; every toast includes the relevant hotkey hint.
+- Thumbnails: 6px radius, 1px hairline; hover/selection raises a 2px cyan edge.
+- Toasts: bottom-right, mono, self-dismissing; each includes the relevant hotkey hint.
+- Empty state: an empty frame with a resting beam — "Take a screenshot — ⇧⌘5 anytime."
 
-## Reduced motion & fallback
-Beam → thumbnails simply gain a small "indexed" tick; import shows the counter only. Shutter flash off. Camera pans between matches → instant jumps with highlight. Palette drop-in → appear. All latency budgets unchanged (speed is accessibility too).
+## Reduced-motion & fallback
+Scan sweep → thumbnails simply gain a small "indexed" tick; import shows the counter
+only. Shutter flash off. Match-to-match pans → instant jumps with the highlight. Palette
+drop-in → appear. Speed budgets never change.

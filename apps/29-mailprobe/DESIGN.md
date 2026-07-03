@@ -1,70 +1,80 @@
 # MailProbe — Design Specification
 
-## Design vision
-A metrology lab for email addresses. MailProbe's brand *is* epistemic honesty —
-we say "unknown" when others fake certainty — so the design language is
-calibration equipment: matte lab surfaces, a precision dial, evidence trails,
-and a monospace soul. It should look like the instrument a standards bureau
-would use; the confidence dial's needle physics must be so good it becomes the
-product's mascot.
+## Vision
+MailProbe is a developer API whose brand is epistemic honesty — it says "unknown"
+when the rest of the industry fakes certainty. The design reads like calibrated lab
+equipment: matte surfaces, a monospace soul, evidence trails, and one dignified
+titanium mark for the honest state. Docs and playground must be fully usable on a
+phone; the dashboard is a real mobile surface, not a shrunk desktop grid.
 
-## Brand identity
+## Mobile layout (390 × 844)
+- **Nav:** a top bar with the caliper-envelope mark and a menu; primary sections (Playground
+  · Docs · Dashboard · Keys) in a bottom tab bar. Docs use a collapsible section drawer,
+  not a persistent sidebar.
+- **Hero (Playground):** a single **specimen chip** input at the top — a mono address in a
+  bezeled well — with a full-width **Verify** button directly beneath, in the thumb zone.
+  The result appears as a **verdict card**: the four-state chip (✓ deliverable / ✕
+  undeliverable / ⚠ risky / ◌ unknown), a confidence number in large mono, and real
+  timing (`842ms`). Tap the card to expand its evidence trace.
+- **Evidence trace:** the four checks (SYNTAX · DNS · MX · SMTP) stack as a vertical list
+  of pass/fail rows with reasons in mono — this replaces the horizontal "assay line" on
+  phone, where a wide rig would never fit.
+- **Key components at phone width:** code samples scroll inside their own `overflow-x:auto`
+  block with a copy button; bulk upload is a full-width drop/attach zone; dashboard gauges
+  stack vertically.
 
-| Role | Color | Hex |
+## Identity
+| Role | Name | Hex |
 |---|---|---|
 | Lab slate | `#14171C` |
-| Bench | `#1C2128` |
-| Brand | Calibration teal | `#2DD4A8` |
+| Bench (panel) | `#1C2128` |
+| Calibration teal (brand/CTA) | `#2DD4A8` |
 | Deliverable | `#34D399` |
-| Undeliverable | `#F26D6D` |
-| Risky | `#F5B84D` |
-| **Unknown (the honest state)** | Titanium | `#A8B2C1` — deliberately dignified, never gray-as-shame |
-| Text | `#E8ECF2` / muted `#8A94A4` |
+| Undeliverable / Risky | `#F26D6D` / `#F5B84D` |
+| Unknown (titanium — the honest state) | `#A8B2C1` |
 
-- **UI:** `Inter`; **addresses, verdicts, API everything:** `Berkeley Mono` (fallback `IBM Plex Mono`) — an email address is a specimen and always renders mono, in a specimen chip.
-- **Display (marketing):** `Söhne Breit` (fallback `Archivo` expanded) — instrument-plate lettering.
-- **Logo:** an envelope inside a caliper. Icon: caliper-envelope on slate.
-- **Voice:** metrologist. "catch-all domain. We won't guess. Confidence: 61."
+Text `#E8ECF2`, muted `#8A94A4`.
 
-## Art direction
-- Instrument-panel composition: verdict readouts in bezeled wells, screw-head details at marketing-panel corners, silkscreen small-cap labels (`SYNTAX · DNS · MX · SMTP`).
-- **The four-verdict system is sacred:** each verdict has a fixed chip design (color + glyph: ✓ / ✕ / ⚠ / ◌) used identically in API docs, dashboard, CSV exports, and marketing — the ◌ open-circle for *unknown* is the brand's honesty mark, worn proudly.
-- Evidence-first layouts: every verdict is expandable to its pipeline trace — nothing asserted without its checks shown.
+- **Type:** **Inter** for UI/prose (≥16px mobile); **IBM Plex Mono** for every address,
+  verdict, key, and API value — an email is a specimen and always renders mono in a chip;
+  marketing headings in **Archivo** (expanded) for instrument-plate lettering.
+- **Signature detail — the confidence dial + the ◌ mark:** each verdict resolves a compact
+  **confidence gauge** with true needle physics (`spring`, mass 1.4, slight overshoot,
+  settle) to its zone — small enough to sit inside the verdict card on a phone at 60fps.
+  The four-verdict chip system is sacred and identical across API, dashboard, CSV, and
+  docs; the ◌ open-circle for *unknown* is worn proudly and never visually minimized.
+- Evidence-first: no verdict is asserted without its checks one tap away.
 
-## The signature moment — "The Assay"
-Marketing hero and playground share it. An address chip (`sarah@acme.com`, mono)
-is dropped into the instrument: it travels a horizontal **assay line** through
-four stations — SYNTAX, DNS, MX, SMTP — each a bezeled gate that illuminates as
-the chip passes (150ms dwell per station, real check semantics: a green pass-
-light, or amber/red with the failing reason printed beneath in mono). Between
-stations the chip glides on a light rail. At the line's end, the **confidence
-dial** — a large analog gauge — winds up with true needle physics (`spring`
-mass 1.4, slight overshoot and settle) to its verdict zone, and the verdict
-chip stamps beside it. Then the honesty beat: the demo cycles to
-`info@catchall-corp.com` — stations pass until SMTP, where the gate half-lights
-and prints `catch-all detected — mailbox unverifiable`, and the needle settles
-respectfully mid-dial at 61 with the titanium ◌ verdict. The hero headline
-completes: "We measure. We don't guess." In the live playground the same rig
-runs real verifications with real timings printed (`842ms`).
+## Responsive
+The stacked mobile playground expands on `lg` into the horizontal **assay line** — the
+specimen chip travels through four bezeled station gates that light as it passes, ending
+at a larger analog confidence dial. Docs gain a sticky station diagram that tracks the
+current section. **Optional desktop enhancement:** the animated traveling-chip assay as
+marketing hero — lazy, pointer surface, with the stacked evidence list as its complete
+mobile/reduced-motion equivalent.
 
-## Motion system
-- **Bulk jobs:** the assay line miniaturizes into a throughput view — chips streaming through at rate, a mono counter (`12,481 / 50,000 · 214/s`), verdict tallies filling four bins; completion prints a results-file chip that slides into the downloads tray.
-- **API key management:** keys render as etched tags; reveal = character-resolve left to right; rotation physically swaps the tag with a machined slide (240ms).
-- **Dashboard verdict distribution:** four horizontal gauge bars grow on load (`ease-out-expo`, 500ms, staggered 60ms); the unknown bar is *never visually minimized* — equal height, titanium fill.
-- **Webhook log:** deliveries as stamped receipts; failures show retry countdowns as small winding dials.
-- **Docs code samples:** language tabs flip with a machined click; the "run it" cell executes against the live playground and prints the response with a measured line-by-line reveal (30ms).
+## Motion & touch
+- Dashboard verdict distribution: four horizontal bars grow on load (`ease-out-quart`,
+  staggered 60ms); the unknown bar is equal height, titanium fill — never minimized.
+- Bulk jobs: a mono counter streams (`12,481 / 50,000 · 214/s`) filling four verdict bins;
+  completion drops a results-file chip into a downloads tray.
+- Targets ≥44px. Destructive actions (key rotation) use hold-to-confirm. Copy buttons on
+  every code cell and address give a light haptic on native. Docs language tabs switch with
+  a machined click.
 
 ## Key screens
-1. **Marketing hero:** The Assay, center; beneath, the pricing table etched as an instrument spec plate (per-check price in large mono), then the accuracy-methodology section with our public benchmark — including the honest-unknown rates — typeset as a lab report.
-2. **Playground (money screen):** single-address assay rig + a bulk drop zone; every run shows timing and the full evidence trace expandable per station.
-3. **Dashboard:** usage burette, verdict distribution gauges, per-key breakdown table, abuse-status indicator (a quiet green "within tolerances" lamp).
-4. **Docs:** bench-styled, sticky assay-line diagram that highlights the station relevant to the current section as you scroll.
+1. **Playground (money screen, mobile-first):** specimen input → verdict card → expandable
+   evidence, plus a bulk drop zone. Every run prints real timing.
+2. **Docs:** bench-styled, collapsible sections, runnable code cells that execute against
+   the live playground and print the response line-by-line.
+3. **Dashboard:** usage meter, the four verdict-distribution gauges, per-key table, and a
+   quiet "within tolerances" abuse-status lamp — all stacking cleanly on a phone.
+4. **Marketing hero:** the Assay (desktop) / stacked evidence (mobile) with the headline
+   "We measure. We don't guess."; pricing etched as a spec plate with per-check price in
+   large mono; the public accuracy benchmark typeset as a lab report.
 
-## Component language
-- Buttons: 6px radius, calibration teal with slate text; destructive = red-outline with hold-to-confirm dial fill.
-- Specimen chips: mono address in a bezeled well with the verdict glyph docked right.
-- Cards: bench panels, 1px `#2A313C` borders, silkscreen labels.
-- Empty state: an empty specimen tray: "Drop an address in. Watch the assay."
-
-## Reduced motion & fallback
-Assay travel → stations light simultaneously with the trace listed. Needle physics → needle set at value with a 120ms sweep. Streaming bulk view → counter + progress bar. Character-resolve → instant reveal. Every animated verdict also printed as text the moment it exists.
+## Reduced-motion & fallback
+Assay travel → all stations shown at once with the trace listed. Needle → set at value
+with a 120ms sweep. Bulk stream → counter + progress bar. Character-resolve on keys →
+instant. Every animated verdict is also printed as text the moment it exists. Motion
+collapses to ≤100ms opacity.

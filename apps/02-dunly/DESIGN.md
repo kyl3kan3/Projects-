@@ -1,60 +1,84 @@
 # Dunly — Design Specification
 
-## Design vision
-A recovery room for revenue: calm, precise, quietly triumphant. Dunly's job is to
-hand money back to founders, so the design language is a Swiss private bank crossed
-with a mission-control console — graphite surfaces, disciplined typography, and one
-recurring emotion: the visible, satisfying *return* of money that was walking out
-the door. Nothing cute. Money-serious.
+## Vision
+Dunly hands recovered revenue back to founders, so the design is calm, numeric, and
+quietly triumphant — a Swiss-bank ledger, not a confetti cannon. The one emotion it
+sells is the visible *return* of money that was walking out the door, stated in
+figures you can trust.
 
-## Brand identity
+## Mobile layout (390 × 844 — the primary spec)
+Founders check recovery on their phone the way they check MRR — a quick glance, often
+first thing. The phone view is a one-screen answer to "is it working?"
 
-| Role | Color | Hex |
-|---|---|---|
-| Base | Graphite | `#101315` |
-| Panel | Carbon | `#181D20` |
-| Brand | Recovery green | `#2FD07E` |
-| Brand deep | Bank green | `#0E8C52` |
-| Warning | Dunning amber | `#F5B84D` |
-| Danger | Churn red | `#F0655A` |
-| Text | Paper | `#EDF1F0` / muted `#8FA099` |
+- **Nav:** bottom tab bar, 4 items — Overview · At-risk · Sequences · Settings —
+  above the home indicator. Solid, no glow.
+- **Overview / landing:** the top third is the single number that matters —
+  **Recovered this period**, huge in mono tabular, dollar sign in Recovery green.
+  Beneath it, two smaller stat rows (At risk · In recovery). Below the fold: a live
+  activity feed of recovery events, newest first.
+- **Primary action** in the thumb zone: on the empty/first-run state a full-width
+  **Connect Stripe** button; once connected, a bottom-anchored **Export ROI
+  statement** button on the Overview.
+- **Key components at phone width:** stat block (label small-caps, value mono, no
+  decoration); at-risk payment row (customer, amount, retry countdown — opacity +
+  4px slide on enter, never bouncy); retry timeline as a compact horizontal node
+  strip inside its own `overflow-x:auto` track; sequence card (drag handle ≥44px).
+- Charts on phone are single thin traces (1.5px), no gridlines, one label at each end
+  — legible one-handed, never a dashboard crammed sideways.
 
-- **Display:** `Söhne` (or `Instrument Sans`) — banking-grade neutrality, medium weight only.
-- **Numerals are the brand:** all money renders in `Söhne Mono` tabular, with the cents at 60% size. The dollar sign always in Recovery green.
-- **Logo:** "dunly" lowercase; the "u" drawn as a curved arrow returning to its baseline — money coming back. Favicon: the returning-u glyph.
-- **Voice:** actuarial calm. "Recovered $1,840 this period." Never exclamation marks.
+## Identity
+| Role | Hex |
+|---|---|
+| Base graphite | `#101315` |
+| Panel carbon | `#181D20` |
+| Recovery green | `#2FD07E` |
+| Bank green (deep) | `#0E8C52` |
+| Dunning amber | `#F5B84D` |
+| Churn red | `#F0655A` |
+| Text | `#EDF1F0` / muted `#8FA099` |
 
-## Art direction
-- Light theme option ships day one (finance buyers demo to CFOs): same structure, `#F7F9F8` base, carbon text.
-- Depth is minimal — 1px hairlines (`#242B2E`) and a single elevation level. The *green glow is reserved exclusively for recovered money*; nothing else in the product may glow.
-- Charts: thin 1.5px lines, no area fills except the recovered-revenue band which fills in green at 12% opacity.
+- **Display/text:** `Söhne` (fallback `Instrument Sans`), medium — banking-grade
+  neutrality; body ≥16px on mobile.
+- **Data/mono:** `Söhne Mono` tabular for all money; cents at 60% size; the `$` always
+  Recovery green. Numerals are the brand.
+- **Signature detail — the return tick.** Every recovered dollar rolls the headline
+  counter upward: an odometer digit roll (`spring-gentle`, ≤600ms) with a brief green
+  underline sweep on settle. Rate-limited to one animation per 5s, batched otherwise.
+  Green glow is reserved *exclusively* for recovered money — nothing else in the
+  product glows. That restraint is the identity; no coin-physics, no 3D field.
 
-## The signature moment — "The Return"
-Marketing hero: a 3D particle system (R3F, GPU instanced ~4,000 coins as flat
-discs) streaming *away* from a stylized ledger into darkness — involuntary churn,
-in red-gray. A Dunly toggle in the hero flips on: a magnetic field (curl-noise
-shader) bends the stream mid-flight and coins arc back, landing in the ledger with
-staggered soft impacts; a mono counter ticks up in real time (`$0 → $48,392`)
-synced to landings. The physics feel is the product pitch. In-product echo: every
-real recovery event on the dashboard fires **one** coin arcing into the balance
-(2D Lottie, 600ms `ease-out-expo`) — rate-limited to one per 5s, batched otherwise.
+## Responsive
+The phone's stacked stat blocks become a top band of three (Recovered 2× size) on
+tablet, and on desktop (≥1024px) add a center "recovery river" of active sequences as
+swim-lanes plus a right-rail live feed. Tables gain columns progressively; on phone
+they stay a two-line row. A **light theme ships day one** (`#F7F9F8` base, carbon
+text) for CFO demos — equal care both themes, driven by CSS custom properties.
+**Optional desktop enhancement:** none beyond the swim-lane river; no 3D. The number
+is the hero at every size.
 
-## Motion system
-- **Recovered-revenue counter:** odometer digits roll upward with `spring-gentle`, blur 2px during motion (motion-blur cheat), land crisp.
-- **Retry timeline:** each smart-retry attempt renders as a node on a horizontal timeline; pending nodes pulse at 4% opacity amplitude; success flips the node to green with a 300ms radial wipe, failure crossfades to amber and draws the connector to the next attempt (line draws left→right, 240ms).
-- **Email sequence editor:** cards reorder with `spring-gentle` drag physics; dragging shows a green insertion hairline that snaps.
-- **Table rows** (at-risk payments): enter with 24ms stagger, no y-movement (finance tables don't bounce) — opacity + 4px x-slide only.
+## Motion & touch
+- Shared tokens throughout. At-risk rows enter with 24ms stagger, opacity + 4px
+  x-slide, no y-movement (finance tables don't bounce).
+- Retry node: success flips green with a 300ms radial wipe; failure crossfades to
+  amber and draws the connector to the next attempt (240ms left→right).
+- **Touch:** targets ≥44px, ≥8px apart. Destructive actions (pause dunning) use
+  hold-to-confirm — a 600ms radial fill — reachable by thumb.
+- **Gestures:** swipe an at-risk row to reveal "Pause retries" (also in row overflow
+  menu); pull-to-refresh re-syncs Stripe (also a header refresh control). Web haptics
+  where available, never load-bearing.
 
-## Key screens
-1. **Marketing hero:** The Return scene full-bleed; single line of copy over it: "Failed payments aren't churn. They're a queue." CTA: "Start recovering".
-2. **Command dashboard:** top band = three stat blocks (At risk / In recovery / **Recovered** — the last one 2× size, green); center = recovery timeline river showing every payment currently in a retry/dunning sequence as a swim-lane; right rail = live activity feed where recovery events land with the coin animation.
-3. **Money screen — the ROI statement:** monthly view designed like a bank statement: serif-free, ruled hairlines, "Dunly recovered $X — 41× your subscription" as the closing line. Exportable as a beautiful PDF (this page IS the retention weapon).
+## Key screens (mobile-first)
+1. **Overview:** giant Recovered figure, two sub-stats, live feed, Export button
+   pinned bottom.
+2. **At-risk:** list of payments in a sequence, each with retry countdown and a
+   compact timeline; swipe to pause.
+3. **ROI statement:** a bank-statement-styled page — hairlines, mono figures, closing
+   line "Dunly recovered $X — 41× your subscription." One-tap export to PDF; this
+   page is the retention weapon and must look like fine stationery on a phone.
+4. **Sequence editor:** reorderable email/SMS step cards with a green insertion
+   hairline on drag.
 
-## Component language
-- Buttons: 8px radius, solid Recovery green with carbon text (AA-checked); destructive actions are outline-red requiring hold-to-confirm (600ms radial fill).
-- Cards: hairline borders, no shadows in product; hover = border brightens.
-- Empty state: ledger illustration with a single gray coin; "Connect Stripe and we'll find the money."
-- The "unknown/at-risk" state color is a deliberate neutral slate — never alarmist red until truly failed.
-
-## Reduced motion & fallback
-Hero → poster of the mid-arc return moment. Coin events → the counter simply increments with a green flash. Odometers → direct number swap. Timeline pulses → static state dots.
+## Reduced-motion & fallback
+Counter roll → direct number swap with a single green flash. Retry radial wipes →
+instant state change. Row stagger → ≤100ms opacity fade. Timeline pulses → static
+state dots. Every animated signal (recovered, failed, at-risk) is also plain text.

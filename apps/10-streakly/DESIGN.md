@@ -1,65 +1,83 @@
 # Streakly — Design Specification
 
-## Design vision
-Warmth you can hold. Streakly is a daylight product — cream paper, ember orange,
-round tactile shapes — that treats habit-building like tending a small fire.
-The flame is the entire emotional engine: it grows with your streak, flickers
-when you're at risk, and roars on milestones. Friendly without being childish;
-the craft target is "Headspace meets a beautifully machined kitchen timer."
+## 1. Vision
+Streakly is one warm loop: tap a habit, land in a focus timer, finish, and the
+streak advances. It's a daylight product — cream paper, ember orange, round
+tactile shapes — that feels like a beautifully machined kitchen timer, not a
+gamified RPG. The craft lives in the feel of completing a habit, not in a mascot.
 
-## Brand identity
+## 2. Mobile layout (390×844)
+Native Expo app; everything is built for one thumb.
 
-| Role | Color | Hex |
+- **Nav:** a **bottom tab bar** — Today · Focus · Circles · You (4 tabs, ≥49px,
+  labels + line icons, safe-area padded). This is the spine of the app.
+- **Today (home):** a compact streak header at top (current streak number + best),
+  then the day's habits as pebble cards in a single scrolling column. Completed
+  habits sink below a thin "done today" divider. The primary action — checking a
+  habit, or **Start focus** — sits on each card and in the bottom third, always
+  thumb-reachable.
+- **Habit card:** full-width, 24px radius, the habit's color as a left ring/icon;
+  a ≥44px circular check on the trailing edge and a small "Focus" button. Tapping
+  the card body opens detail; tapping Focus launches the timer pre-filled.
+- **Add habit / edit / paywall:** bottom **sheets**, not full pages — dragged up,
+  dismissed by swipe-down (with a visible Close button).
+- Body ≥16px; streak numerals large but not shouting.
+
+## 3. Identity
+| Role | Name | Hex |
 |---|---|---|
 | Paper | Warm cream | `#FBF6EE` |
 | Card | White | `#FFFFFF` |
 | Brand | Ember orange | `#F2662D` |
-| Flame hot | Marigold | `#FFB020` |
 | Focus | Deep teal | `#0F766E` |
-| Night mode base | Charcoal plum | `#1C1720` |
+| Night base | Charcoal plum | `#1C1720` |
 | Text | Ink `#241F1A` / muted `#8A8178` |
 
-- **Display:** `Recoleta` (fallback `Fraunces` soft) — round, warm, a little storybook.
-- **UI & numerals:** `Nunito Sans`; streak counts get 800 weight.
-- **Logo:** a flame whose inner cutout is a checkmark. Icon: flame-check on ember.
-- **Voice:** encouraging coach who respects you. "Day 12. The streak is real now."
+- **Display:** `Recoleta` (fallback `Fraunces` soft) — round, warm. **UI &
+  numerals:** `Nunito Sans`; streak counts at 800 weight.
+- **Logo:** a flame whose inner cutout is a checkmark.
+- **Signature detail — the completion.** Checking a habit is the one crafted
+  moment: the ring fills clockwise (300ms `ease-out-quart`), the icon pops 1.15→1
+  (`spring-snappy`), a haptic notch fires, and the streak numeral rolls up by one
+  (odometer, 200ms) with a single spark. Small, reactive, 60fps. A **Rive flame**
+  in the Today header is a quiet accent that changes with streak tier (match →
+  candle → campfire) — it reacts, it does not perform, and the app is complete
+  without it.
 
-## Art direction
-- Shapes are pebble-round: 24px card radii, pill buttons, squircle habit icons.
-- Paper texture (2% grain) on backgrounds; shadows are warm-tinted (`#F2662D` at 6%), never gray.
-- Color-coding: each habit picks a hue from an 8-color earthy palette; the habit's ring, icon squircle, and history heat cells all inherit it.
-- Night mode ("wind-down") swaps to charcoal plum with the flame as the only saturated element.
+## 4. Responsive
+Phone is the product. On tablet the Today column centers at ~65ch with stats
+alongside; the bottom tabs become a slim side rail ≥768px. No desktop 3D — there
+is none anywhere. **First-class widgets** are the real "large surface": iOS
+home-screen widgets (small = flame state + count; medium = flame + 3 habit rings)
+use 3-frame states, not live animation, and get design attention equal to a screen.
 
-## The signature moment — "The Flame"
-A **Rive-driven flame character** (not a mascot with a face — an elemental,
-believable flame) lives at the top of the Today screen. State machine inputs:
-`streakLength`, `todayComplete`, `atRisk`, `milestone`. Day 1: a match-head
-flicker. Week 1: a steady candle. Day 30: a confident campfire with drifting
-sparks (particle emitter, 6–10 sparks). Missing-day risk after 8pm: the flame
-leans and gutters, embers dim — no guilt text needed. Completing the last habit
-of the day: the flame **draws itself up and flares** (700ms, `ease-anticipate`
-crouch then rise), releasing one spark that arcs to the streak counter and
-increments it. Milestones (7/30/100): the flame briefly turns teal-white and the
-screen's warm shadows deepen — a 2-second private fireworks, no confetti clichés.
+## 5. Motion & touch
+- Shared tokens: completion `ease-out-quart` + `spring-snappy`; sheets/cards
+  `spring-gentle` at `dur-emphasis`; taps `dur-micro`.
+- **Focus timer:** a teal ring counts down with a slow breathing inner glow (4s
+  cycle); the last 10s tighten the stroke; completion settles the ring into the
+  logged session and auto-checks the linked habit.
+- **Heatmap:** month cells fade in row-by-row on open (8ms stagger, ≤8 visible at
+  once) from ash to the habit's hue.
+- **Streak repair (premium):** press-and-hold to "cup" a guttering flame while a
+  relight plays (1.2s), gated behind the paywall sheet; a plain "Repair" button is
+  the equivalent.
+- **Touch:** targets ≥44px, ≥8px apart; swipe a habit row left for quick
+  edit/skip (buttons in detail do the same); pull-to-refresh on Today.
+- **Haptics:** notch on completion, soft success on milestone, light tick on tab
+  change.
 
-## Motion system
-- **Habit check:** the squircle's ring fills clockwise (300ms `ease-out-expo`), the icon pops 1.15→1 (`spring-snappy`), haptic notch, and the row exhales downward as completed rows sink below the fold divider.
-- **Focus timer:** a teal ring ticks with a breathing inner glow (4s cycle matching box-breathing); the last 10 seconds tighten the ring's stroke width; completion melts the ring into a pool that becomes the session-log entry.
-- **Heatmap:** month view cells ignite in sequence on open (row-by-row, 8ms stagger) from ash-gray to the habit's hue.
-- **Streak repair (monetized):** the gutted flame gets a "cup the flame" interaction — press-and-hold to shield it while a relight animation plays (1.2s), gated behind the paywall sheet.
-- **Circles:** friends' flames render as small candles in a row; when a friend completes today, their candle lights in real time with a soft ping.
+## 6. Key screens (mobile-first)
+1. **Today (money screen):** streak header + flame accent, pebble habit cards,
+   completed rows sunk below the divider, day-progress arc at the bottom.
+2. **Focus:** full-screen teal, the habit icon centered in the breathing ring,
+   pause/end as thumb-zone buttons; ending early asks once, gently.
+3. **Paywall (sheet):** flame at campfire size, weekly-trial primary, annual as
+   value anchor, lifetime de-emphasized; close X always visible.
+4. **Circles:** members' streaks as a simple row of small candles; a friend
+   completing lights their candle with a soft ping. No feed, no comments.
 
-## Key screens
-1. **Today (money screen):** flame hero at top with streak count; habit list as pebble cards; completed habits sink; bottom shows the day's "close the ring" progress arc.
-2. **Focus:** full-screen teal environment, the habit's icon centered in the breathing ring; ambient particles drift upward slowly (6 max); ending early asks once, gently.
-3. **Paywall:** the flame at its day-30 campfire size behind frosted glass — "This is your flame at 30 days." Weekly trial hero, lifetime anchor; close X always visible.
-4. **Widgets (design them first-class):** small = flame state + count; medium = flame + 3 habit rings; the widget flame uses 3-frame states, not live animation.
-
-## Component language
-- Buttons: pills, ember fill, cream text; press = squish to 0.95 with a warm shadow pulse.
-- Cards: white on cream, warm shadow, 24px radius; at-risk habit cards get a faint ember underline that breathes.
-- Empty state: an unlit match on cream: "Strike your first habit."
-- Streak numbers: odometer roll with a spark on increment.
-
-## Reduced motion & fallback
-Flame → 5 static states swapped by streak tier with 80ms crossfade. Spark arcs, particles, breathing glows off. Ring fills → instant with color confirmation. Haptics retained.
+## 7. Reduced-motion & fallback
+Flame → 5 static tier images swapped with an 80ms crossfade. Spark, breathing
+glow, heatmap stagger off. Ring fills and streak rolls → instant with a color/number
+change. **Haptics retained** — they carry the feedback when motion is removed.

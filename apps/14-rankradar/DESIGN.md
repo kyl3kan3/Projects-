@@ -1,65 +1,86 @@
 # RankRadar — Design Specification
 
-## Design vision
-A signals-intelligence station for search. Dark slate console, a sweeping radar
-beam, keyword positions as contacts on a scope — SEO reframed from spreadsheet
-drudgery to *surveillance craft*. The agency user should feel like an operator
-with better instruments than the client's other vendors. Serious hardware energy,
-warm enough for daily use.
+## 1. Vision
+RankRadar answers three weekly questions for small SEO teams: where do we rank,
+what should we write next, and what does the client report say. It's a calm,
+instrument-grade console — dark slate, tabular numerals, delta glyphs read like
+gauge readings — that makes an agency feel better-equipped than the client's other
+vendors. Serious, legible, quiet.
 
-## Brand identity
+## 2. Mobile layout (390×844)
+Agencies check movement between meetings and on the client's couch. The phone is a
+first-class read-and-alert surface.
 
-| Role | Color | Hex |
+- **Nav:** a **bottom tab bar** — Overview · Keywords · Briefs · Reports (4 tabs).
+  A project switcher sits in the top bar.
+- **Overview:** a summary strip of instrument tiles (keywords tracked, movers up,
+  movers down, page-1 count) in tabular mono, then the **movers feed** — the day's
+  biggest changes as rows, each with keyword, position, and a delta glyph. The
+  primary action, **Generate brief** or **Share report**, is a filled radar-green
+  button in the thumb zone.
+- **Keywords:** a dense rank list — keyword / position / Δ / best URL. Wide columns
+  (volume, SERP-feature chips) live in a horizontally **scrollable** table inside
+  its own `overflow-x:auto` container; the page body never scrolls sideways. Tap a
+  row for a full-screen detail with a position sparkline.
+- **Filters / alert thresholds / brief options:** bottom **sheets**.
+- Body ≥16px; numerals tabular and right-aligned; rows ≥48px.
+
+## 3. Identity
+| Role | Name | Hex |
 |---|---|---|
-| Console slate | `#0E141B` |
-| Panel | `#161F29` |
+| Base | Console slate | `#0E141B` |
+| Panel | Panel slate | `#161F29` |
 | Brand | Radar green | `#4ADE80` |
-| Sweep trail | `#22C55E` at falloff |
 | Rising | Signal cyan | `#38BDF8` |
 | Falling | Threat amber | `#F59E0B` |
-| Lost page-1 | Red | `#EF4444` |
 | Text | `#E2E8F0` / muted `#8A99A8` |
 
-- **Display & UI:** `Geist` (fallback `Inter`); **positions, deltas, volumes:** `Geist Mono` tabular — a position number is an instrument reading.
-- **Logo:** "RankRadar" with a radar-dish "R" whose sweep line extends as the wordmark's underline. Icon: the sweep in a rounded square.
-- **Voice:** operator's brief. "12 keywords moved into page one overnight. 3 need content."
+- **Display & UI:** `Geist` (fallback `Inter`). **Positions, deltas, volumes:**
+  `Geist Mono` tabular — a position number is an instrument reading.
+- **Delta glyphs:** ▲ cyan (up), ▼ amber (down), ● gray (steady) — custom-drawn,
+  optically centered beside the mono numerals. This glyph set is the core visual
+  language.
+- **Signature detail — the delta reveal.** When positions refresh, each changed
+  numeral rolls (odometer, `dur-standard`) as its delta glyph strokes in; a new
+  page-1 entry emits a single quiet radar-green ring from its row (600ms, one ring
+  only). No sweeping WebGL scope on the phone — just legible, instant "what moved."
 
-## Art direction
-- Instrument-panel layout: bezel-like panel edges (1px `#243140` with a 1px inner `#0A0F14`), section labels in small mono caps like silkscreened console text.
-- Delta arrows are the core glyph set: ▲ cyan, ▼ amber, ● steady gray — custom-drawn, optically centered next to mono numerals.
-- Charts on graph-paper: 8% opacity dot grid, position axis inverted (rank 1 on top, always).
+## 4. Responsive
+Mobile is the read/alert surface; **desktop is the operator console.** On
+lg screens the layout becomes the full instrument panel: the rank table dominant,
+a movers rail on the right, summary tiles across the top. **Optional desktop-only
+enhancement:** a circular radar scope — keywords as blips at radius = distance from
+#1, a slow phosphor-decay beam — as a *filterable* visualization of the tracked
+set. Lazy-loaded behind a static plotted-scope poster, pointer-only, never in the
+mobile bundle. The scope is enrichment; the table is the truth on every screen.
 
-## The signature moment — "The Sweep"
-Marketing hero + dashboard header share the motif. A circular radar scope (canvas
-/ WebGL): the beam sweeps at 8s/rev with a phosphor-decay trail (shader falloff).
-Keywords are contacts — blips at radius = rank distance from #1 (center = #1).
-As the beam crosses a blip it **refreshes**: today's position pings bright while
-yesterday's ghost lingers at the old radius with a tether line — movement toward
-center draws a cyan tether, away draws amber. Hovering a blip freezes the beam
-locally and raises a data card (keyword, position, Δ, URL). On the marketing
-page the scope runs a scripted narrative: a cluster of blips migrates
-center-ward over 3 sweeps while the counter types "+14 positions." In-product,
-the scope is a real, filterable view of the tracked set — decorative *and* load-
-bearing.
+## 5. Motion & touch
+- Shared tokens: row re-sort uses `spring-gentle` FLIP moves; numerals
+  `dur-standard`; chips `spring-snappy`.
+- **Daily refresh:** a single 2px radar-green scanline passes down the table
+  (800ms) and rows re-sort behind it — one clean pass, not a light show.
+- **SERP-feature chips** (AI Overview, snippet, local pack): flip in when gained,
+  desaturate when lost.
+- **Brief generation:** the keyword header brackets ⌜⌝ (200ms), then the brief
+  assembles section-by-section — outline lines draw, entities populate as chips
+  (60ms stagger, ≤8 at once).
+- **Touch:** ≥44px targets; swipe a keyword row for quick actions (pin / alert /
+  brief — all present as buttons in detail); pull-to-refresh on Overview and
+  Keywords.
 
-## Motion system
-- **Daily refresh:** rank-table rows update with a top-to-bottom sweep-line pass (a 2px green scanline traverses the table in 800ms; rows re-sort behind it with `spring-gentle` FLIP moves).
-- **Position deltas:** the numeral rolls (odometer) while its delta arrow strokes in; page-one entries fire a single sonar ring from the row (600ms, one ring only).
-- **SERP-feature chips** (AI Overview, snippet, local pack): flip in as small split-flap tiles when gained; gray out with a static-noise dissolve when lost.
-- **Brief generation:** a "target lock" sequence — the keyword's blip gets bracketed ⌜⌝ (200ms), then the brief document assembles beside it section-by-section (outline lines draw, entities populate as chips, 60ms stagger).
-- **Share-of-voice donut:** competitor arcs draw on load (600ms, staggered); your arc lands last and slightly overshoots.
+## 6. Key screens (mobile-first)
+1. **Overview:** instrument tiles + movers feed, primary action in the thumb zone.
+2. **Keywords (core):** dense rank list, horizontally scrollable wide columns,
+   tap-through to a sparkline detail.
+3. **Client report (money screen):** switches to a light "print" theme — white,
+   slate ink, the agency's logo — because it's *their* artifact, not ours; charts
+   simplify, wins lead. Shareable link + scheduled PDF; the theme swap is itself a
+   feature demo.
+4. **Brief view:** target-locked keyword header, outline, entities/questions as
+   chip clouds, internal-link suggestions to tracked pages.
 
-## Key screens
-1. **Marketing hero:** The Sweep scripted scene, left; right, the operator's claim: "See every movement. Know what to write next." Below: white-label report shots fanned like classified folders.
-2. **Project console (core):** scope top-left as the summary instrument; rank table dominant (keyword / position / Δ / best URL / volume / SERP chips); right rail = movers feed with sonar-ring events.
-3. **Money screen — the Client Report:** switches to a light "print" theme (white, slate ink, the agency's logo) — deliberately *not* console-styled, because it's the agency's artifact, not ours; charts simplify, wins lead. The theme swap itself is a feature demo.
-4. **Brief view:** target-locked keyword header, outline left, entities/questions right as chip clouds, internal-link suggestions as connecting threads to the site's tracked pages.
-
-## Component language
-- Buttons: 6px radius, radar-green fill with slate text; secondary bezel-outline. Hover = phosphor edge.
-- Tables: dense, 40px rows, mono numerals right-aligned; row hover raises a 2% green wash.
-- Empty state: a scope with no contacts, beam sweeping: "Add keywords to acquire targets."
-- Alerts config: threshold dials drawn as instrument knobs (drag to rotate, detents at 3/5/10 positions).
-
-## Reduced motion & fallback
-Scope → static plot with delta tethers pre-drawn; beam removed. Scanline refresh → instant table update with row-level green flashes. Sonar rings → badge highlight. All movement data duplicated in the delta column.
+## 7. Reduced-motion & fallback
+Scanline refresh → instant table update with a brief row-level green flash.
+Odometer → value swap; delta glyph appears without stroke. Sonar ring → a static
+badge highlight. Desktop scope → its static plotted poster. All movement is also
+carried in the Δ column as text, so nothing depends on animation.

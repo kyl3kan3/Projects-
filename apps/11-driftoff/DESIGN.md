@@ -1,64 +1,83 @@
 # DriftOff — Design Specification
 
-## Design vision
-The app equivalent of a dark hotel room with the ocean outside. DriftOff is an
-instrument for getting *out* of the phone — so the design paradox is central:
-gorgeous, but engineered to be looked at less. Everything is slower, deeper, and
-dimmer than normal apps: navy-black gradients, moonlight accents, motion at
-breathing tempo. No streaks, no red, no urgency. The interface itself should
-lower your heart rate.
+## 1. Vision
+DriftOff is an instrument for getting *out* of the phone. It's a dark, quiet,
+sleep-only app — navy-black gradients, moonlight accents, motion at breathing
+tempo — engineered to be looked at less, not more. No streaks, no red, no urgency;
+the interface itself should lower your heart rate.
 
-## Brand identity
+## 2. Mobile layout (390×844)
+iOS-first Expo app, designed for a dim room and a half-asleep thumb.
 
-| Role | Color | Hex |
+- **Nav:** a minimal **bottom tab bar** — Tonight · Sounds · Alarm · Morning
+  (4 tabs, low-contrast icons, safe-area padded). It fades to near-invisible once
+  a session starts.
+- **Tonight (home):** deliberately sparse — one large card, **"Begin wind-down,"**
+  filling the middle-to-lower screen so it's the natural thumb target. Above it,
+  tonight's alarm time in the app's only bold numerals; below it, the current
+  soundscape as a single now-playing row. Total tappable choices: 3.
+- **Sounds:** a vertical list of soundscapes; the premium mixer lets you layer up
+  to 4, each as a full-width channel row with a large volume slider (drowsy-finger
+  sized). A sleep-timer control with fade-out sits at the bottom.
+- **Alarm:** a large circular dial; drag the moon thumb across an arc to set the
+  wake window; a numeric stepper is the precise equivalent.
+- After the user's wind-down hour the whole app **drops brightness ~20% and grows
+  tap targets ~15%** — a real function, not decoration.
+- Body ≥16px (larger at night); every control ≥44px, most bigger.
+
+## 3. Identity
+| Role | Name | Hex |
 |---|---|---|
-| Abyss | `#050814` |
+| Base | Abyss | `#050814` |
 | Deep | Indigo night | `#0B1026` |
 | Brand | Moon silver | `#C7D2FE` |
 | Accent | Dusk lavender | `#8B87D8` |
-| Dawn (morning report) | Peach | `#F7C59F` |
-| Text | Moonlit `#DDE3F8` / muted `#7A80A8` at 70% |
+| Dawn | Peach | `#F7C59F` |
+| Text | Moonlit `#DDE3F8` / muted `#7A80A8` |
 
-- **Display:** `Gambetta` (fallback `Lora`) light italic for sleep copy — whispered serifs.
-- **UI:** `Inter` at reduced contrast (AA still enforced); nothing bold after 8pm except the wake time.
-- **Logo:** a crescent moon formed by a "D" with its counter offset. Icon: the crescent on abyss with a single star.
-- **Voice:** a whisper. Sentence fragments allowed. "Ready when you are."
+- **Display:** `Gambetta` (fallback `Lora`) light italic for sleep copy —
+  whispered serifs. **UI:** `Inter` at reduced contrast (AA still enforced);
+  nothing bold at night except the wake time. Morning report uses the peach palette.
+- **Logo:** a crescent moon formed by a "D" with an offset counter, one star.
+- **Signature detail — the wind-down dim.** Beginning a session doesn't launch a
+  scene; it starts a slow, real ambient shift: the Tonight gradient deepens toward
+  Abyss over the first three minutes, the soundscape's own faint texture drifts
+  (rain = slow streaks, waves = a gentle caustic shimmer) behind the now-playing
+  card, and the UI recedes. Cheap CSS/Skia gradient + one low-cost shader layer,
+  60fps, phone-native. The app's "last word": set face-up, it fades to a single
+  remaining star.
 
-## Art direction
-- **Time-reactive theme:** after the user's wind-down hour, the whole app drops brightness 20%, disables all blues above `#8B87D8` saturation, and enlarges tap targets 15% (drowsy fingers). Morning uses the peach dawn palette for the sleep report only.
-- Gradients are the material: every screen is a vertical gradient from Deep to Abyss with 1% noise dithering (no banding on OLED — this is a craft requirement, test on device).
-- No hard edges after dusk: cards are 28px radius with feathered 1px borders at 10% opacity.
+## 4. Responsive
+Phone is the whole product (iOS first). On tablet the Tonight card centers with
+generous margins; nothing reflows to columns. **No 3D descent scene, no WebGL on
+the critical path** — the ambient dim is the signature everywhere. There is no
+desktop app; an optional larger-screen "nightstand mode" simply shows the clock,
+alarm, and now-playing at arm's-length size.
 
-## The signature moment — "The Descent"
-Starting a wind-down begins a slow **3D descent scene** (Skia/GL shader): the
-camera drifts downward through layered translucent veils — dusk clouds, then deep
-water light-shafts, then a starfield that's *below* you — over the session's full
-length (10–30 min), imperceptibly slow (~4px/min). The soundscape mixer's channels
-each own a visual layer (rain = faint streaks, waves = a slow caustic shimmer,
-piano = drifting motes) so mixing sound visibly mixes the world. The screen dims
-to 15% by minute three. If the phone is set down face-up, the scene continues for
-10 min then fades to black with a single remaining star — the app's last word
-every night. Nothing is tappable during descent except a full-screen "surface"
-gesture (swipe up, slow).
+## 5. Motion & touch
+- **Global tempo:** after the wind-down hour, durations ×2 and easing shifts to
+  `ease-in-out-soft`; nothing moves faster than 600ms in the evening.
+- **Sound mixer:** channels are simple heavy-feeling sliders (`spring-gentle`,
+  underwater mass); muting a channel dims and sinks its row 12px.
+- **Breathing guide:** a soft ring expands/contracts at 4-7-8 tempo; **haptic
+  swells** (not taps) sync to the phases.
+- **Morning report:** the one sprightly moment — dawn peach, the sleep-cycle chart
+  draws as a gentle mountain silhouette (1s), stage bands fade up in sequence.
+- **Touch:** ≥44px (≥50px at night); swipe-up "surface" gesture ends a session
+  (a visible End button is the equivalent); no pull-to-refresh (nothing to fetch).
 
-## Motion system
-- **Global tempo:** all durations ×2 after wind-down hour; default easing shifts to `ease-in-out-soft`. Nothing in the evening moves faster than 600ms.
-- **Sound mixer:** channel orbs float in a loose cluster; volume = orb size (drag up/down, `spring-gentle` mass 2 — heavy, underwater); muting an orb lets it sink 12px and desaturate.
-- **Smart alarm setting:** a circular dial where the thumb drags the moon across an arc to the wake window; stars along the arc brighten within the chosen window.
-- **Morning report:** the only sprightly moment — dawn peach gradient, sleep-cycle chart draws as a gentle mountain silhouette (1s), stage bands fade up in sequence.
-- **Breathing guide:** a soft ring expands/contracts at 4-7-8 tempo; haptic swells (not taps) sync with the phases.
+## 6. Key screens (mobile-first)
+1. **Tonight (home):** the Begin card, wake time, one now-playing row — three
+   choices, deep gradient.
+2. **Wind-down session (money screen):** the ambient dim + drifting soundscape
+   texture; only the surface gesture is interactive; no paywall ever here.
+3. **Morning report:** peach palette, mountain chart, one insight sentence, one
+   action ("adjust tonight").
+4. **Paywall (daytime only):** annual hero as a night-sky panorama, monthly as
+   the anchor, trial terms in plain type; close always visible.
 
-## Key screens
-1. **Tonight (home):** one large card — "Begin wind-down" — with the descent scene's first veil animating faintly inside it; below, the mixer cluster and tonight's alarm arc. Total tappable choices on screen: 3.
-2. **The Descent (money screen):** as specced; the paywall never appears here.
-3. **Morning report:** dawn palette, mountain chart, one insight sentence ("Deep sleep up 12% — the earlier wind-down worked."), one action (adjust tonight).
-4. **Paywall:** shown only in daytime. The annual hero card is a night-sky panorama; copy: "Every night, for less than one bad night costs." Trial terms in plain type.
-
-## Component language
-- Buttons: large soft pills, moon-silver text on translucent fills (8% white); the primary action gets a slow 6s glow cycle, never a pulse.
-- Cards: 28px radius, gradient fills, feathered borders.
-- Empty/edge states: a single star with whisper copy ("No sessions yet. Tonight counts.").
-- Charts: silhouette fills, no gridlines, values on tap only.
-
-## Reduced motion & fallback
-Descent → a static gradient that darkens in 3 steps over the session. Orb physics → sliders. Breathing ring → text-guided timer with haptic swells. All dimming behavior retained (it's function, not decoration).
+## 7. Reduced-motion & fallback
+Ambient dim → a static gradient that darkens in 3 discrete steps over the session.
+Soundscape texture and breathing ring off; breathing becomes a text-guided timer
+with haptic swells. Mixer physics → plain sliders. **All dimming and tempo
+behavior is retained — it's function, not decoration.**

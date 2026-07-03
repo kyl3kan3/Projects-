@@ -1,64 +1,84 @@
 # InboxPilot — Design Specification
 
-## Design vision
-A co-pilot's cockpit grafted seamlessly into Gmail. The constraint *is* the
-design: 90% of InboxPilot lives inside someone else's UI, so the identity must be
-achieved with almost nothing — one brass accent, one perfect writing animation,
-and typography that feels like a fountain pen upgraded Gmail. Aviation-instrument
-precision, zero visual noise inside the inbox.
+## 1. Vision
+InboxPilot writes send-ready replies in your own voice, inside plain Gmail. 90% of
+it lives inside someone else's UI, so the identity is achieved with almost nothing:
+one brass accent, one perfect writing rhythm, and type that sits invisibly beside
+Google's own. Competent copilot, zero visual noise.
 
-## Brand identity
+## 2. Mobile layout (390×844)
+The Chrome extension itself is a desktop-Gmail surface — but the parts users
+*discover, buy, and manage* on are mobile-first, and they carry the brand. Honest
+split: the injected draft UI is desktop; the marketing site, onboarding, and the
+account/billing app are designed phone-first.
 
-| Role | Color | Hex |
+- **Marketing / onboarding (mobile):** single column. Hero shows a recreated Gmail
+  thread with the reply composing itself in grouped phrases; one brass CTA —
+  **"Add to Chrome"** — pinned in the bottom third (with an "email it to my laptop"
+  fallback for phone visitors who can't install here).
+- **Account app (mobile):** a **bottom tab bar** — Plan · Voice · Snippets ·
+  Settings. Plan shows a fuel-gauge quota; Voice shows profile status and "last
+  calibrated"; Snippets is a searchable list with variable chips.
+- **In-Gmail panel (desktop reality, documented):** a single brass plane button in
+  the compose toolbar at rest; the draft panel appears on demand, inherits Gmail's
+  spacing/type, marked only by a 1px navy top rule. On Gmail mobile web the same
+  composed-writing insertion works in the native compose box — no injected chrome.
+- Body ≥16px; account-app targets ≥44px in the thumb zone.
+
+## 3. Identity
+| Role | Name | Hex |
 |---|---|---|
-| Instrument navy | `#122036` |
-| Brass | Pilot brass | `#C79A3B` |
-| Sky | Horizon blue | `#3B82D0` |
-| Paper (in-Gmail surfaces) | `#FFFFFF` |
+| Base | Instrument navy | `#122036` |
+| Brand | Pilot brass | `#C79A3B` |
+| Accent | Horizon blue | `#3B82D0` |
+| Surface | Paper white | `#FFFFFF` |
 | Drafting | Graphite | `#4B5563` |
 | Text | `#17233B` on light / `#E8EDF6` on navy |
 
-- **UI:** `Inter` — must sit invisibly next to Google Sans/Roboto.
-- **Marketing display:** `Saans` (fallback `Archivo`) with an italic brass underline motif shaped like a flight path.
-- **Logo:** a paper plane whose fold lines form an envelope flap. Icon: brass plane on navy.
-- **Voice:** competent copilot. "Drafted in your voice. Edit anything."
+- **UI:** `Inter` — must sit invisibly next to Google Sans/Roboto inside Gmail.
+  **Marketing display:** `Saans` (fallback `Archivo`) with an italic brass
+  underline shaped like a flight path.
+- **Logo:** a paper plane whose fold lines form an envelope flap.
+- **Signature detail — composed writing.** The one brand animation: a draft
+  appears not as character-spam but as *thought-groups* (2–5 words) with variable
+  rhythm (interval 90–220ms randomized) and a brief pause before the sign-off —
+  like a person who knows what to say. The caret is brass while InboxPilot writes
+  and returns to Gmail's caret on handoff ("controls returned to you"). Pure
+  text-timing, runs identically at 60fps on desktop and mobile.
 
-## Art direction
-- **In-Gmail rule of one:** exactly one InboxPilot element visible at rest — the brass plane button in the compose toolbar. Everything else appears on demand and inherits Gmail's own spacing/type scale so it feels native, distinguished only by the brass accent and a 1px navy top rule on our panels.
-- Marketing site inverts to instrument-navy with brass gauges and horizon-line dividers (an artificial-horizon motif: a two-tone divider that tilts ±2° on scroll and self-levels).
-- Shadow DOM surfaces: white cards, 8px radius, Google-weight shadows — plus our 1px navy signature rule.
+## 4. Responsive
+The account app and marketing scale mobile → desktop as a widening single column
+(content ~65ch). The in-Gmail panel is inherently desktop but never assumes width
+beyond Gmail's own compose column. **Optional desktop-only enhancement (marketing):**
+an artificial-horizon divider that tilts ±2° on scroll and self-levels —
+CSS scroll animation, purely decorative, static level line as the default. No 3D.
 
-## The signature moment — "The Approach"
-Marketing hero: a real Gmail thread (recreated with care) sits center. A brass
-paper plane flies in on a curved approach path (2D path animation with banking
-rotation, 900ms `ease-out-expo`), lands on the reply box, and **the reply writes
-itself** — not character spam, but *composed* writing: phrases appear in
-thought-groups (2–5 words) with variable rhythm and a brief pause before the
-sign-off, exactly like a person who knows what to say. Then three tone chips
-(Shorter · Warmer · Firmer) fan out beneath; clicking one *revises visibly* —
-strikethrough ripples remove words while replacements settle in, a live redline
-(400ms). Copy: "Your voice. On autopilot." This writing rhythm — grouped,
-confident, human — is the brand's most important animation and must be tuned to
-the millisecond (word-group interval 90–220ms randomized, sign-off pause 450ms).
+## 5. Motion & touch
+- Shared tokens: draft insertion uses the composed-writing rhythm; chips
+  `spring-snappy`; gauges `dur-standard`.
+- **Tone rewrite:** one-tap Shorter / Warmer / Firmer revises *visibly* — an inline
+  redline where struck words ripple out and replacements settle (400ms); the draft
+  never flashes wholesale.
+- **Voice-training progress:** an altimeter-style gauge winds up with a ticking
+  "emails studied" counter — honest progress, not spinner.
+- **Quota (account app):** a fuel gauge; low quota shifts the needle amber, never
+  red.
+- **Touch:** account-app and tone chips ≥44px; snippet rows swipe to edit (Edit
+  button is the equivalent). No custom gestures inside Gmail — respect the host.
 
-## Motion system
-- **Draft insertion (in Gmail):** same composed-writing rhythm at 1.5× speed; the caret is brass while InboxPilot writes, returns to Gmail's caret on handoff — an explicit "controls returned to you" cue.
-- **Tone rewrite:** inline redline ripple as above; the edited draft never flashes wholesale.
-- **Voice-training progress:** an altimeter-style gauge winds up as sent-mail analysis proceeds (needle sweep + ticking counter of "emails studied").
-- **Follow-up reminders:** a small brass flag plants itself on the thread row (120ms stick-in with 1 overshoot); due reminders gently wave (2° rotation, 3s cycle, max 2 visible waving at once).
-- **Quota meter (popup):** a fuel gauge; low quota shifts the needle zone amber — never red inside someone's inbox.
+## 6. Key screens (mobile-first where applicable)
+1. **Marketing hero (mobile):** recreated thread + composed-writing demo, tone
+   chips fanning beneath, brass CTA in the thumb zone.
+2. **In-Gmail draft panel (desktop money surface):** the reply composed in place +
+   tone chips + a discreet "why this draft" expander citing thread lines; footer:
+   regenerate, settings, char count.
+3. **Account app (mobile):** plan + fuel-gauge quota, voice-profile status with
+   "last calibrated" date, snippet library with `{{first_name}}` brass chips.
+4. **Onboarding (mobile):** install → open Gmail → first draft, with the
+   style-profile privacy promise stated in one plain sentence and a link.
 
-## Key screens
-1. **Marketing hero:** The Approach on a navy runway-lit stage; beneath, a horizon-divider then three instrument cards (Voice / Tones / Follow-ups) with gauge micro-animations on scroll.
-2. **In-Gmail draft panel (money surface):** the reply written in place + tone chips + a discreet "why this draft" expander citing thread context lines; footer row: regenerate (circular brass arrow), settings, and character count in graphite.
-3. **Popup dashboard:** plan + fuel-gauge quota, voice-profile status with "last calibrated" date, snippet library with variable chips in brass braces `{{first_name}}`.
-4. **Onboarding:** three panes — install → open Gmail (with a live arrow pointing at the real compose button position) → first draft; the privacy card states the style-profile promise in one sentence with a link, no legal fog.
-
-## Component language
-- Buttons (in Gmail): Gmail-scale, white with navy text; the single primary uses brass fill only in our own panels, never injected into Gmail's chrome.
-- Chips: pill, 1px navy line, brass fill on active.
-- Empty states: the paper plane parked on a runway line: "Open any email and hit the plane."
-- Errors: navy toast, bottom-left, with a one-line fix suggestion.
-
-## Reduced motion & fallback
-Approach → static landed-plane frame with the finished draft visible. Composed-writing → full draft fades in (120ms) with a brass caret blink. Redline ripple → before/after crossfade. Gauges → stepped positions.
+## 7. Reduced-motion & fallback
+Composed writing → the full draft fades in (120ms) with one brass caret blink.
+Redline ripple → a clean before/after crossfade. Gauges → stepped positions,
+no sweep. Horizon divider → static level line. Every draft and tone action is
+fully usable with all motion removed.

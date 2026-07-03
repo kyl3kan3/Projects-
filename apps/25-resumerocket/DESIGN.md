@@ -1,65 +1,82 @@
 # ResumeRocket — Design Specification
 
-## Design vision
-Mission control for a job search. The user arrives anxious and leaves armed —
-so the design converts anxiety into instrumentation: cool indigo confidence,
-paper documents treated with respect, and the ATS made *visible* via the
-product's signature X-ray. Never cute, never corporate-beige: the aesthetic of
-a flight readiness review, because that's the emotional job.
+## Vision
+A job search runs on a phone between other obligations, so ResumeRocket turns
+application anxiety into calm instrumentation: paste a posting, see the gap, close
+it. The signature is honesty made visible — an ATS X-ray that shows what the robot
+actually reads, legible on a 390px screen, not a spectacle.
 
-## Brand identity
+## Mobile layout (390 × 844)
+- **Nav:** compact top bar — back chevron, the current application's title (company ·
+  role, truncating), and a match-score pill on the right that stays pinned. Primary
+  navigation (Applications · Tailor · Documents · Tracker) is a bottom tab bar,
+  thumb-reachable, clearing the home indicator.
+- **Hero (Tailor screen):** a single vertical stack, no side-by-side panels. Top: the
+  **match dial** as a slim horizontal meter with its number in large data type. Below
+  it, a segmented control — **Resume view / X-ray view** — one tap flips the document
+  between the human render and the machine render (this replaces any sweeping
+  animation). Under that, the gap list scrolls: covered / partial / missing keyword
+  chips grouped by status.
+- **Primary action:** a full-width **Apply-ready** / **Tailor now** button fixed in the
+  bottom third above the tab bar, in thrust blue; it reflects state (disabled-quiet
+  until a posting is loaded, solid when actionable).
+- **Key components at phone width:** the resume renders as bright paper edge-to-edge
+  with 16px margins; suggestion bullets appear as full-width cards you accept with a
+  44px checkmark; the posting is pasted via a bottom sheet, not a second column.
 
-| Role | Color | Hex |
+## Identity
+| Role | Name | Hex |
 |---|---|---|
-| Control indigo | `#141A3B` |
+| Control indigo (app chrome) | `#141A3B` |
 | Panel | `#1C2450` |
-| Brand | Thrust blue | `#4F6DF5` |
+| Thrust blue (brand/CTA) | `#4F6DF5` |
 | Match green | `#3DDC97` |
-| Gap amber | `#FFC24D` |
-| Paper (documents) | `#FCFCFA` |
-| Text | `#EAEDF9` / muted `#8B93BC` — documents use ink `#1A1D29` |
+| Gap amber (unverified + missing) | `#FFC24D` |
+| Paper / document ink | `#FCFCFA` / `#1A1D29` |
 
-- **Display:** `PP Right Grotesk` (fallback `Archivo`) condensed 700 for headers — launch-poster energy; **UI:** `Inter`; **the resume itself** offers three typographic suites (Classic serif `Source Serif 4`, Modern `Inter`, Compact `IBM Plex Sans`) — each ATS-safe, each typeset to book standards.
-- **Logo:** an "R" whose leg is a rocket exhaust flame. Icon: R-flame on indigo.
-- **Voice:** flight director. "Match score 84. Two gaps to close before you apply."
+Text `#EAEDF9`, muted `#8B93BC`.
 
-## Art direction
-- **Two worlds, one seam:** the app chrome is control-room indigo; the document is bright paper center-stage under a soft spotlight — the resume always looks like the payload being prepared.
-- Match scoring is a gauge language: circular readiness dials, thrust bars, gap chips — instrumentation, not grades (a 62 reads as "pre-flight work," not an F).
-- Absolute honesty styling: AI-suggested content the user hasn't verified renders with a dashed amber underline + a "confirm" affordance — the fabrication guard as a visible design layer. Nothing dashed can be exported.
+- **Type:** display **Archivo** (condensed 700) for scores and screen titles — a quiet
+  launch-poster note; **Inter** for UI/body (≥16px mobile); resume body offers three
+  ATS-safe suites (**Source Serif 4** classic, **Inter** modern, **IBM Plex Sans**
+  compact). Keywords and scores set in **IBM Plex Mono**.
+- **Signature detail — the X-ray flip:** the segmented control cross-dissolves the paper
+  into its parsed skeleton (200ms, `dur-standard`): readable fields (name, dates,
+  titles) snap into labeled outline boxes in thrust blue; anything the parser drops
+  (multi-column, tables, icons) desaturates to flat gray with a "not read" tag. It is
+  a state toggle, not a cinematic sweep — instant, honest, replayable, 60fps on any
+  phone because it is opacity + color, no canvas.
+- **Honesty layer:** AI-suggested text the user hasn't confirmed carries a dashed amber
+  underline and a confirm control; nothing dashed can export.
 
-## The signature moment — "The X-Ray"
-The free tool and the product's core loop share it. The user's resume (paper,
-center) — a horizontal **X-ray sheet** sweeps down over it (600ms,
-`ease-in-out-soft`): in the sheet's wake the document renders as the *machine
-sees it* — a skeletal wireframe: parsed fields glow structured blue (name,
-dates, titles snap into labeled boxes), while anything the parser can't read
-stays as **dead gray static** (tables, columns, icons literally dissolve into
-noise pixels). It's a jolt: your beautiful sidebar is invisible to the robot.
-Then the repair pass: gap chips fly from a job-posting panel on the right and
-dock onto the skeleton where keywords are missing (staggered arcs, 250ms each),
-the match dial winding upward with each dock. Finale: the X-ray sheet sweeps
-back up, restoring the human view — now annotated with what to fix. Shareable,
-terrifying, and the single best lead magnet in the category.
+## Responsive
+Single column is the design; on `md`+ the Tailor screen splits into posting (left) ·
+document (center) · gap rail (right), and the segmented X-ray toggle becomes a
+side-by-side human/machine pair. The match dial grows from meter to circular gauge.
+**Optional desktop enhancement:** a larger annotated X-ray inspector with hover
+tooltips per parsed field — lazy, pointer-only, never on the mobile path.
 
-## Motion system
-- **Tailoring engine:** paste a posting → requirement chips extract from it one-by-one (keyword pops out of the text with a highlight, shrinks into a chip, files into covered/partial/missing columns, 80ms cadence); rewritten bullets slide in as suggestion cards with the dashed-amber treatment until accepted (checkmark press converts to solid ink).
-- **Match dial:** winds with `spring-gentle` and *only moves on real changes*; the needle's rest position is honest (no fake 90s).
-- **Export:** the document lifts off the desk (scale 1.02, shadow deepens), a compression shimmer passes, and the PDF chip lands in the tray with a thud — small launch, every time.
-- **Application tracker:** stage columns (applied → interview → offer) with cards that carry their match dial as a mini-gauge; moving to "interview" fires a single thrust-blue streak under the card.
-- **Alumni win-back (email + in-app):** the rocket motif returns gently — "Back on the pad?" with the user's previous best resume staged and ready.
+## Motion & touch
+- Match dial animates only on real change (`spring-gentle`); rest position is honest,
+  never a fake 90.
+- Chip extraction from a pasted posting: keywords file into covered/partial/missing at
+  a calm 80ms cadence, capped at 8 visible before batching.
+- Targets ≥44px, ≥8px apart. Accepting a suggestion is a large checkmark; **swipe-left
+  on a suggestion card** to dismiss, with a visible dismiss button as equivalent.
+- Export confirmation gives a light haptic tap on native.
 
 ## Key screens
-1. **Free ATS X-Ray tool (the funnel):** drop a resume → the full X-Ray sequence → three findings free, the rest behind signup; this page gets marketing-tier polish since it IS the acquisition engine.
-2. **Tailoring workspace (money screen):** posting panel right, resume paper center, gap chips between them, match dial top; the "apply-ready" state (all ambers resolved) triggers a quiet green readiness band — never confetti; job hunting is serious.
-3. **Document editor:** paper-first WYSIWYG with the three type suites, section drag with `spring-gentle`, live one-page/two-page pagination indicator styled as a fuel gauge.
-4. **Tracker:** the columns, plus a weekly cadence bar ("7 tailored apps this week") — momentum instrumentation.
+1. **Free ATS X-ray (funnel):** drop a resume → the flip reveals the machine view →
+   three findings free, rest behind signup. Marketing-tier polish; the shareable result
+   card is a phone screenshot by design.
+2. **Tailor workspace (money screen):** the stacked layout above; reaching all-clear
+   fires a single quiet green readiness band across the dial — never confetti.
+3. **Document editor:** paper-first, section reorder via long-press drag (`spring-gentle`)
+   with up/down buttons as equivalent; a fuel-gauge pagination chip shows 1-page / 2-page.
+4. **Tracker:** applications as a vertical list with mini match meters and a status
+   segment (applied · interview · offer); a weekly cadence line at top.
 
-## Component language
-- Buttons: 8px radius, thrust blue; primary CTA on document screens sits on the control chrome, never on the paper.
-- Chips: covered = green fill, partial = amber outline, missing = amber fill; all with the keyword in 12px mono.
-- Cards: panel indigo, 12px radius; suggestion cards carry the dashed-amber left rule until confirmed.
-- Empty state: an empty launch pad spotlight on paper: "Load your current resume. Any shape — we'll X-ray it."
-
-## Reduced motion & fallback
-X-Ray sweep → instant two-state toggle (human view / machine view) with a labeled switch. Chip flights → chips appear docked with a count-up. Dials → set positions with text values. The machine-view static remains (it's information).
+## Reduced-motion & fallback
+X-ray flip → instant swap, no dissolve. Chip filing → chips appear pre-docked with a
+count. Dial → set value, no wind. Suggestion underline stays (it is information). All
+motion collapses to ≤100ms opacity.

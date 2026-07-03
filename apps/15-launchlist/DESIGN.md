@@ -1,63 +1,84 @@
 # LaunchList — Design Specification
 
-## Design vision
-Launch night, bottled. LaunchList sells anticipation — the queue, the countdown,
-the climb — so the design is a night launchpad: deep space navy, sunset-fuel
-gradients, and a physics-real rocket that responds to the crowd. It must be the
-best-looking thing a founder attaches their unlaunched dream to; every hosted
-page is our billboard, so restraint and spectacle have to coexist.
+## 1. Vision
+LaunchList turns "coming soon" into a growth loop: a launch page, an email capture,
+and referral mechanics (position, skip-the-line, milestone rewards) that work out
+of the box. Every hosted page is our billboard, so it has to be the best-looking
+thing a founder attaches their unlaunched dream to — anticipation with taste, not a
+fireworks show.
 
-## Brand identity
+## 2. Mobile layout (390×844)
+Hosted waitlist pages are shared as links and opened overwhelmingly **on phones** —
+so the visitor-facing page is the single most important mobile screen in the whole
+portfolio.
 
-| Role | Color | Hex |
+- **Hosted page (the artifact):** single column. Hero headline + subhead, then the
+  email field and one fuel-gradient CTA — **"Join the list"** — above the fold and
+  in the thumb zone. After signup the page swaps to the **position state**: a huge
+  numeral (`#347`), a "top 12%" line, the share kit (copy link + native share
+  sheet), and the reward gates listed. All reachable one-handed.
+- **Founder dashboard:** a **bottom tab bar** — Overview · Signups · Referrals ·
+  Settings. Overview leads with the signup count (large), a K-factor tile, and a
+  live join feed; the primary action **Share / Send blast** sits in the thumb zone.
+- **Page builder:** mobile shows a live full-page preview on top and token controls
+  (bg, accent, type pair) in a bottom **sheet**; every change animates the preview
+  immediately.
+- Body ≥16px; position numeral large but legible; targets ≥44px.
+
+## 3. Identity
+| Role | Name | Hex |
 |---|---|---|
-| Pad night | `#0A0E1F` |
-| Panel | `#131931` |
-| Brand gradient | Fuel | `#FF6B4A → #FFB020` |
+| Base | Pad night | `#0A0E1F` |
+| Panel | Panel navy | `#131931` |
+| Fuel (gradient) | `#FF6B4A → #FFB020` |
 | Ion | Electric violet | `#7C6CFF` |
-| Queue mint | `#5EEAD4` |
+| Queue | Mint | `#5EEAD4` |
 | Text | `#EEF1FB` / muted `#8C93B8` |
 
-- **Display:** `Space Grotesk` 700 with tight tracking; hero numerals (queue positions, counts) in `Space Grotesk` at massive sizes — position #347 should feel like a stadium seat number.
-- **UI:** `Inter`. **Countdowns:** `IBM Plex Mono`.
-- **Logo:** an upward arrow whose exhaust trail forms an "L". Icon: the arrow-L on fuel gradient.
-- **Voice:** launch-control hype with taste. "You're #347. Bring 3 friends, jump 900 spots."
+- **Display:** `Space Grotesk` 700, tight tracking; queue positions in `Space
+  Grotesk` at massive size — `#347` should feel like a stadium seat number.
+  **UI:** `Inter`. **Countdowns:** `IBM Plex Mono`.
+- **Logo:** an upward arrow whose exhaust trail forms an "L".
+- **Signature detail — the position roll.** After signup, and live when a referral
+  converts (via socket), the position numeral **rolls upward** — `#347 → #298` —
+  with the fuel gradient flashing on the delta and a single soft ring at the
+  landing. Big-type odometer, pure DOM/CSS, 60fps on any phone. Founders screen-
+  record *this* — it's the growth loop's engine, and it needs no 3D shaft.
 
-## Art direction
-- Fuel gradient is sacred: used only on the primary CTA, position deltas, and the rocket's exhaust — never backgrounds.
-- Starfield backgrounds: 2 parallax layers of 1px stars (max 120 stars, twinkle by opacity ±15% on 7s randomized cycles).
-- **Hosted pages are themeable** but ship with this identity as the flagship template; the builder exposes tokens (bg, accent gradient, type pair) while preserving the motion system — our craft travels with every embed.
+## 4. Responsive
+The hosted page and builder scale mobile → desktop as a centered single column
+(hero content ~65ch); the dashboard gains a persistent side rail and multi-column
+tiles ≥1024px. **Optional desktop-only enhancement (hosted page):** the position
+can render inside a subtle receding "queue shaft" of tick marks — R3F, lazy behind
+a static poster, pointer-only, ≤400KB, never on the mobile path. Mobile always gets
+the full-quality big-numeral roll, which is complete on its own.
 
-## The signature moment — "The Climb"
-On a hosted waitlist page, after signup: the visitor's **queue position renders
-as a vertical shaft** — a 3D column of tick marks receding up into darkness
-(R3F, fog), their marker glowing at position N. When a referral converts (live
-via socket), the shaft *moves*: the camera and marker surge upward past ticks
-(distance proportional to the boost, 900ms `ease-anticipate` — a brief dip, then
-the surge), numbers blur-rolling down (`#347 → #298`), a faint sonic-ring at
-apex, exhaust particles trailing below the marker. Milestone rewards float in
-the shaft at their thresholds as glowing gates — you can *see* early-access
-sitting 40 spots above you. Idle state: the shaft breathes with slow fog drift.
-Founders share screen-recordings of this moment; it is the growth loop's engine.
+## 5. Motion & touch
+- Shared tokens: signup sequence `ease-out-quart`; counters `spring-gentle`;
+  buttons `spring-snappy`.
+- **Signup:** the email field's underline ignites left→right (fuel gradient,
+  300ms), the button compresses and the confirmation state settles — one clean
+  500ms sequence, no confetti.
+- **Referral copy:** the link chip lifts a duplicate upward as it copies (240ms) —
+  "share it forward."
+- **Milestone unlock:** the reward gate's ring completes and irises open (400ms).
+- **Starfield** (hero backgrounds only): ≤120 1px stars, opacity twinkle ±15% on
+  7s cycles — quiet, and off under reduced motion.
+- **Touch:** ≥44px targets; native share sheet on the share button (copy-link is
+  the equivalent); pull-to-refresh on the dashboard feed.
 
-## Motion system
-- **Signup:** the email field's underline ignites left→right (fuel gradient, 300ms), the button compresses (`ease-anticipate`) and *launches* upward out of its slot as the confirmation state lands — one clean 500ms sequence, no confetti.
-- **Referral link copy:** the link chip duplicates itself upward with a fade (the "share it forward" metaphor), 240ms.
-- **Founder dashboard counters:** signups tick with odometer rolls; the K-factor gauge needle moves with `spring-gentle`; a live feed shows joins as small capsules docking into a column.
-- **Milestone unlock:** the reward gate's ring completes and irises open (400ms), releasing one pulse down the shaft to all markers below (they bob 4px).
-- **Launch-day blast send:** the send button initiates a 3-2-1 mono countdown (600ms/digit, skippable) then the email icon streaks off with an exhaust line — theatrical exactly once, where it's earned.
+## 6. Key screens (mobile-first)
+1. **Hosted page (the artifact):** capture above the fold → post-signup position
+   state with the roll, share kit, and reward gates.
+2. **Founder dashboard (money screen):** signup count, K-factor tile, referral
+   leaderboard (top referrer's row faintly shimmering), live join feed.
+3. **Page builder:** live full-page preview + token controls in a sheet; the
+   builder demos the product by existing.
+4. **Marketing hero:** LaunchList's own live waitlist page (dogfooded) with a real
+   counter and the roll on signup.
 
-## Key screens
-1. **Marketing hero:** a live LaunchList page for LaunchList itself (dogfooding as design): real position counter, real shaft demo on signup; below, template gallery as three lit launchpads.
-2. **Page builder:** left = live hosted-page preview (full motion), right = token controls; every control change animates the preview immediately — the builder demos the product by existing.
-3. **Money screen — Founder dashboard:** signups curve (draws on load), referral leaderboard with the top referrer's row carrying a subtle exhaust shimmer, sources donut, and the live join feed.
-4. **Hosted page (the artifact):** hero copy + email capture above the fold; post-signup swaps to The Climb + referral kit (link, share buttons, reward gates listed).
-
-## Component language
-- Buttons: 12px radius; primary = fuel gradient with navy text; secondary = violet outline. Hover lifts 1px with gradient shift +10° hue.
-- Cards: panel navy, 16px radius, starfield permitted only behind hero cards.
-- Position badges: mono, mint, with ▲ deltas in fuel gradient.
-- Empty state (dashboard): an unlit pad with a single spotlight: "Your list is armed. Share the link."
-
-## Reduced motion & fallback
-Shaft → static position card with "you're #347 · top 12%" and reward thresholds listed; boosts update numbers with a mint flash. Countdown → instant send with confirmation. Starfield static. All position math always in text.
+## 7. Reduced-motion & fallback
+Position roll → the numeral swaps with a single mint flash; "you're #347 · top 12%"
+and reward thresholds always shown as text. Signup ignite → instant confirmation.
+Starfield static. Desktop shaft → its static poster. All position math is text-first,
+so the loop works with every animation removed.

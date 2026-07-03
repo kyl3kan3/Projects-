@@ -1,61 +1,85 @@
 # ClipForge — Design Specification
 
-## Design vision
-A midnight edit suite that feels alive. The user walks into a dark room where their
-raw footage is already being carved into gems — machinery you can *feel* working:
-light moving through film, waveforms breathing, clips snapping into place with the
-weight of a flatbed editor. Confidence, velocity, zero clutter. Premiere Pro's power
-with a trailer-house's glamour.
+## Vision
+One upload in, a week of content out — and the app should feel as fast as that
+promise. A dark, focused editing surface where processing is legible at a glance
+and every generated asset is one thumb-tap from copied or downloaded. Confident
+and quiet, not a trailer-house spectacle.
 
-## Brand identity
+## Mobile layout (390 × 844 — the primary spec)
+Creators check on a rendering episode from their phone between other things, so the
+phone is the real product surface.
 
-| Role | Color | Hex |
-|---|---|---|
-| Ink (base) | Near-black blue | `#0B0F17` |
-| Panel | Raised slate | `#121826` |
-| Brand | Electric violet | `#6D5EFC` |
-| Brand hot | Lavender glow | `#A78BFA` |
-| Signal | Cutter cyan | `#22D3EE` |
-| Success | Render green | `#34D399` |
-| Text | Frost | `#E8ECF6` / muted `#8B97B3` |
+- **Nav:** bottom tab bar, 4 items — Projects · Upload · Assets · Account — 56px
+  tall, icons + labels, sitting above `env(safe-area-inset-bottom)`. The center
+  **Upload** action is the visual anchor.
+- **Landing / marketing** (logged-out): single column. Headline set large
+  ("One upload in. A week of content out."), a 20s muted autoplay clip of a real
+  content kit (poster-first, `<video playsinline>`), then a vertical stack of three
+  proof cards — a 9:16 clip, a tweet thread, a newsletter block. CTA pinned as a
+  sticky bottom button once the hero scrolls off.
+- **Project screen** (the workhorse): a sticky top bar shows episode title + a slim
+  **stage pill** (Queued → Transcribing → Selecting → Rendering → Ready). Below, the
+  content kit is a single scrolling column of asset cards. No side rails on phone.
+- **Primary action** lives in the bottom third: a full-width **Copy** / **Download**
+  button per asset card, and a persistent "Share kit" bar when a project is Ready.
+- **Key components at phone width:** clip card (9:16 thumbnail, tap-to-play sheet,
+  caption-style chips that horizontally scroll); written-asset card (thread /
+  LinkedIn / newsletter with a "source quote" line and inline edit); upload card
+  (drag-drop collapses to a big tap target + "Import from URL").
 
-- **Display type:** `Clash Display` (semibold, tight -2% tracking) — headlines cut like title cards.
-- **Body:** `Inter` 15–16px. **Mono (timecodes):** `JetBrains Mono` — every timestamp in the product renders mono with tabular figures.
-- **Logo:** wordmark where the "F" is a film-strip notch; the notch doubles as the app icon (a violet-to-cyan gradient chip with the notch cut out).
-- **Voice:** cutting-room laconic. "Rendering." not "We're processing your video!"
+## Identity
+| Role | Hex |
+|---|---|
+| Ink (base) | `#0B0F17` |
+| Panel | `#121826` |
+| Brand violet | `#6D5EFC` |
+| Brand hot | `#A78BFA` |
+| Signal cyan | `#22D3EE` |
+| Text | `#E8ECF6` / muted `#8B97B3` |
 
-## Art direction
-- Depth from **light, not borders**: panels get a 1px top inner highlight (`rgba(255,255,255,.06)`) and a soft 24px ambient shadow; the violet brand color is treated as *light* that leaks (blurred glows behind CTAs and active clips).
-- A faint film-grain overlay (`opacity .03`, animated at 12fps) on marketing surfaces only — never on the dashboard.
-- 12-col grid, 80px gutters marketing; product uses an 8px baseline grid, density like a pro NLE.
+- **Display:** `Clash Display` semibold, -2% tracking — title-card headlines.
+- **Text:** `Inter`, 16px min on mobile. **Data/mono:** `JetBrains Mono` for every
+  timecode, with tabular figures.
+- **Signature detail — the film-develop reveal.** A clip thumbnail resolves from
+  grayscale to color with a left-to-right wipe tied to *actual* render progress —
+  so the image literally develops as the render completes. Pure CSS mask transition,
+  cheap, reads perfectly at 60fps on a phone. No 3D, no full-screen scene; the whole
+  brand personality lives in this one honest progress cue.
 
-## The signature moment — "The Ribbon"
-Marketing hero: a **3D film ribbon** (R3F) — one continuous strip of the user's
-"footage" (emissive video-texture frames) flowing in a lazy S-curve through the dark.
-On scroll, the ribbon tightens, and a cyan laser plane sweeps it (GLSL scanline);
-where the laser crosses, the strip **cleaves into floating vertical 9:16 shards**
-that rotate to face camera, captions popping onto them word-by-word. Copy beside it:
-"One upload in. A week of content out." Scroll velocity drives cleave rate
-(clamped); idle state loops a slow drift. 45k tris, one 512² video texture,
-poster fallback: still render of the shard burst.
+## Responsive
+Mobile's single column becomes a two-column kit view on tablet (≥768px: clips lane
++ words lane) and a three-lane light table on desktop (≥1024px: clips · words · a
+scroll-spy transcript with chosen ranges highlighted in violet). The dashboard gains
+a left workspace rail only at ≥1024px; below that it's the bottom tab bar.
+**Optional desktop-only enhancement:** a subtle parallax on the marketing proof cards
+via CSS scroll-driven animation. No WebGL anywhere; the hero video carries it.
 
-## Motion system
-- **Pipeline choreography (dashboard):** the status pill morphs between stages with a liquid pill-to-pill slide (`ease-in-out-soft`, `dur-standard`); each completed stage fires a 6px cyan pulse ring outward (`dur-emphasis`, opacity 0.4→0).
-- **Clip cards** enter with `spring-gentle`, staggered 40ms, rising 16px — like prints being laid on a light table.
-- **Render progress:** clip thumbnails develop like film — a grayscale→color wipe left-to-right tied to actual render progress.
-- **Caption restyle:** the clip's caption band flips 180° on X-axis (`spring-snappy`) revealing the new style, then the re-render shimmer (diagonal specular sweep, 1.2s loop) runs until ready.
-- **Copy buttons:** press scales 0.96 (`dur-micro`); on success the label slides up and is replaced by "Copied" with a cyan check that draws itself (200ms stroke animation).
+## Motion & touch
+- Uses shared tokens. Stage pill morphs between states with `ease-in-out-soft` /
+  `dur-standard`; a completed stage fires one 6px cyan pulse ring (`dur-emphasis`,
+  opacity 0.4→0) — not a loop.
+- Asset cards enter with `spring-gentle`, staggered 30ms, ≤8 at once, rising ≤16px.
+- Copy button: press scales 0.96 (`dur-micro`); on success the label swaps to
+  "Copied" with a cyan check drawing in 200ms.
+- **Touch:** all targets ≥44px; asset action buttons are full-width in the thumb zone.
+- **Gestures:** swipe a written-asset card left to reveal Regenerate/Delete (also in
+  an overflow menu); pull-to-refresh on the project screen re-polls status (also a
+  visible refresh control in the top bar). Haptics are web-only light taps where the
+  Vibration API is available; never required.
 
-## Key screens
-1. **Marketing hero:** The Ribbon left-of-center 60%, copy right 40%; below the fold, a real content-kit example rendered as a masonry of clip shards + a thread card, each revealed by scroll-linked laser sweep.
-2. **Dashboard:** left rail (workspace, quota meter as a slim vertical film-strip that fills), center project list as horizontal "reels" with sprocket-hole edge detail on hover, upload card top-right with a pulsing drop zone (breathes 1.04 scale, 3s loop).
-3. **Money screen — the Kit view:** a three-lane light table: Clips lane (9:16 cards with hover-to-play), Words lane (thread/LinkedIn/newsletter as stacked paper cards), and a right sidebar transcript with the chosen clip ranges highlighted in violet — clicking a highlight scrolls its clip into view with a cyan flash.
+## Key screens (mobile-first)
+1. **Project / kit view:** sticky title + stage pill; scrolling column of clip and
+   written-asset cards; Ready state pins a "Share kit" bar bottom.
+2. **Upload:** big tap target with drag-drop fallback, URL import field, per-tier
+   quota meter as a slim horizontal fill under the title.
+3. **Clip detail sheet:** bottom sheet (`dur-emphasis`) with tap-to-play 9:16 preview,
+   caption-style chips, transcript-based trim (drag handles ≥44px), Re-render.
+4. **Dashboard / Projects:** vertical list of episodes, each a row with title, stage
+   pill, and thumbnail that develops as it renders.
 
-## Component language
-- Buttons: 10px radius, gradient (`#A78BFA→#6D5EFC`) primary with 24px violet glow at 25% under it; ghost buttons are panel-toned with 1px line, glow appears only on hover.
-- Cards: 14px radius, hover lifts 2px + glow; active project card gets a 2px cyan left rule.
-- Empty state: a tiny looping Rive of a film strip folding into a paper plane. Copy: "Nothing on the table. Feed me an episode."
-- Loading: never spinners — always the scanline sweep or film-develop wipe.
-
-## Reduced motion & fallback
-Ribbon → poster still. Film-develop wipes → instant with 80ms fade. Status pulses → color change only. Grain removed. All information conveyed by motion also exists as text ("Rendering 3 of 6").
+## Reduced-motion & fallback
+Film-develop wipe → instant color with an 80ms fade (progress still shown as a
+numeric "Rendering 3 of 6"). Stage pulses → color change only. Card stagger and
+spring settle collapse to ≤100ms opacity fades. Hero video → its poster still. No
+information is ever motion-only.
