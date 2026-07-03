@@ -1,27 +1,29 @@
 @import "tailwindcss";
 
 /* ========================================================================
-   ClipForge design system — v2, mobile-first (see DESIGN.md).
-   A dark, focused editing surface. The one signature detail is the
-   "film-develop" reveal: a clip resolves grayscale→color as it renders.
-   No WebGL, no spectacle — craft in the type, spacing, and one honest cue.
+   ClipForge design system — v3 (redline). See DESIGN.md + DESIGN_LANGUAGE v2.1.
+   Off-white actions on near-black; one violet accent, rationed; hairlines,
+   not boxes; the film-develop reveal is the only brand animation.
    ======================================================================== */
 
 @theme {
-  --color-ink: #0b0f17;
-  --color-panel: #121826;
-  --color-panel-2: #1a2234;
-  --color-line: #26304a;
-  --color-brand: #6d5efc;
-  --color-brand-2: #a78bfa;
-  --color-accent: #22d3ee;
-  --color-success: #34d399;
-  --color-danger: #f0655a;
-  --color-text: #e8ecf6;
-  --color-muted: #8b97b3;
+  --color-ink: #0b0d12;
+  --color-raised: #12151c;
+  --color-panel: #12151c; /* legacy alias */
+  --color-panel-2: #161a22;
+  --color-line: #1f242e;
+  --color-paper: #f4f5f8;
+  --color-brand: #7a6cff;
+  --color-brand-2: #7a6cff; /* legacy alias — single accent */
+  --color-accent: #7a6cff; /* legacy alias — single accent */
+  --color-success: #3ecf8e;
+  --color-danger: #f26d6d;
+  --color-text: #edeff4;
+  --color-muted: #9ba3b4;
+  --color-faint: #5c6470;
 
-  --font-display: "Clash Display", "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Clash Display", "General Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "General Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
@@ -39,91 +41,100 @@ body {
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
   font-family: var(--font-sans);
-  font-size: 16px; /* never below 16 on mobile (prevents iOS zoom-on-focus) */
+  font-size: 16px;
   line-height: 1.55;
   overscroll-behavior-y: none;
 }
 
-/* Fluid type scale — everything via clamp, nothing fixed across breakpoints */
-.t-hero { font-size: clamp(2.5rem, 9vw, 4.5rem); line-height: 1.02; letter-spacing: -0.03em; }
-.t-h2 { font-size: clamp(1.5rem, 5vw, 2.25rem); line-height: 1.1; letter-spacing: -0.02em; }
-.t-h3 { font-size: clamp(1.125rem, 3.5vw, 1.375rem); line-height: 1.2; }
-.t-lead { font-size: clamp(1.0625rem, 2.5vw, 1.25rem); }
+/* ---- Type roles (exact specimen from DESIGN.md) ---- */
+.t-hero { font-size: clamp(2.125rem, 9vw, 4rem); line-height: 1.05; letter-spacing: -0.02em; }
+.t-h2 { font-size: 1.5rem; line-height: 1.15; letter-spacing: -0.01em; }
+.t-title { font-size: 1rem; line-height: 1.3; font-weight: 600; }
+.t-secondary { font-size: 0.8125rem; line-height: 1.45; color: var(--color-muted); }
+.t-label {
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
 
-.font-display { font-family: var(--font-display); letter-spacing: -0.02em; }
+.font-display { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.02em; }
 .mono, time, .tc {
   font-family: var(--font-mono);
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
 }
 
-/* ---- Surfaces ---- */
+/* ---- Surfaces: space before boxes ---- */
 .card {
-  background: var(--color-panel);
+  background: var(--color-raised);
   border: 1px solid var(--color-line);
-  border-radius: 16px;
-  position: relative;
+  border-radius: 14px;
 }
-.card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+/* Hairline-divided list (rows, not boxes) */
+.rowlist > * + * { border-top: 1px solid var(--color-line); }
+.row-tap {
+  transition: background 0.12s;
+  -webkit-tap-highlight-color: transparent;
 }
+.row-tap:active { background: var(--color-raised); }
 
-/* ---- Buttons (44px min height, thumb-friendly) ---- */
+/* ---- Buttons (no gradients, no glows — DESIGN_LANGUAGE v2.1) ---- */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  min-height: 44px;
-  border-radius: 12px;
-  padding: 0.7rem 1.15rem;
+  min-height: 48px;
+  border-radius: 10px;
+  padding: 0.75rem 1.25rem;
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 0.9375rem;
+  line-height: 1;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: transform 0.12s var(--ease-out-quart), filter 0.12s, border-color 0.15s;
+  transition: transform 0.12s var(--ease-out-quart), background 0.12s, border-color 0.15s;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
-.btn:active { transform: scale(0.97); }
-.btn-primary {
-  background: linear-gradient(180deg, var(--color-brand-2), var(--color-brand));
-  color: #fff;
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: var(--color-paper); color: var(--color-ink); }
+.btn-primary:hover { background: #e3e6ed; }
+.btn-primary:disabled { background: #2a2f3a; color: var(--color-faint); }
+.btn-ghost { background: transparent; border-color: var(--color-line); color: var(--color-text); }
+.btn-ghost:hover { border-color: #2a3140; }
+.btn-quiet {
+  background: transparent;
+  color: var(--color-brand);
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
 }
-.btn-primary:hover { filter: brightness(1.07); }
-.btn-ghost {
-  background: var(--color-panel-2);
-  border-color: var(--color-line);
-  color: var(--color-text);
-}
-.btn-ghost:hover { border-color: var(--color-brand); }
+.btn-quiet:active { opacity: 0.8; }
 .btn-block { width: 100%; }
+.btn-sm { min-height: 36px; padding: 0.5rem 0.75rem; font-size: 0.8125rem; }
 
 .input {
   background: var(--color-ink);
   border: 1px solid var(--color-line);
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 0.75rem 0.85rem;
   color: var(--color-text);
   width: 100%;
-  font-size: 16px; /* keep ≥16 so mobile Safari never zooms */
-  min-height: 44px;
+  font-size: 16px;
+  min-height: 48px;
 }
 .input:focus {
   outline: none;
   border-color: var(--color-brand);
-  box-shadow: 0 0 0 3px rgba(109, 94, 252, 0.25);
+  box-shadow: 0 0 0 2px rgba(122, 108, 255, 0.25);
 }
 
-/* ---- Chips (horizontally scrollable rows on phone) ---- */
+/* ---- Chips: radius 10, hairline; active = violet line + text ---- */
 .chip-row {
   display: flex;
-  gap: 0.4rem;
+  gap: 0.5rem;
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
@@ -135,43 +146,41 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  min-height: 36px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  padding: 0.35rem 0.75rem;
-  border-radius: 999px;
+  height: 36px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 0 0.75rem;
+  border-radius: 10px;
   border: 1px solid var(--color-line);
   color: var(--color-muted);
-  background: color-mix(in srgb, var(--color-panel) 60%, transparent);
+  background: transparent;
   cursor: pointer;
   white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
 }
-.chip[data-active="true"] {
-  color: var(--color-text);
-  border-color: var(--color-brand);
-}
+.chip[data-active="true"] { color: var(--color-brand); border-color: var(--color-brand); }
 
 .badge {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.72rem;
+  font-size: 0.6875rem;
   font-weight: 600;
-  padding: 0.2rem 0.6rem;
-  border-radius: 999px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
   border: 1px solid var(--color-line);
   color: var(--color-muted);
-  background: color-mix(in srgb, var(--color-panel) 60%, transparent);
 }
 
-/* Designed focus ring */
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-brand);
   outline-offset: 2px;
   border-radius: 8px;
 }
 
-/* ---- Bottom tab bar (the primary nav on phone) ---- */
+/* ---- Bottom tab bar ---- */
 .tabbar {
   position: fixed;
   left: 0;
@@ -183,73 +192,80 @@ body {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
-  background: color-mix(in srgb, var(--color-panel) 92%, transparent);
+  background: color-mix(in srgb, var(--color-raised) 94%, transparent);
   backdrop-filter: blur(12px);
   border-top: 1px solid var(--color-line);
 }
-.tabbar a {
+.tabbar a,
+.tabbar button {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  font-size: 0.66rem;
+  gap: 3px;
+  font-size: 0.625rem;
   font-weight: 600;
-  color: var(--color-muted);
+  color: var(--color-faint);
   text-decoration: none;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
 }
-.tabbar a[data-active="true"] { color: var(--color-text); }
-.tabbar .tab-icon { font-size: 1.15rem; line-height: 1; }
-/* Center action stands proud */
-.tabbar .tab-cta .tab-icon {
-  width: 44px;
-  height: 44px;
+.tabbar a[data-active="true"],
+.tabbar button[data-active="true"] { color: var(--color-text); }
+.tabbar a[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--color-brand);
+}
+/* Center action: paper circle, ink icon */
+.tabbar .tab-cta .tab-ic {
+  width: 48px;
+  height: 48px;
   display: grid;
   place-items: center;
-  border-radius: 14px;
-  background: linear-gradient(180deg, var(--color-brand-2), var(--color-brand));
-  color: #fff;
-  margin-top: -14px;
-  box-shadow: 0 8px 20px -8px rgba(109, 94, 252, 0.8);
+  border-radius: 50%;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  margin-top: -16px;
 }
 
-/* Sticky bottom action bar (thumb zone) */
-.action-bar {
-  position: sticky;
-  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 8px);
-  z-index: 30;
-}
-
-/* ---- Stage pill (Queued → … → Ready) ---- */
+/* ---- Stage pill ---- */
 .stage-pill {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.75rem;
+  height: 28px;
+  font-size: 0.6875rem;
   font-weight: 600;
-  padding: 0.25rem 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0 0.7rem;
   border-radius: 999px;
   border: 1px solid var(--color-line);
-  background: color-mix(in srgb, var(--color-panel) 70%, transparent);
+  color: var(--color-muted);
 }
-.stage-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--color-accent); }
-.stage-pill.is-active .dot { animation: blip 1.4s var(--ease-in-out-soft) infinite; }
+.stage-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-brand); }
+.stage-pill.is-active .dot { animation: blip 2s var(--ease-in-out-soft) infinite; }
 .stage-pill.is-ready { color: var(--color-success); }
 .stage-pill.is-ready .dot { background: var(--color-success); }
 .stage-pill.is-failed { color: var(--color-danger); }
 .stage-pill.is-failed .dot { background: var(--color-danger); }
-@keyframes blip { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+@keyframes blip { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
 
-/* Completed-stage pulse ring (fires once, not a loop) */
-.pulse-once {
-  position: relative;
-}
+.pulse-once { position: relative; }
 .pulse-once::after {
   content: "";
   position: absolute;
   inset: -2px;
   border-radius: inherit;
-  border: 1px solid var(--color-accent);
+  border: 1px solid var(--color-success);
   opacity: 0;
   animation: pulseonce 1.4s var(--ease-out-quart);
 }
@@ -259,23 +275,14 @@ body {
 }
 
 /* ========================================================================
-   THE SIGNATURE DETAIL — film-develop reveal.
-   A clip poster resolves grayscale→color via a mask wipe driven by
-   --develop (0→100). Ready clips play a one-time develop-in; rendering
-   clips hold an indeterminate shimmer.
+   THE SIGNATURE — film-develop. Grayscale poster resolves to color with a
+   left→right wipe; the moving edge is a 1px violet line. Rendering holds a
+   quiet traveling sheen. This is the only brand animation.
    ======================================================================== */
-.develop {
-  --develop: 0%;
-  filter: grayscale(1) brightness(0.65) contrast(0.92);
-  -webkit-mask-image: linear-gradient(90deg, #000 var(--develop), rgba(0, 0, 0, 0.2) calc(var(--develop) + 14%));
-  mask-image: linear-gradient(90deg, #000 var(--develop), rgba(0, 0, 0, 0.2) calc(var(--develop) + 14%));
-}
-.develop-in {
-  animation: developIn 0.9s var(--ease-out-quart) both;
-}
+.develop-in { animation: developIn 0.9s var(--ease-out-quart) both; position: relative; }
 @keyframes developIn {
   0% {
-    filter: grayscale(1) brightness(0.6) contrast(0.9);
+    filter: grayscale(1) brightness(0.55);
     -webkit-mask-image: linear-gradient(90deg, #000 -20%, transparent 0%);
     mask-image: linear-gradient(90deg, #000 -20%, transparent 0%);
   }
@@ -285,31 +292,37 @@ body {
     mask-image: linear-gradient(90deg, #000 120%, #000 140%);
   }
 }
+.developing {
+  filter: grayscale(1) brightness(0.55);
+}
+.sheen { position: relative; overflow: hidden; }
+.sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 44%, rgba(255, 255, 255, 0.08) 50%, transparent 56%);
+  transform: translateX(-100%);
+  animation: sheen 1.5s var(--ease-in-out-soft) infinite;
+}
+@keyframes sheen { to { transform: translateX(100%); } }
+/* legacy alias */
 .shimmer { position: relative; overflow: hidden; }
 .shimmer::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(100deg, transparent 42%, rgba(34, 211, 238, 0.16) 50%, transparent 58%);
+  background: linear-gradient(100deg, transparent 44%, rgba(255, 255, 255, 0.08) 50%, transparent 56%);
   transform: translateX(-100%);
-  animation: shimmer 1.5s var(--ease-in-out-soft) infinite;
+  animation: sheen 1.5s var(--ease-in-out-soft) infinite;
 }
-@keyframes shimmer { to { transform: translateX(100%); } }
 
-/* Copied-check draw */
-.check {
-  stroke-dasharray: 20;
-  stroke-dashoffset: 20;
-  animation: draw 0.24s var(--ease-out-quart) forwards;
-}
+.check { stroke-dasharray: 20; stroke-dashoffset: 20; animation: draw 0.2s var(--ease-out-quart) forwards; }
 @keyframes draw { to { stroke-dashoffset: 0; } }
 
-/* Utility */
 .no-scrollbar { scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .safe-b { padding-bottom: env(safe-area-inset-bottom); }
 
-/* ---- Reduced motion: collapse to fast fades ---- */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -318,6 +331,7 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 90ms !important;
   }
+  .sheen::after,
   .shimmer::after,
   .pulse-once::after,
   .stage-pill.is-active .dot {

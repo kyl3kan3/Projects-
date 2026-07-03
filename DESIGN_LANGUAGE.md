@@ -95,6 +95,48 @@ Grotesk as the reflexive "safe" pairing; emoji as section markers; everything ce
 `rounded-2xl` on every surface; a colored accent-bar on every card; faux-glassmorphism
 everywhere. Spend boldness in **one** place per screen and keep the rest quiet.
 
+## Craft specification (v2.1 — the rules v2 lacked)
+
+The v2 specs described structure but under-specified craft, and the first builds
+proved it: emoji icons, gradient buttons, boxes-in-boxes, wireframe-gray content.
+These rules are now binding on every DESIGN.md and every build:
+
+1. **No emoji in product UI. Ever.** Not as icons, not as decorations, not in empty
+   states. Iconography is a single consistent SVG set — 20×20 viewBox, 1.75px stroke,
+   round caps and joins (Lucide-grade or custom to match). Nav icons 22px. An emoji
+   in a shipped screen is a build failure.
+2. **No gradient fills on interactive elements.** Buttons, toggles, chips are solid.
+   The premium default for a primary button on a dark ground is an **off-white fill
+   with ink text** (the Linear/Vercel move); on light grounds, ink fill with paper
+   text. Gradients may exist only as large, quiet background atmospheres — never as
+   component paint. No glows on buttons.
+3. **One accent, rationed.** Each app names ONE accent color and caps it at roughly
+   10% of any screen: brand mark, active states, progress, links, the signature
+   detail. Accent never fills primary buttons and never appears as large surfaces.
+   Semantic colors (success/danger/warning) are separate and used only for meaning.
+4. **Space before boxes.** Hierarchy comes from the spacing scale and hairline
+   dividers first. A card (border + radius) is reserved for things that are truly
+   framed objects — media, sheets, and grouped stat panels. Lists are hairline-divided
+   rows, not stacks of boxes. Never nest a card in a card.
+5. **A real spacing scale.** 4px base: `4 · 8 · 12 · 16 · 20 · 24 · 32 · 40 · 56 · 80`.
+   Screen gutter 20px on mobile. Every padding/margin in a DESIGN.md and a build is
+   one of these steps — no ad-hoc values.
+6. **A real type specimen.** Every DESIGN.md states exact size/line-height/weight/
+   tracking for each role (display, h2, title, body, secondary, label, data). Labels
+   are 11px/600/+0.08em uppercase — not bolded body text. Data/timestamps are always
+   the mono face with tabular figures.
+7. **Fonts must actually load.** Self-host or embed (`@font-face`, woff2, preloaded);
+   a design that silently falls back to system UI font is a failed build. Previews/
+   artifacts embed fonts as base64 data URIs.
+8. **Real content only.** No lorem, no gray placeholder bars posing as content.
+   Mockups and empty states use plausible product data (real titles, real numbers,
+   real sentences). If a screen needs media, art-direct a stand-in (styled still,
+   duotone photo treatment) — never a wireframe rectangle.
+9. **Radius discipline.** Pick at most three radii per app (e.g. 8 / 12 / 20) and
+   assign them to roles (controls / cards / sheets & media). Nothing else.
+10. **Hairlines, not borders.** Dividers and card borders are 1px at low contrast
+    (~12–16% lightness delta from the ground), never full-contrast strokes.
+
 ## DESIGN.md anatomy (v2 — tighter)
 
 Each spec, in order, kept lean:

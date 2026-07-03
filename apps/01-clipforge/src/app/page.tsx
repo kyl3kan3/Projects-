@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { PLANS } from "@/lib/plans";
 import { StickyCTA } from "@/components/StickyCTA";
+import { BrandMark } from "@/components/icons";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,7 @@ export default async function LandingPage() {
     <main className="min-h-screen pb-24 sm:pb-0">
       <header className="mx-auto flex max-w-5xl items-center justify-between px-5 py-4">
         <div className="flex items-center gap-2 font-display text-lg font-bold">
-          <span className="inline-block h-6 w-6 rounded-md bg-gradient-to-br from-[var(--color-brand-2)] to-[var(--color-brand)]" />
+          <BrandMark size={24} />
           ClipForge
         </div>
         <nav className="flex items-center gap-2 text-sm">
@@ -35,9 +36,7 @@ export default async function LandingPage() {
         <h1 className="t-hero font-display font-bold">
           One upload in.
           <br />
-          <span className="bg-gradient-to-r from-[var(--color-brand-2)] to-[var(--color-accent)] bg-clip-text text-transparent">
-            A week of content out.
-          </span>
+          <span className="text-[var(--color-brand)]">A week of content out.</span>
         </h1>
         <p className="t-lead mx-auto mt-5 max-w-2xl text-[var(--color-muted)]">
           Drop in a podcast or long-form video — or paste a YouTube link. ClipForge
@@ -54,71 +53,99 @@ export default async function LandingPage() {
         </p>
       </section>
 
-      {/* Proof: a stacked content kit (phone-native) */}
+      {/* Proof: a stacked content kit with real content (no wireframe bars) */}
       <section className="mx-auto max-w-md px-5 py-8 sm:max-w-3xl">
+        <div className="t-label mb-4">One episode becomes</div>
         <div className="grid gap-4">
-          {/* clip proof — shows the film-develop signature */}
+          {/* clip proof — art-directed still + real caption type + develop reveal */}
           <div className="card overflow-hidden p-0">
-            <div className="relative aspect-[9/16] max-h-[420px] w-full bg-gradient-to-br from-[#1a2234] to-[#0f1422]">
-              <div className="develop-in absolute inset-0 flex items-end p-4">
-                <div className="w-full space-y-1.5">
-                  <div className="h-2.5 w-3/5 rounded bg-[var(--color-accent)]/80" />
-                  <div className="h-2 w-2/5 rounded bg-[var(--color-brand-2)]/70" />
+            <div className="relative aspect-[9/16] max-h-[420px] w-full overflow-hidden">
+              <div className="develop-in absolute inset-0">
+                {/* duotone "video still": violet-on-ink radial scene */}
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background:
+                      "radial-gradient(80% 55% at 50% 28%, rgba(122,108,255,0.32), transparent 70%), radial-gradient(60% 40% at 30% 75%, rgba(122,108,255,0.12), transparent 70%), #12151C",
+                  }}
+                />
+                {/* silhouette of a speaker */}
+                <div
+                  className="absolute bottom-0 left-1/2 h-3/5 w-3/4 -translate-x-1/2"
+                  style={{
+                    background: "radial-gradient(50% 60% at 50% 20%, #262b38 0 38%, transparent 40%), radial-gradient(85% 70% at 50% 95%, #20242f 0 60%, transparent 62%)",
+                  }}
+                />
+                {/* real caption type — the actual product output */}
+                <div className="absolute inset-x-0 bottom-0 p-5 text-center">
+                  <p className="font-display text-2xl font-semibold uppercase leading-tight">
+                    You don't need
+                    <br />
+                    <span className="text-[var(--color-brand)]">more content.</span>
+                  </p>
+                  <p className="mono mt-2 text-xs text-[var(--color-muted)]">0:00–0:34</p>
                 </div>
               </div>
-              <span className="badge absolute right-3 top-3">9:16 · captioned</span>
+              <span className="badge absolute right-3 top-3">9:16 · Captioned</span>
             </div>
           </div>
           {/* thread proof */}
           <div className="card p-4">
-            <div className="mb-2 text-xs font-semibold text-[var(--color-muted)]">Tweet thread</div>
+            <div className="t-label mb-3">Tweet thread</div>
             <div className="space-y-2">
-              <div className="rounded-lg bg-[var(--color-panel-2)] p-3 text-sm">
-                <span className="mono mr-2 text-[var(--color-muted)]">1/6</span>
-                Most creators publish an episode and let 80% of its value die in 48 hours. Here's the fix 🧵
+              <div className="rounded-[10px] bg-[var(--color-panel-2)] p-3 text-sm leading-relaxed">
+                <span className="mono mr-2 text-[var(--color-faint)]">1/6</span>
+                Most creators publish an episode and let 80% of its value die in 48 hours. Here's the system that fixes it.
               </div>
-              <div className="rounded-lg bg-[var(--color-panel-2)] p-3 text-sm">
-                <span className="mono mr-2 text-[var(--color-muted)]">2/6</span>
+              <div className="rounded-[10px] bg-[var(--color-panel-2)] p-3 text-sm leading-relaxed">
+                <span className="mono mr-2 text-[var(--color-faint)]">2/6</span>
                 Start with the hook, not the highlight. The first two seconds decide everything.
               </div>
             </div>
           </div>
           {/* newsletter proof */}
           <div className="card p-4">
-            <div className="mb-2 text-xs font-semibold text-[var(--color-muted)]">Newsletter</div>
-            <p className="text-sm text-[#dfe5f3]">
+            <div className="t-label mb-3">Newsletter</div>
+            <p className="text-sm leading-relaxed text-[var(--color-text)]">
               <strong>The 80% you're leaving on the table.</strong> Every episode has a
               handful of moments that stand on their own. Most never get cut…
             </p>
-            <p className="cite mt-2 text-xs text-[var(--color-muted)]">
-              <span className="mono text-[var(--color-accent)]">4:12</span> “we left 80% of the value on the table”
+            <p className="mt-3 text-xs text-[var(--color-muted)]">
+              <span className="mono text-[var(--color-brand)]">4:12</span>{" "}
+              “we left 80% of the value on the table”
             </p>
           </div>
         </div>
       </section>
 
-      {/* Pricing */}
+      {/* Pricing — hairline-divided blocks, not boxes */}
       <section id="pricing" className="mx-auto max-w-5xl px-5 py-10">
-        <h2 className="t-h2 mb-6 font-display font-bold sm:text-center">Simple, upload-based pricing</h2>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <h2 className="t-h2 mb-2 font-display sm:text-center">Simple, upload-based pricing</h2>
+        <p className="t-secondary mb-6 sm:text-center">Priced on uploads — the honest cost driver.</p>
+        <div className="rowlist sm:grid sm:grid-cols-3 sm:gap-8 sm:border-t sm:border-[var(--color-line)] sm:pt-8 sm:[&>*+*]:border-t-0">
           {(["starter", "pro", "team"] as const).map((id) => {
             const p = PLANS[id];
             return (
-              <div key={id} className={`card p-6 ${id === "pro" ? "ring-2 ring-[var(--color-brand)]" : ""}`}>
-                {id === "pro" && <div className="badge mb-3">Most popular</div>}
-                <h3 className="font-display text-xl font-bold">{p.name}</h3>
-                <p className="font-display mt-1 text-4xl font-extrabold">
-                  ${p.priceMonthly}
-                  <span className="text-base font-normal text-[var(--color-muted)]">/mo</span>
-                </p>
+              <div key={id} className="py-6 sm:py-0">
+                <div className="flex items-baseline justify-between sm:block">
+                  <h3 className="t-title font-display text-lg">
+                    {p.name}
+                    {id === "pro" && <span className="badge ml-2 text-[var(--color-brand)]">Popular</span>}
+                  </h3>
+                  <p className="font-display text-4xl text-[var(--color-paper)] sm:mt-2">
+                    ${p.priceMonthly}
+                    <span className="text-base font-normal text-[var(--color-faint)]"> /mo</span>
+                  </p>
+                </div>
                 <ul className="mt-4 space-y-2 text-sm text-[var(--color-muted)]">
                   <li>{p.uploadsPerPeriod} uploads / month</li>
                   <li>{p.maxExportHeight}p export · 9:16 + 1:1</li>
                   <li>{p.brandPresets ? "Brand presets" : "Standard captions"}</li>
-                  <li>{p.seats} seat{p.seats > 1 ? "s" : ""}</li>
-                  {p.apiAccess && <li>API access</li>}
+                  <li>{p.seats} seat{p.seats > 1 ? "s" : ""}{p.apiAccess ? " · API access" : ""}</li>
                 </ul>
-                <Link href={cta} className="btn btn-primary btn-block mt-6">Choose {p.name}</Link>
+                <Link href={cta} className={`btn btn-block mt-5 ${id === "pro" ? "btn-primary" : "btn-ghost"}`}>
+                  Choose {p.name}
+                </Link>
               </div>
             );
           })}

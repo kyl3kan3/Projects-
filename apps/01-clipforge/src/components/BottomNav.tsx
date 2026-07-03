@@ -5,8 +5,9 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { openUploadSheet } from "./UploadSheet";
+import { IconFilm, IconPlus, IconUser } from "./icons";
 
-/** Primary phone navigation. Center Upload is the visual anchor (thumb zone). */
+/** Primary phone navigation. Center action is a paper circle (DESIGN.md). */
 export function BottomNav({ email }: { email: string }) {
   const pathname = usePathname();
   const [account, setAccount] = useState(false);
@@ -16,15 +17,16 @@ export function BottomNav({ email }: { email: string }) {
     <>
       <nav className="tabbar">
         <Link href="/dashboard" data-active={onProjects} aria-label="Projects">
-          <span className="tab-icon">🎞️</span>
+          <IconFilm size={22} />
           Projects
         </Link>
         <button className="tab-cta" onClick={openUploadSheet} aria-label="New content kit">
-          <span className="tab-icon">＋</span>
-          <span className="sr-only">Upload</span>
+          <span className="tab-ic">
+            <IconPlus size={22} />
+          </span>
         </button>
         <button onClick={() => setAccount(true)} aria-label="Account">
-          <span className="tab-icon">◔</span>
+          <IconUser size={22} />
           Account
         </button>
       </nav>
@@ -42,14 +44,15 @@ export function BottomNav({ email }: { email: string }) {
               role="dialog"
               aria-label="Account"
               className="card safe-b relative z-10 rounded-b-none p-5"
+              style={{ borderRadius: "20px 20px 0 0" }}
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", stiffness: 320, damping: 34 }}
             >
               <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-[var(--color-line)]" />
-              <div className="text-sm text-[var(--color-muted)]">Signed in as</div>
-              <div className="mb-4 font-medium">{email}</div>
+              <div className="t-label">Signed in as</div>
+              <div className="t-title mb-4 mt-1">{email}</div>
               <form action="/api/auth/logout" method="post">
                 <button className="btn btn-ghost btn-block">Log out</button>
               </form>

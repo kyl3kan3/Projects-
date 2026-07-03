@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { msToClock, STATUS_LABELS } from "@/lib/utils";
+import { IconRefresh, IconChevronLeft } from "./icons";
 import type { TextOutputContent } from "@/db/schema";
 
 const EASE = [0.25, 1, 0.5, 1] as const;
@@ -67,10 +68,10 @@ export function ProjectView({ projectId }: { projectId: string }) {
       {/* Sticky top bar with live stage pill */}
       <div className="sticky top-0 z-20 -mx-5 mb-3 border-b border-[var(--color-line)] bg-[var(--color-ink)]/90 px-5 py-3 backdrop-blur">
         <div className="flex items-center justify-between gap-3">
-          <Link href="/dashboard" className="text-sm text-[var(--color-muted)]">← Projects</Link>
+          <Link href="/dashboard" className="flex min-h-[44px] items-center gap-1 text-sm text-[var(--color-muted)]"><IconChevronLeft size={18} /> Projects</Link>
           <div className="flex items-center gap-2">
             <button onClick={manualRefresh} aria-label="Refresh" className="text-[var(--color-muted)]">
-              <span className={refreshing ? "inline-block animate-spin" : ""}>↻</span>
+              <span className={refreshing ? "inline-block animate-spin" : "inline-block"}><IconRefresh size={18} /></span>
             </button>
             <AnimatePresence mode="wait">
               <motion.span
@@ -198,7 +199,7 @@ function ClipCard({ candidate, variants, onChange }: { candidate?: CandidateDto;
       <div className="p-3">
         <div className="flex items-center justify-between gap-2">
           <div className="truncate text-sm font-medium">{candidate?.title ?? "Clip"}</div>
-          {candidate && <span className="badge shrink-0">🎣 {candidate.hookScore}</span>}
+          {candidate && <span className="badge mono shrink-0">HOOK {candidate.hookScore}</span>}
         </div>
         {candidate && (
           <div className="mono mt-1 text-[11px] text-[var(--color-muted)]">

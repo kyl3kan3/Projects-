@@ -8,6 +8,7 @@ import { formatDuration, STATUS_LABELS } from "@/lib/utils";
 import { BottomNav } from "@/components/BottomNav";
 import { UploadSheet } from "@/components/UploadSheet";
 import { NewKitButton } from "@/components/NewKitButton";
+import { BrandMark, IconFilm } from "@/components/icons";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +31,7 @@ export default async function DashboardPage() {
     <main className="mx-auto max-w-2xl px-5 pb-28 pt-4">
       <header className="mb-5 flex items-center justify-between">
         <div className="flex items-center gap-2 font-display text-lg font-bold">
-          <span className="inline-block h-6 w-6 rounded-md bg-gradient-to-br from-[var(--color-brand-2)] to-[var(--color-brand)]" />
+          <BrandMark size={24} />
           ClipForge
         </div>
         <div className="mono text-xs text-[var(--color-muted)]">
@@ -57,10 +58,7 @@ export default async function DashboardPage() {
               className="h-5 w-[9px] rounded-[2px] border"
               style={{
                 borderColor: "var(--color-line)",
-                background:
-                  i < used
-                    ? "linear-gradient(180deg, var(--color-brand-2), var(--color-brand))"
-                    : "var(--color-panel-2)",
+                background: i < used ? "rgba(122,108,255,0.8)" : "var(--color-panel-2)",
               }}
             />
           ))}
@@ -74,7 +72,7 @@ export default async function DashboardPage() {
 
       {rows.length === 0 ? (
         <div className="card p-8 text-center">
-          <div className="text-3xl">🎬</div>
+          <div className="flex justify-center text-[var(--color-faint)]"><IconFilm size={28} /></div>
           <p className="mt-2 text-sm text-[var(--color-muted)]">
             No projects yet. Add a video, podcast, or a YouTube link to get your first kit.
           </p>
@@ -83,16 +81,16 @@ export default async function DashboardPage() {
           </div>
         </div>
       ) : (
-        <ul className="space-y-2.5">
+        <ul className="rowlist border-y border-[var(--color-line)]">
           {rows.map((p) => (
             <li key={p.id}>
               <Link
                 href={`/projects/${p.id}`}
-                className="card flex items-center justify-between gap-3 p-4 active:scale-[0.99]"
+                className="row-tap flex min-h-[56px] items-center justify-between gap-3 py-4"
               >
                 <div className="min-w-0">
-                  <div className="truncate font-medium">{p.title}</div>
-                  <div className="mono mt-0.5 text-xs text-[var(--color-muted)]">
+                  <div className="t-title truncate">{p.title}</div>
+                  <div className="mono mt-0.5 text-[13px] text-[var(--color-faint)]">
                     {formatDuration(p.durationSeconds)} · {new Date(p.createdAt).toLocaleDateString()}
                   </div>
                 </div>

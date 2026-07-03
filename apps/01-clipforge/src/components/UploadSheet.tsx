@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { IconUpload } from "./icons";
 
 export const OPEN_UPLOAD_EVENT = "clipforge:upload-open";
 
@@ -123,7 +124,7 @@ export function UploadSheet({ overLimit }: { overLimit: boolean }) {
           <motion.div
             role="dialog"
             aria-label="New content kit"
-            className="card safe-b relative z-10 rounded-b-none p-5"
+            className="card safe-b relative z-10 p-5" style={{ borderRadius: "20px 20px 0 0" }}
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
@@ -155,7 +156,7 @@ export function UploadSheet({ overLimit }: { overLimit: boolean }) {
                   className="mt-3 flex min-h-[112px] flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--color-line)] p-5 text-center"
                   style={{ background: "color-mix(in srgb, var(--color-ink) 70%, transparent)" }}
                 >
-                  <span className="text-2xl">🎬</span>
+                  <span className="text-[var(--color-muted)]"><IconUpload size={24} /></span>
                   <span className="mt-2 text-sm font-medium">{name ?? "Tap to choose a video or podcast"}</span>
                   <span className="mt-1 text-xs text-[var(--color-muted)]">MP4 · MOV · MP3 · WAV — up to 3 hours</span>
                   <input
