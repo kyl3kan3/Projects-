@@ -30,7 +30,7 @@ export default async function DashboardPage() {
   return (
     <main className="mx-auto max-w-2xl px-5 pb-28 pt-4">
       <header className="mb-5 flex items-center justify-between">
-        <div className="flex items-center gap-2 font-display text-lg font-bold">
+        <div className="flex items-center gap-2 font-display text-lg">
           <BrandMark size={24} />
           ClipForge
         </div>
@@ -43,10 +43,10 @@ export default async function DashboardPage() {
       <div className="card mb-5 flex items-center justify-between p-4">
         <div>
           <div className="text-xs text-[var(--color-muted)]">Plan</div>
-          <div className="font-display text-lg font-bold">
+          <div className="font-display text-lg">
             {plan.name}
             {workspace.subscriptionStatus === "past_due" && (
-              <span className="badge ml-2 text-amber-300">past due</span>
+              <span className="badge ml-2" style={{ color: "var(--color-danger)" }}>past due</span>
             )}
           </div>
         </div>
@@ -66,7 +66,7 @@ export default async function DashboardPage() {
       </div>
 
       <div className="mb-3 flex items-center justify-between">
-        <h1 className="font-display text-xl font-bold">Your projects</h1>
+        <h1 className="t-h2 font-display">Your projects</h1>
         <NewKitButton />
       </div>
 

@@ -292,8 +292,28 @@ body {
     mask-image: linear-gradient(90deg, #000 120%, #000 140%);
   }
 }
+/* The defining detail: a 1px violet line rides the develop edge, once. */
+.develop-edge {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(122, 108, 255, 0.6);
+  pointer-events: none;
+  animation: developEdge 0.9s var(--ease-out-quart) both;
+}
+@keyframes developEdge {
+  0% { left: -2%; opacity: 0.6; }
+  90% { opacity: 0.6; }
+  100% { left: 102%; opacity: 0; }
+}
 .developing {
   filter: grayscale(1) brightness(0.55);
+}
+/* Recessed content well (tweets, trim panel, citations) — radius 10, not a card */
+.well {
+  background: var(--color-panel-2);
+  border-radius: 10px;
 }
 .sheen { position: relative; overflow: hidden; }
 .sheen::after {

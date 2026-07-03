@@ -131,7 +131,7 @@ export function UploadSheet({ overLimit }: { overLimit: boolean }) {
             transition={{ type: "spring", stiffness: 320, damping: 34 }}
           >
             <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-[var(--color-line)]" />
-            <h2 className="font-display text-xl font-bold">New content kit</h2>
+            <h2 className="t-h2 font-display">New content kit</h2>
 
             <div className="chip-row mt-4">
               <button className="chip" data-active={mode === "upload"} onClick={() => setMode("upload")}>
@@ -153,7 +153,7 @@ export function UploadSheet({ overLimit }: { overLimit: boolean }) {
             {mode === "upload" ? (
               <>
                 <label
-                  className="mt-3 flex min-h-[112px] flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--color-line)] p-5 text-center"
+                  className="mt-3 flex min-h-[112px] flex-col items-center justify-center rounded-[14px] border border-dashed border-[var(--color-line)] p-5 text-center"
                   style={{ background: "color-mix(in srgb, var(--color-ink) 70%, transparent)" }}
                 >
                   <span className="text-[var(--color-muted)]"><IconUpload size={24} /></span>
@@ -192,11 +192,11 @@ export function UploadSheet({ overLimit }: { overLimit: boolean }) {
             )}
 
             {overLimit && (
-              <p className="mt-3 text-center text-sm text-amber-300">
+              <p className="mt-3 text-center text-sm text-[var(--color-brand)]">
                 You've used all uploads this period. Upgrade to add more.
               </p>
             )}
-            {error && <p className="mt-3 text-center text-sm text-red-300">{error}</p>}
+            {error && <p className="mt-3 text-center text-sm" style={{ color: "var(--color-danger)" }}>{error}</p>}
             <button onClick={close} disabled={busy} className="btn btn-ghost btn-block mt-2">
               Cancel
             </button>

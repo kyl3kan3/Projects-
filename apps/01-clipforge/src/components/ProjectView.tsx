@@ -91,7 +91,10 @@ export function ProjectView({ projectId }: { projectId: string }) {
 
       {processing && <ProgressStages status={project.status} />}
       {project.status === "failed" && (
-        <div className="card mb-4 border-red-500/40 p-4 text-sm text-red-300">
+        <div
+          className="mb-4 rounded-[14px] p-4 text-sm"
+          style={{ background: "rgba(242,109,109,0.08)", color: "var(--color-danger)" }}
+        >
           Processing failed: {project.error ?? "unknown error"}
         </div>
       )}
@@ -119,14 +122,14 @@ function ProgressStages({ status }: { status: string }) {
   return (
     <div className="card mb-4 p-4">
       <div className="mb-3 flex items-center gap-2 text-sm text-[var(--color-muted)]">
-        <span className="dot inline-block h-2 w-2 rounded-full bg-[var(--color-accent)]" />
+        <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--color-brand)]" />
         Building your kit — usually 5–15 minutes.
       </div>
       <div className="flex gap-1.5">
         {labels.map((l, i) => (
           <div key={l} className="flex-1">
-            <div className={`h-1.5 overflow-hidden rounded-full ${i < idx ? "bg-[var(--color-brand)]" : "bg-[var(--color-panel-2)]"} ${i === idx ? "shimmer" : ""}`} />
-            <div className={`mt-1.5 text-[10px] uppercase tracking-wide ${i <= idx ? "text-[var(--color-accent)]" : "text-[var(--color-muted)]"}`}>{l}</div>
+            <div className={`h-1.5 overflow-hidden rounded-full ${i < idx ? "bg-[var(--color-brand)]" : "bg-[var(--color-panel-2)]"} ${i === idx ? "sheen" : ""}`} />
+            <div className={`t-label mt-2 ${i <= idx ? "text-[var(--color-brand)]" : "text-[var(--color-faint)]"}`}>{l}</div>
           </div>
         ))}
       </div>
@@ -139,7 +142,7 @@ const ASPECT_CLASS: Record<string, string> = { "9x16": "aspect-[9/16]", "1x1": "
 
 function ClipsList({ clips, candidates, onChange }: { clips: ClipDto[]; candidates: CandidateDto[]; onChange: () => void }) {
   if (clips.length === 0) {
-    return <div className="card p-8 text-center text-sm text-[var(--color-muted)]">Clips appear here as they finish rendering.</div>;
+    return <p className="py-12 text-center text-sm text-[var(--color-muted)]">Clips appear here as they finish rendering.</p>;
   }
   const groups = candidates
     .map((cand) => ({ candidate: cand, variants: clips.filter((c) => c.candidateId === cand.id) }))
@@ -186,12 +189,18 @@ function ClipCard({ candidate, variants, onChange }: { candidate?: CandidateDto;
 
   return (
     <div className="card overflow-hidden">
-      <div className={`relative bg-black ${ASPECT_CLASS[clip.aspect] ?? "aspect-[9/16]"} ${rendering ? "shimmer" : ""}`}>
+      <div
+        className={`relative overflow-hidden bg-[var(--color-raised)] ${ASPECT_CLASS[clip.aspect] ?? "aspect-[9/16]"} ${rendering ? "sheen developing" : ""}`}
+      >
         {clip.status === "ready" && clip.videoUrl && !saving ? (
-          <video key={clip.id} src={clip.videoUrl} poster={clip.thumbnailUrl ?? undefined} controls playsInline
-            className="develop-in h-full w-full object-cover" />
+          <>
+            <video key={clip.id} src={clip.videoUrl} poster={clip.thumbnailUrl ?? undefined} controls playsInline
+              className="develop-in h-full w-full object-cover" />
+            {/* the signature: violet line rides the develop edge, once */}
+            <span key={`edge-${clip.id}`} className="develop-edge" />
+          </>
         ) : (
-          <div className="flex h-full items-center justify-center text-xs text-[var(--color-muted)]">
+          <div className="flex h-full items-center justify-center text-xs text-[var(--color-faint)]">
             {rendering ? "Developing…" : clip.status === "failed" ? "Render failed" : "Waiting"}
           </div>
         )}
@@ -239,7 +248,7 @@ function ClipCard({ candidate, variants, onChange }: { candidate?: CandidateDto;
           {editing && (
             <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.2, ease: EASE }} className="overflow-hidden">
-              <div className="mt-3 rounded-xl bg-[var(--color-panel-2)] p-3 text-xs">
+              <div className="well mt-3 rounded-[14px] p-3 text-xs">
                 <div className="mb-2 text-[var(--color-muted)]">Trim (seconds)</div>
                 <div className="flex items-center gap-3">
                   <label className="flex items-center gap-1">Start
@@ -270,7 +279,7 @@ function toPlain(c: TextOutputContent): string {
 
 function TextList({ outputs }: { outputs: TextDto[] }) {
   if (outputs.length === 0) {
-    return <div className="card p-8 text-center text-sm text-[var(--color-muted)]">Written assets appear here once the transcript is analyzed.</div>;
+    return <p className="py-12 text-center text-sm text-[var(--color-muted)]">Written assets appear here once the transcript is analyzed.</p>;
   }
   return <div className="space-y-4">{outputs.map((o) => <TextCard key={o.id} output={o} />)}</div>;
 }
@@ -312,7 +321,7 @@ function TextCard({ output }: { output: TextDto }) {
       {content.type === "tweet_thread" ? (
         <ol className="space-y-2.5">
           {content.tweets.map((t, i) => (
-            <li key={i} className="rounded-lg bg-[var(--color-panel-2)] p-3 text-sm">
+            <li key={i} className="well p-3 text-sm leading-relaxed">
               <span className="mono mr-2 text-[var(--color-muted)]">{i + 1}/{content.tweets.length}</span>
               {editing ? <textarea value={t} onChange={(e) => setTweet(i, e.target.value)} rows={2} className="input mt-1 text-sm" /> : t}
             </li>
