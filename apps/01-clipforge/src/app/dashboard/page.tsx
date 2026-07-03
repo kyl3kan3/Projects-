@@ -43,20 +43,32 @@ export default async function DashboardPage() {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4 card p-5">
         <div>
           <div className="text-sm text-[var(--color-muted)]">Current plan</div>
-          <div className="text-xl font-bold">
+          <div className="font-display text-xl font-bold">
             {plan.name}
             {workspace.subscriptionStatus === "past_due" && (
               <span className="badge ml-2 text-amber-300">past due</span>
             )}
           </div>
           <div className="mt-1 text-sm text-[var(--color-muted)]">
-            {used} / {limit} uploads used this period
+            <span className="mono">{used}</span> / <span className="mono">{limit}</span>{" "}
+            uploads used this period
           </div>
-          <div className="mt-2 h-2 w-56 overflow-hidden rounded-full bg-[var(--color-panel-2)]">
-            <div
-              className="h-full bg-gradient-to-r from-[var(--color-brand-2)] to-[var(--color-brand)]"
-              style={{ width: `${Math.min(100, (used / limit) * 100)}%` }}
-            />
+          {/* Quota as a film strip: one frame per upload, used frames lit. */}
+          <div className="mt-3 flex gap-1" aria-hidden>
+            {Array.from({ length: Math.min(limit, 40) }).map((_, i) => (
+              <span
+                key={i}
+                className="h-5 w-3 rounded-[2px] border"
+                style={{
+                  borderColor: "var(--color-line)",
+                  background:
+                    i < used
+                      ? "linear-gradient(180deg, var(--color-brand-2), var(--color-brand))"
+                      : "var(--color-panel-2)",
+                  boxShadow: i < used ? "0 0 8px -2px var(--color-brand)" : "none",
+                }}
+              />
+            ))}
           </div>
         </div>
         <PlanControls currentPlan={plan.id} />
@@ -84,11 +96,14 @@ export default async function DashboardPage() {
                 <li key={p.id}>
                   <Link
                     href={`/projects/${p.id}`}
-                    className="card flex items-center justify-between p-4 hover:border-[var(--color-brand)]"
+                    className="group card card-lift flex items-center justify-between overflow-hidden p-4"
                   >
+                    {/* sprocket reel edge, revealed on hover */}
+                    <span className="sprockets absolute inset-x-0 top-0 h-1.5 opacity-0 transition-opacity group-hover:opacity-60" />
+                    <span className="sprockets absolute inset-x-0 bottom-0 h-1.5 opacity-0 transition-opacity group-hover:opacity-60" />
                     <div>
                       <div className="font-medium">{p.title}</div>
-                      <div className="text-xs text-[var(--color-muted)]">
+                      <div className="mono text-xs text-[var(--color-muted)]">
                         {formatDuration(p.durationSeconds)} ·{" "}
                         {new Date(p.createdAt).toLocaleDateString()}
                       </div>

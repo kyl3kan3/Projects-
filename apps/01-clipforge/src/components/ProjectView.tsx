@@ -2,8 +2,12 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { msToClock, STATUS_LABELS } from "@/lib/utils";
 import type { TextOutputContent } from "@/db/schema";
+
+const EASE_OUT_EXPO = [0.16, 1, 0.3, 1] as const;
+const SPRING_GENTLE = { type: "spring", stiffness: 170, damping: 26 } as const;
 
 interface ClipDto {
   id: string;
@@ -88,19 +92,29 @@ export function ProjectView({ projectId }: { projectId: string }) {
           <Link href="/dashboard" className="text-sm text-[var(--color-muted)] hover:text-white">
             ← Dashboard
           </Link>
-          <h1 className="mt-1 text-2xl font-bold">{project.title}</h1>
+          <h1 className="mt-1 font-display text-2xl font-bold">{project.title}</h1>
         </div>
-        <span
-          className={`badge ${
-            project.status === "ready"
-              ? "text-emerald-300"
-              : project.status === "failed"
-                ? "text-red-300"
-                : "text-[var(--color-accent)]"
-          }`}
-        >
-          {STATUS_LABELS[project.status] ?? project.status}
-        </span>
+        {/* Status pill morphs between stages; a cyan ring pulses on ready. */}
+        <div className="relative">
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={project.status}
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 6 }}
+              transition={{ duration: 0.24, ease: EASE_OUT_EXPO }}
+              className={`badge ${
+                project.status === "ready"
+                  ? "pulse-ring text-emerald-300"
+                  : project.status === "failed"
+                    ? "text-red-300"
+                    : "text-[var(--color-accent)]"
+              }`}
+            >
+              {STATUS_LABELS[project.status] ?? project.status}
+            </motion.span>
+          </AnimatePresence>
+        </div>
       </div>
 
       {processing && <ProgressBar status={project.status} />}
@@ -137,21 +151,39 @@ export function ProjectView({ projectId }: { projectId: string }) {
 }
 
 function ProgressBar({ status }: { status: string }) {
-  const stages = ["transcribing", "selecting", "rendering", "ready"];
-  const idx = Math.max(0, stages.indexOf(status));
+  const stages = [
+    { key: "transcribing", label: "Transcribing" },
+    { key: "selecting", label: "Finding clips" },
+    { key: "rendering", label: "Rendering" },
+    { key: "ready", label: "Ready" },
+  ];
+  const idx = Math.max(0, stages.findIndex((s) => s.key === status));
   return (
     <div className="card mb-6 p-4">
-      <div className="mb-2 text-sm text-[var(--color-muted)]">
+      <div className="mb-3 flex items-center gap-2 text-sm text-[var(--color-muted)]">
+        <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-[var(--color-accent)]" />
         Building your content kit — this usually takes 5–15 minutes.
       </div>
       <div className="flex gap-1">
         {stages.map((s, i) => (
-          <div
-            key={s}
-            className={`h-1.5 flex-1 rounded-full ${
-              i <= idx ? "bg-[var(--color-brand)]" : "bg-[var(--color-panel-2)]"
-            }`}
-          />
+          <div key={s.key} className="flex-1">
+            <div
+              className={`h-1.5 overflow-hidden rounded-full ${
+                i < idx
+                  ? "bg-[var(--color-brand)]"
+                  : i === idx
+                    ? "scan bg-[var(--color-panel-2)]"
+                    : "bg-[var(--color-panel-2)]"
+              }`}
+            />
+            <div
+              className={`mt-1.5 text-[10px] uppercase tracking-wide ${
+                i <= idx ? "text-[var(--color-accent)]" : "text-[var(--color-muted)]"
+              }`}
+            >
+              {s.label}
+            </div>
+          </div>
         ))}
       </div>
     </div>
@@ -177,13 +209,19 @@ function ClipsGrid({
   const byCandidate = new Map(candidates.map((c) => [c.id, c]));
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {clips.map((clip) => (
-        <ClipCard
+      {clips.map((clip, i) => (
+        <motion.div
           key={clip.id}
-          clip={clip}
-          candidate={clip.candidateId ? byCandidate.get(clip.candidateId) : undefined}
-          onChange={onChange}
-        />
+          initial={{ opacity: 0.001, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...SPRING_GENTLE, delay: Math.min(i, 8) * 0.04 }}
+        >
+          <ClipCard
+            clip={clip}
+            candidate={clip.candidateId ? byCandidate.get(clip.candidateId) : undefined}
+            onChange={onChange}
+          />
+        </motion.div>
       ))}
     </div>
   );
@@ -213,20 +251,22 @@ function ClipCard({
     onChange();
   }
 
+  const rendering = clip.status === "rendering" || clip.status === "pending" || saving;
+
   return (
-    <div className="card overflow-hidden">
-      <div className="relative aspect-[9/16] bg-black">
-        {clip.status === "ready" && clip.videoUrl ? (
+    <div className="card card-lift overflow-hidden">
+      <div className={`relative aspect-[9/16] bg-black ${rendering ? "shimmer" : ""}`}>
+        {clip.status === "ready" && clip.videoUrl && !saving ? (
           <video
             src={clip.videoUrl}
             poster={clip.thumbnailUrl ?? undefined}
             controls
-            className="h-full w-full object-cover"
+            className="develop-in h-full w-full object-cover"
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-xs text-[var(--color-muted)]">
-            {clip.status === "rendering" || clip.status === "pending"
-              ? "Rendering…"
+          <div className="scan flex h-full items-center justify-center text-xs text-[var(--color-muted)]">
+            {rendering
+              ? "Developing…"
               : clip.status === "failed"
                 ? "Render failed"
                 : "Waiting"}

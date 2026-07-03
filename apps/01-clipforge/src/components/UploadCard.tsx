@@ -14,6 +14,7 @@ export function UploadCard({ overLimit }: { overLimit: boolean }) {
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [selectedName, setSelectedName] = useState<string | null>(null);
 
   async function handleUpload() {
     const file = fileRef.current?.files?.[0];
@@ -116,13 +117,31 @@ export function UploadCard({ overLimit }: { overLimit: boolean }) {
 
       {mode === "upload" ? (
         <>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="video/*,audio/*"
-            disabled={busy || overLimit}
-            className="input mb-4"
-          />
+          <label
+            className={`mb-4 flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed p-6 text-center transition-colors ${
+              busy ? "scan" : !overLimit ? "breathe" : ""
+            }`}
+            style={{ background: "color-mix(in srgb, var(--color-ink) 70%, transparent)" }}
+          >
+            <span className="text-2xl">🎬</span>
+            <span className="mt-2 text-sm font-medium">
+              {selectedName ?? "Drop a video or podcast"}
+            </span>
+            <span className="mt-1 text-xs text-[var(--color-muted)]">
+              MP4, MOV, MP3, WAV · up to 3 hours
+            </span>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="video/*,audio/*"
+              disabled={busy || overLimit}
+              className="hidden"
+              onChange={(e) => {
+                setError(null);
+                setSelectedName(e.target.files?.[0]?.name ?? null);
+              }}
+            />
+          </label>
           <button
             onClick={handleUpload}
             disabled={busy || overLimit}
