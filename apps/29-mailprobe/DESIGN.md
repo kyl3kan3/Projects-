@@ -55,8 +55,6 @@ and API value. All self-hosted woff2, preloaded.
 | Code | IBM Plex Mono 400 | 13 / 1.6 | 0 |
 | Button | Inter 600 | 15 / 1 | 0 |
 
-An email address is a specimen: always mono, always in a chip or well.
-
 ## Spacing, radius, elevation
 - Scale: `4 · 8 · 12 · 16 · 20 · 24 · 32 · 40 · 56 · 80`. Screen gutter **20**.
 - Radii: **8** (buttons, inputs, chips, code blocks) · **12** (verdict cards,
@@ -88,7 +86,7 @@ glyphs** below. Nav at 22px, inline at 18px. **No emoji, anywhere, ever.**
 - **Quiet action:** text-only `teal`, no underline; press dims to 80%.
 - **Specimen well:** `bench` fill, hairline border, radius 8, height 52, mono
   15 text, `text-3` placeholder `name@company.com`. Focus: `teal` border + 2px
-  offset ring at 25% teal.
+  offset ring at 25% teal. An address is a specimen: always mono, everywhere.
 - **Verdict chip (sacred, identical across API/dashboard/CSV/docs):** height
   28, radius 8, `bench` fill, 1px border in the verdict color at 60%; verdict
   glyph 14px + Label in the verdict color: `DELIVERABLE` · `UNDELIVERABLE` ·
