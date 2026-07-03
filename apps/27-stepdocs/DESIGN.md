@@ -21,18 +21,18 @@ real content, fonts must load.
 | `field` | `#FCFDFF` | The ground. Every screen |
 | `panel` | `#F3F5F9` | Screenshot mats, sheets, code blocks only |
 | `hairline` | `#E4E8EF` | 1px dividers & frame borders — never darker |
-| `ink` | `#111827` | Primary text; **primary buttons** (field text) |
-| `ink-2` | `#6B7280` | Secondary text |
+| `ink` | `#141B28` | Primary text; **primary buttons** (field text) |
+| `ink-2` | `#6E7683` | Secondary text |
 | `ink-3` | `#9AA1AC` | Faint (timestamps, footer badge) |
 | `blueprint` | `#2E62C9` | THE accent. ≤10% of any screen: step numerals, pulse ring, progress spine, links, active states |
-| `green` | `#16A34A` | Checked-off steps / fresh guides only |
-| `amber` | `#D97706` | Stale-guide flags / warnings only |
+| `green` | `#229855` | Checked-off steps / fresh guides only |
+| `amber` | `#CE821B` | Stale-guide flags / warnings only |
 
 > **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
 
 Hard rules: `ink` is the only high-emphasis fill; `blueprint` never fills a
 button or a surface — it lives in the numeral circles, the ring, the spine, and
-links, nowhere else. Redaction frost is `rgba(148,163,184,.55)` + blur 8.
+links, nowhere else. Redaction frost is `rgba(150,166,186,.55)` + blur 8.
 
 ## Type — exact specimen
 

@@ -28,7 +28,7 @@ real content, fonts must load.
 | `steel` | `#4596C7` | THE accent. ≤10% of any screen: brand mark, now-line, active tab dot, links, focus rings |
 | `dusk` | `#4A5C85` | Chart series fill/stroke (data, not accent) |
 | `amber` | `#FFB020` | Anomaly flare + open-anomaly state only |
-| `green` | `#34D399` | Resolved / savings only |
+| `green` | `#43B588` | Resolved / savings only |
 
 > **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
 

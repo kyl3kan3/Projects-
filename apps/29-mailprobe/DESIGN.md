@@ -26,7 +26,7 @@ real content, fonts must load.
 | `text-3` | `#5A6372` | Faint (placeholders, footnotes) |
 | `paper` | `#F2F4F7` | **Primary buttons** (slate text), key numerals |
 | `teal` | `#35A483` | THE accent. ≤10% of any screen: brand mark, links, active tab dot, focus rings, live-request lamp |
-| `green` | `#34D399` | DELIVERABLE verdict only |
+| `green` | `#43B588` | DELIVERABLE verdict only |
 | `red` | `#F26D6D` | UNDELIVERABLE verdict only |
 | `amber` | `#F5B84D` | RISKY verdict only |
 | `titanium` | `#A8B2C1` | UNKNOWN verdict only — never dimmed below the other three |

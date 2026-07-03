@@ -2,7 +2,7 @@
 
 ## Vision
 A table for two in another country. LingoLoop lowers the fear of speaking, so
-the design is a warm evening stage — plum dark, one honey thread for your own
+the design is a warm evening stage — espresso dark, one honey thread for your own
 voice, corrections as a friend's pencil, never a red X. Nothing gamified-cute;
 mistakes are part of the music. This is an Expo app and voice is the product:
 the mic button is the most carefully built object in the system.
@@ -18,12 +18,12 @@ real content, fonts must load (expo-font, preloaded before first screen).
 
 | Token | Hex | Use |
 |---|---|---|
-| `evening` | `#191322` | The ground. Every screen. |
-| `stage` | `#241B30` | Tutor bubbles, cards, sheets only |
-| `hairline` | `#352A47` | 1px dividers & borders — never brighter |
-| `text` | `#F4EFF7` | Primary text |
-| `text-2` | `#9C90AC` | Secondary text |
-| `text-3` | `#655A76` | Faint (timestamps, placeholders) |
+| `evening` | `#1A1510` | The ground. Every screen. |
+| `stage` | `#251E15` | Tutor bubbles, cards, sheets only |
+| `hairline` | `#3B3222` | 1px dividers & borders — never brighter |
+| `text` | `#F7F3EC` | Primary text |
+| `text-2` | `#A79A85` | Secondary text |
+| `text-3` | `#6B5F49` | Faint (timestamps, placeholders) |
 | `paper` | `#F6F1EA` | **Primary buttons & the mic face** (evening text on it) |
 | `honey` | `#E0A94E` | THE accent. ≤10% of any screen: your voice — amplitude ribbon, mic ring, correction underlines — plus links and active states |
 | `green` | `#63D6A3` | Fluency/success semantic only (goal complete, ring fill) |
@@ -71,8 +71,8 @@ controls 20px. **No emoji, anywhere, ever** — languages are set as text
 ## Component construction (exact)
 - **Primary button:** paper fill, evening text, radius 12, height 48
   (full-width in thumb zone), Satoshi 700 15. Press: scale 0.98 + fill
-  `#E9E2D7`. Disabled: `#3A3049` fill, `text-3` text.
-- **Secondary:** transparent, 1px hairline, `text`. Press: border `#4A3D60`.
+  `#E9E2D7`. Disabled: `#403627` fill, `text-3` text.
+- **Secondary:** transparent, 1px hairline, `text`. Press: border `#4F4430`.
 - **Quiet action:** text-only honey, no underline; press dims to 80%.
 - **The mic button (the product):** 72px circle, paper face, evening `mic`
   glyph 28px, centered horizontally, its center 120px above the safe-area
@@ -90,7 +90,7 @@ controls 20px. **No emoji, anywhere, ever** — languages are set as text
   `pencil` glyph 14px; tapping expands a `stage` card (radius 16): the better
   phrasing 18/Satoshi 500, note in Fraunces italic 15 ("More natural: 'me
   gustaría' softens the request"), one honey-hairline "Drill tomorrow" chip.
-- **Scenario cards:** 24-radius duotone film stills (plum + the language's
+- **Scenario cards:** 24-radius duotone film stills (espresso + the language's
   hue), title 17, goal line 13/`text-2` ("Order for two, ask for the check"),
   difficulty as mono `A2`, locked tiers behind 60% frost + Label `PREMIUM`.
 - **Paywall:** mid-conversation frost (blur 16, `evening` 60%), "Keep the
