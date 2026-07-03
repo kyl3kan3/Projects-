@@ -27,6 +27,8 @@ real content, fonts must load.
 | `wax` | `#2E7D5B` | Semantic: signed / paid only — the seal and PAID stamp |
 | `vermilion` | `#C6432F` | Semantic: overdue only — marginalia, never body text |
 
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
+
 Hard rules: fountain never fills a button or a surface; ink is the only
 high-emphasis fill on ivory (paper-on-dark never occurs — there is no dark
 ground). Wax and vermilion appear only where they mean signed/paid/overdue.

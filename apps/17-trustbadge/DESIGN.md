@@ -29,6 +29,8 @@ a merchant's brand.
 | `leaf` | `#3B9E6B` | Semantic: verified-buyer check and approve only |
 | `red` | `#C4453C` | Semantic: reject/spam flag only |
 
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
+
 Hard rules: gold never fills a button or a surface — it exists almost
 entirely inside star glyphs; ink is the only high-emphasis fill (there is no
 dark ground); `leaf` renders on every verified review without exception —

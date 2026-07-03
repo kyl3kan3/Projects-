@@ -26,12 +26,14 @@ conflict, Polaris wins — merchants must feel zero foreignness.
 | `ink` | `#202223` | Primary text and **primary buttons** (white text on it) |
 | `ink-2` | `#6D7175` | Secondary text |
 | `ink-3` | `#A6ABB0` | Faint (placeholders, disabled) |
-| `violet` | `#7B5CFF` | THE accent. ≤10% of any screen: brand mark, active funnel nodes, links, focus rings, selected tabs |
+| `cobalt` | `#3573E0` | THE accent. ≤10% of any screen: brand mark, active funnel nodes, links, focus rings, selected tabs |
 | `green` | `#108043` | Found-money semantic only — revenue figures, the money chip, acceptance states |
 | `amber` | `#B98900` | Warnings only (free-tier cap at 80%, A/B low sample) |
 | `red` | `#D82C0D` | Errors/destructive only |
 
-Hard rules: violet never fills a button or a surface; `ink` is the only
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
+
+Hard rules: cobalt never fills a button or a surface; `ink` is the only
 high-emphasis fill (Polaris-dark primary); green appears only on dollar
 values and accepted-offer states — never as decoration.
 
@@ -74,17 +76,17 @@ ever** — acceptance renders as a mono percentage (`31%`), not a face.
 ## Component construction (exact)
 - **Primary button:** ink fill, white text, radius 8, height 44 admin / 48
   shopper (full-width), Inter 600 15. Press: fill `#3A3B3D`. Disabled:
-  `#F1F2F3` fill, `ink-3` text. Never violet-filled, never green-filled.
+  `#F1F2F3` fill, `ink-3` text. Never cobalt-filled, never green-filled.
 - **Secondary:** white fill, 1px `#BABEC3` border, ink text (Polaris basic).
-- **Quiet action / links:** violet text, no underline until hover.
+- **Quiet action / links:** cobalt text, no underline until hover.
 - **Money chip:** `+$14.50` — Inter 600 tabular on a `#E8F5EE` pill-less
   chip, radius 8, green text, height 24, padding 4/8. The brand's most
   repeated glyph; printed once per event, never animated twice.
 - **Funnel node card (builder):** white, radius 8, hairline; Label kind
   (`OFFER` / `DOWNSELL`), product thumb 40px radius 8, trigger summary 13.
-  Active/selected = 2px violet border. Phone: stacked vertical list, 44px
-  drag handles; ≥768px: horizontal canvas, nodes joined by 1.5px `#D6CCFF`
-  splines (violet at 40% — connections stay quiet).
+  Active/selected = 2px cobalt border. Phone: stacked vertical list, 44px
+  drag handles; ≥768px: horizontal canvas, nodes joined by 1.5px `#AEC7EC`
+  splines (cobalt at 40% — connections stay quiet).
 - **Ledger table (per-offer):** hairline rows, no zebra; columns Shown /
   Accepted / Revenue; numerals tabular right-aligned; revenue cells green
   only when incremental.
@@ -125,7 +127,7 @@ one per 2s. Nothing loops; found money is acknowledged exactly once.
 - **Dashboard:** found-money headline card — Label `FOUND THIS MONTH`, then
   `$1,840` Inter 600 32 tabular in green, then `You pay $29 — 63×` 13/`ink-2`.
   Below: the tape feed (last 8 lines, mono), then active funnels as node
-  cards with acceptance sparklines (ink line, violet endpoint dot), then the
+  cards with acceptance sparklines (ink line, cobalt endpoint dot), then the
   setup checklist with strike-throughs.
 - **Funnel builder:** vertical node list (trigger → offer → downsell), 44px
   edit taps, drag to reorder; "Preview offer" opens the real shopper page in

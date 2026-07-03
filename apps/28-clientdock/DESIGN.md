@@ -29,6 +29,8 @@ real content, fonts must load.
 | `green` | `#3E8E5A` | APPROVED state only |
 | `amber` | `#C08A2D` | AWAITING YOU state only |
 
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
+
 Hard rules: `ink` is the only high-emphasis fill; `brass` never fills a button
 or a surface; `brand` appears only as the welcome band and monogram tile.
 
@@ -36,8 +38,10 @@ or a surface; `brand` appears only as the welcome band and monogram tile.
 band), `--wl-accent` (brass role — contrast ≥3:1 on ivory enforced),
 `--wl-display-font`, `--wl-logo` (SVG, max-height 28), `--wl-domain`, and
 `--wl-email-from`. Spacing, radii, type sizes, ink, and semantic green/amber
-are structural and never themeable. Solo tier appends an 11px `ink-3` "via
-ClientDock" footer line; Agency+ removes every trace.
+are structural and never themeable. White-label accent values are validated
+against the same color law (v5): purple-family hues (~250–310°) are rejected
+outright, and contrast ≥3:1 on ivory is enforced. Solo tier appends an 11px
+`ink-3` "via ClientDock" footer line; Agency+ removes every trace.
 
 ## Type — exact specimen
 

@@ -28,6 +28,8 @@ real content, fonts must load.
 | `green` | `#57B87B` | Upload passed / pack ready only |
 | `red` | `#E5604F` | Upload rejected / failed only |
 
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
+
 Hard rules: champagne never fills a button or a surface — the v2
 champagne-filled CTA is retired; `paper` (softbox) is the only high-emphasis
 fill. Tungsten orange is cut: one accent, rationed. Gradients exist nowhere

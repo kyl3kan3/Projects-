@@ -3,7 +3,7 @@
 ## Vision
 A Swiss-bank ledger, not a confetti cannon. Dunly shows founders money returning
 that was walking out the door, stated in figures you can trust. Calm graphite,
-mono numerals, and one rationed green that appears only where a dollar actually
+mono numerals, and one rationed banknote green that appears only where a dollar actually
 came back. Nothing decorative moves; the number moving *is* the product.
 
 ## Ground rules inherited
@@ -24,11 +24,13 @@ real content, fonts must load.
 | `text-2` | `#8FA099` | Secondary text |
 | `text-3` | `#5A6660` | Faint (timestamps, placeholders) |
 | `paper` | `#F2F5F4` | **Primary buttons** (graphite text on it), hero numerals |
-| `green` | `#2FD07E` | THE accent. ≤10% of any screen: recovered figures, the `$` glyph, active states, links, the settle sweep |
+| `banknote` | `#33A06F` | THE accent. ≤10% of any screen: recovered figures, the `$` glyph, active states, links, the settle sweep |
 | `amber` | `#F5B84D` | At-risk / in-dunning states only |
 | `red` | `#F0655A` | Failed / churned only |
 
-Hard rules: green never fills a button or a surface; `paper` is the only
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
+
+Hard rules: banknote never fills a button or a surface; `paper` is the only
 high-emphasis fill; amber/red appear only where they mean risk or loss. No
 glows anywhere — recovered money gets the underline sweep, not light. The
 day-one light theme swaps ground to `#F7F9F8`, text to `#181D20`, hairline to
@@ -51,7 +53,7 @@ Faces: **Instrument Sans** (400/500/600) for display and UI · **IBM Plex Mono**
 | Data / money | IPM 500 | 13 / 1.2 | 0, tabular figures |
 | Button | IS 600 | 15 / 1 | 0 |
 
-All money is mono tabular, always. The `$` on recovered figures is `green`;
+All money is mono tabular, always. The `$` on recovered figures is `banknote`;
 everywhere else it inherits text color.
 
 ## Spacing, radius, elevation
@@ -76,37 +78,37 @@ party popper.
   (full-width in thumb zone), IS 600 15. Press: scale 0.98 + fill `#E1E7E4`.
   Disabled: `#2A3236` fill, `text-3` text.
 - **Secondary:** transparent, 1px hairline, `text`. Press: border `#2F383D`.
-- **Quiet action:** text-only, green, no underline; press dims to 80%.
+- **Quiet action:** text-only, banknote, no underline; press dims to 80%.
 - **Input:** graphite fill, hairline border, radius 10, height 48, 16px text.
-  Focus: border green + 2px offset ring at 25% green.
+  Focus: border banknote + 2px offset ring at 25% banknote.
 - **Chips (period filter: 7d / 30d / 90d):** height 36, radius 10, hairline;
-  active = green 1px border + green text.
+  active = banknote 1px border + banknote text.
 - **Stat block:** Label(11) over IPM value — no box, no accent bar. Grouped
   stats may share one `carbon` panel (radius 14, padding 16), never nested.
 - **At-risk rows:** NO boxes. Full-bleed rows ≥56px, 16px vertical padding,
   hairline between: Title(16) customer, mono amount right, Secondary retry
   countdown ("retry #3 in 2d 4h") in `text-3`, amber 6px status dot left.
 - **Retry timeline:** horizontal node strip in its own `overflow-x:auto` track;
-  nodes 10px circles — green filled = succeeded, amber ring = scheduled, red =
+  nodes 10px circles — banknote filled = succeeded, amber ring = scheduled, red =
   failed — joined by 1px hairline connectors, mono dates beneath.
-- **Status pill:** height 28, 6px dot + Label(11): amber "IN DUNNING", green
+- **Status pill:** height 28, 6px dot + Label(11): amber "IN DUNNING", banknote
   "RECOVERED", red "CHURNED".
 - **Bottom tab bar:** height 56 + safe-area, `carbon` at 94% + blur, hairline
   top. Four items at 22px icons + 10px IS 600 labels; active = `text` + 2px
-  green dot; inactive = `text-3`.
+  banknote dot; inactive = `text-3`.
 
 ## The signature — the return tick (kept, refined)
 When an invoice recovers, the headline Recovered figure odometer-rolls upward:
 digits roll vertically with `spring-gentle`, ≤600ms total, and on settle a
-1.5px green underline sweeps left→right beneath the figure in 240ms
+1.5px banknote underline sweeps left→right beneath the figure in 240ms
 `ease-out-quart`, then fades over 400ms. Rate-limited to one roll per 5s;
 simultaneous recoveries batch into one roll. The feed row lands with
-`arrow-down-left` in green. This is the entire brand animation — no glow, no
+`arrow-down-left` in banknote. This is the entire brand animation — no glow, no
 confetti, no coin physics. Everything else is state feedback ≤240ms.
 
 ## Mobile layout (390×844 — primary spec)
 - **Overview:** gutter 20. Top row: brand mark + period chip row. Hero stat:
-  Label "RECOVERED THIS PERIOD" over `$4,213.88` (mono, `$` green). Two stat
+  Label "RECOVERED THIS PERIOD" over `$4,213.88` (mono, `$` banknote). Two stat
   rows beneath: "At risk `$1,860.00`" (amber dot) · "In recovery `14 invoices`".
   Then Label "ACTIVITY" and the live feed as hairline rows, newest first —
   "Acme Design · `$49.00` · recovered via retry #2 · `08:42`". Primary button
@@ -119,7 +121,7 @@ confetti, no coin physics. Everything else is state feedback ≤240ms.
   subscription." One-tap PDF export.
 - **Sequence editor:** step cards (`carbon`, radius 14, drag handle ≥44px):
   Label kind ("EMAIL · DAY 3"), subject line in Title, mono send stats
-  ("41% open · 12% click"). A 2px green insertion hairline shows drop position.
+  ("41% open · 12% click"). A 2px banknote insertion hairline shows drop position.
 - **First run:** full-width **Connect Stripe** primary button in the thumb
   zone; above it, a 90-day recovery preview panel with real math
   ("We'd have recovered ≈ `$1,912` last quarter").
@@ -134,12 +136,12 @@ the signature at every size.
 ## Motion & touch
 Tokens from DESIGN_LANGUAGE.md. At-risk rows enter with 24ms stagger, opacity
 + 4px x-slide only — finance tables never bounce. Retry node success: 300ms
-radial wipe to green; failure crossfades to amber and draws the connector to
+radial wipe to banknote; failure crossfades to amber and draws the connector to
 the next node in 240ms. Chips crossfade 150ms. Targets ≥44px, ≥8px apart;
 destructive actions hold-to-confirm (600ms); pull-to-refresh re-syncs Stripe
 (also a header control). Haptics on native only, never load-bearing.
 
 ## Reduced motion & fallback
-Odometer → direct number swap with a single 100ms green underline fade. Radial
+Odometer → direct number swap with a single 100ms banknote underline fade. Radial
 wipes and sweeps → instant state change. Stagger → ≤100ms opacity fade. Every
 animated signal (recovered, failed, at-risk) is also plain text in the row.

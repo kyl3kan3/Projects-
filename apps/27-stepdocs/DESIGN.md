@@ -24,9 +24,11 @@ real content, fonts must load.
 | `ink` | `#111827` | Primary text; **primary buttons** (field text) |
 | `ink-2` | `#6B7280` | Secondary text |
 | `ink-3` | `#9AA1AC` | Faint (timestamps, footer badge) |
-| `blueprint` | `#2563EB` | THE accent. ≤10% of any screen: step numerals, pulse ring, progress spine, links, active states |
+| `blueprint` | `#2E62C9` | THE accent. ≤10% of any screen: step numerals, pulse ring, progress spine, links, active states |
 | `green` | `#16A34A` | Checked-off steps / fresh guides only |
 | `amber` | `#D97706` | Stale-guide flags / warnings only |
+
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
 
 Hard rules: `ink` is the only high-emphasis fill; `blueprint` never fills a
 button or a surface — it lives in the numeral circles, the ring, the spine, and

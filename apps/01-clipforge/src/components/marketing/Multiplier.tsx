@@ -2,7 +2,7 @@
 
 /**
  * Beat 2: the brand device. `1 → 14` counts up once when it enters the
- * viewport. Big Clash Display numerals; violet reserved for the arrow.
+ * viewport. Big Clash Display numerals; amber reserved for the arrow.
  */
 
 import { useEffect, useRef, useState } from "react";

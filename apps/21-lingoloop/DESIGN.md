@@ -2,7 +2,7 @@
 
 ## Vision
 A table for two in another country. LingoLoop lowers the fear of speaking, so
-the design is a warm evening stage — plum dark, one gold thread for your own
+the design is a warm evening stage — plum dark, one honey thread for your own
 voice, corrections as a friend's pencil, never a red X. Nothing gamified-cute;
 mistakes are part of the music. This is an Expo app and voice is the product:
 the mic button is the most carefully built object in the system.
@@ -25,12 +25,14 @@ real content, fonts must load (expo-font, preloaded before first screen).
 | `text-2` | `#9C90AC` | Secondary text |
 | `text-3` | `#655A76` | Faint (timestamps, placeholders) |
 | `paper` | `#F6F1EA` | **Primary buttons & the mic face** (evening text on it) |
-| `gold` | `#FFC96B` | THE accent. ≤10% of any screen: your voice — amplitude ribbon, mic ring, correction underlines — plus links and active states |
+| `honey` | `#E0A94E` | THE accent. ≤10% of any screen: your voice — amplitude ribbon, mic ring, correction underlines — plus links and active states |
 | `green` | `#63D6A3` | Fluency/success semantic only (goal complete, ring fill) |
 | `red` | `#E5766B` | Errors only (permission denied, connection lost) — never corrections |
 
-Hard rules: gold never fills a button or a surface; `paper` is the only
-high-emphasis fill; corrections are gold marginalia, never red; the tutor's
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
+
+Hard rules: honey never fills a button or a surface; `paper` is the only
+high-emphasis fill; corrections are honey marginalia, never red; the tutor's
 speech is plain `text` on `stage` — your voice is the only colored voice.
 
 ## Type — exact specimen
@@ -71,10 +73,10 @@ controls 20px. **No emoji, anywhere, ever** — languages are set as text
   (full-width in thumb zone), Satoshi 700 15. Press: scale 0.98 + fill
   `#E9E2D7`. Disabled: `#3A3049` fill, `text-3` text.
 - **Secondary:** transparent, 1px hairline, `text`. Press: border `#4A3D60`.
-- **Quiet action:** text-only gold, no underline; press dims to 80%.
+- **Quiet action:** text-only honey, no underline; press dims to 80%.
 - **The mic button (the product):** 72px circle, paper face, evening `mic`
   glyph 28px, centered horizontally, its center 120px above the safe-area
-  bottom. At rest: a 2px gold ring at radius +6px, breathing 1→1.04 over 2.8s.
+  bottom. At rest: a 2px honey ring at radius +6px, breathing 1→1.04 over 2.8s.
   Recording: the ring becomes live amplitude — ring width maps RMS 2→6px at
   60fps (Reanimated, UI thread) — and the face dims to `#EDE6DB`. Press-in:
   scale 0.96, `Haptics.selectionAsync`. End of speech: `impactLight`. Flanked
@@ -82,12 +84,12 @@ controls 20px. **No emoji, anywhere, ever** — languages are set as text
   radius 12).
 - **Conversation thread:** tutor = `stage` bubble, radius 16 (4 top-left),
   padding 12/16, target-language 18/1.6 with `speaker` replay 32px. You = no
-  box — your transcript sits full-bleed right-aligned with a 2px gold left
+  box — your transcript sits full-bleed right-aligned with a 2px honey left
   rule; hierarchy from space, not bubbles-on-bubbles.
-- **Correction (marginalia):** a gold 1.5px underline under the phrase +
+- **Correction (marginalia):** a honey 1.5px underline under the phrase +
   `pencil` glyph 14px; tapping expands a `stage` card (radius 16): the better
   phrasing 18/Satoshi 500, note in Fraunces italic 15 ("More natural: 'me
-  gustaría' softens the request"), one gold-hairline "Drill tomorrow" chip.
+  gustaría' softens the request"), one honey-hairline "Drill tomorrow" chip.
 - **Scenario cards:** 24-radius duotone film stills (plum + the language's
   hue), title 17, goal line 13/`text-2` ("Order for two, ask for the check"),
   difficulty as mono `A2`, locked tiers behind 60% frost + Label `PREMIUM`.
@@ -96,19 +98,19 @@ controls 20px. **No emoji, anywhere, ever** — languages are set as text
   close X top-right. No countdowns.
 
 ## The signature — voice becomes words
-While you speak, a gold amplitude ribbon rises from the mic: a single path of
-live RMS data, 2px `gold` stroke with a 20% gold fill beneath, rounded curves,
+While you speak, a honey amplitude ribbon rises from the mic: a single path of
+live RMS data, 2px `honey` stroke with a 20% honey fill beneath, rounded curves,
 no spiky bars. When you finish: the ribbon settles to a flat line over 240ms
 `ease-out-quart`, and 20ms later your transcribed sentence fades in beneath it
 (200ms opacity, 4px rise). If a phrase could be better, the pencil arrives:
-the gold underline draws left→right in 300ms `ease-out-quart`, `impactLight`
+the honey underline draws left→right in 300ms `ease-out-quart`, `impactLight`
 as it lands. Reanimated on the UI thread; 60fps on a mid Android. This is the
 entire brand animation.
 
 ## Mobile layout (390×844 — primary spec)
 - **Nav:** bottom tab bar 56px + safe-area (`mic` Talk · `scenario` Scenarios ·
   `progress` Progress · `person` Profile), 22px glyphs, 10px Satoshi 700
-  labels; active = `text` + 2px gold dot. The Exchange hides all chrome.
+  labels; active = `text` + 2px honey dot. The Exchange hides all chrome.
 - **The Exchange (money screen):** tutor presence strip at top (name "Sofía",
   mono `B1 · ES`, End as a quiet 44px top-right affordance), conversation
   thread scrolling beneath, mic + flanking pills in the bottom third. Live

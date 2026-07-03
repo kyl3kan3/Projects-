@@ -25,10 +25,12 @@ real content, fonts must load.
 | `text-2` | `#7C8F87` | Secondary text |
 | `text-3` | `#48564F` | Faint (timestamps, placeholders) |
 | `paper` | `#F0F5F2` | **Primary buttons** (void text on it) |
-| `phosphor` | `#3DFFA2` | THE accent. ≤10% of any screen: live traces, up-status dots, active tab, the 99.98% hero figure, links |
+| `phosphor` | `#48B784` | THE accent. ≤10% of any screen: live traces, up-status dots, active tab, the 99.98% hero figure, links |
 | `trace-dim` | `#1E6B4A` | Historical traces, filled uptime bars — phosphor's quiet past |
 | `red` | `#FF4D5E` | Down / flatline only |
 | `amber` | `#FFC24D` | Degraded / slow only |
+
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
 
 Hard rules: phosphor never fills a button or a surface; `paper` is the only
 high-emphasis fill; red and amber appear only as true states. Single visual

@@ -8,7 +8,7 @@
 const FRAMES = [
   {
     key: "hook",
-    art: "radial-gradient(90% 60% at 50% 22%, rgba(122,108,255,0.34), transparent 65%), #12151C",
+    art: "radial-gradient(90% 60% at 50% 22%, rgba(232,163,61,0.34), transparent 65%), #12151C",
     figure: true,
     title: (
       <>
@@ -21,7 +21,7 @@ const FRAMES = [
   },
   {
     key: "pivot",
-    art: "radial-gradient(90% 60% at 30% 80%, rgba(122,108,255,0.26), transparent 60%), #10131A",
+    art: "radial-gradient(90% 60% at 30% 80%, rgba(232,163,61,0.26), transparent 60%), #10131A",
     figure: true,
     title: (
       <>
@@ -34,13 +34,13 @@ const FRAMES = [
   },
   {
     key: "quote",
-    art: "linear-gradient(180deg, #0D1016 0%, #161225 100%)",
+    art: "linear-gradient(180deg, #0D1016 0%, #1C150E 100%)",
     quote: "“we left 80% of the value on the table”",
     meta: "4:12 · QUOTE",
   },
   {
     key: "stat",
-    art: "radial-gradient(100% 70% at 70% 10%, rgba(122,108,255,0.3), transparent 58%), #12151C",
+    art: "radial-gradient(100% 70% at 70% 10%, rgba(232,163,61,0.3), transparent 58%), #12151C",
     stat: true,
     meta: "18:39 · THE STAT",
   },

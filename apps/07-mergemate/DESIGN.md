@@ -3,7 +3,7 @@
 ## Vision
 A senior engineer's desk lamp at midnight: dark editor chrome, GitHub-native
 restraint, one personality trait — surgical precision. Every finding looks
-placed with tweezers, never sprayed from a hose. Violet is the single
+placed with tweezers, never sprayed from a hose. PR blue is the single
 signature and it is rationed like the comments are. Silence is a feature, and
 the design says so out loud.
 
@@ -25,11 +25,13 @@ real content, fonts must load.
 | `text-2` | `#8B949E` | Secondary text |
 | `text-3` | `#565E68` | Faint (timestamps, placeholders) |
 | `paper` | `#F0F3F6` | **Primary buttons** (editor text on it) |
-| `violet` | `#A371F7` | THE accent. ≤10% of any screen: active tab, confidence segments, focus rings, the merge-node motif, links |
+| `pr-blue` | `#3E7BD6` | THE accent. ≤10% of any screen: active tab, confidence segments, focus rings, the merge-node motif, links |
 | `diff-green` | `#3FB950` | Diff additions / applied only |
 | `diff-red` | `#F85149` | Diff deletions / failed only |
 
-Hard rules: violet never fills a button or a surface; `paper` is the only
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
+
+Hard rules: pr-blue never fills a button or a surface; `paper` is the only
 high-emphasis fill; diff colors appear exclusively inside diffs and their
 outcomes — never as decoration. GitHub-adjacent values on purpose: devs must
 feel at home in one glance. Single dark world; no light theme at v1.
@@ -77,25 +79,25 @@ inline at 18px. **No emoji, anywhere, ever** — severity is a Label chip
   fill `#DDE3E9`. Disabled: `#21262E` fill, `text-3` text.
 - **Secondary (Dismiss):** transparent, 1px hairline, `text`. Press: border
   `#333B45`.
-- **Quiet action:** text-only, violet, no underline; press dims to 80%.
+- **Quiet action:** text-only, pr-blue, no underline; press dims to 80%.
 - **Input:** editor fill, hairline border, radius 8, height 48, 16px text.
-  Focus: border violet + 2px offset ring at 25% violet.
+  Focus: border pr-blue + 2px offset ring at 25% pr-blue.
 - **Rule chips:** height 28, radius 8, hairline, JBM 12 rule ID
   ("`no-raw-sql`"); tappable → rule detail.
-- **Finding cards:** `panel` fill, hairline border, radius 12, 2px violet
+- **Finding cards:** `panel` fill, hairline border, radius 12, 2px pr-blue
   left rule, padding 16. Anatomy top-down: JBM `file:line` + rule chip row;
   confidence meter; Title defect one-liner; suggested patch in a recessed
   well (`#0A0E14`, radius 8, JBM 13, red/green diff lines); Apply/Dismiss
   row. One card per finding — never a wall.
 - **Confidence meter:** five 16×6px segments, 4px gaps, radius 2. Filled =
-  violet; below-threshold segments render as **empty sockets** (hairline
+  pr-blue; below-threshold segments render as **empty sockets** (hairline
   outline only) — the low-noise stance made visible. JBM value right ("`0.91`").
 - **List rows (repos, rulebook rules):** NO boxes. Hairline rows ≥56px:
   Title, JBM meta ("`214 PRs · 0.4 comments/PR`"), toggle or chevron right.
 - **PR summary bar:** hairline row pinned atop the feed: merge-node glyph +
-  "This PR: 2 findings" or violet node + "Passed clean. That's the point."
+  "This PR: 2 findings" or pr-blue node + "Passed clean. That's the point."
 - **Bottom tab bar:** height 56 + safe-area, `panel` at 94% + blur, hairline
-  top. Four items, 22px icons + 10px labels; active = `text` + 2px violet
+  top. Four items, 22px icons + 10px labels; active = `text` + 2px pr-blue
   dot; inactive = `text-3`.
 
 ## The signature — the confidence meter (kept, refined)
@@ -120,7 +122,7 @@ show their empty sockets and never fill. The whole product philosophy in one
   scroll in its own track), per-rule hairline rows with on/off toggles and
   JBM fire-counts ("`fired 8× / 30d`").
 - **Noise dashboard:** Label "COMMENTS PER PR (median)", a JBM headline
-  "`2.1`", and a 12-week trend line (1.5px violet) drifting down — the
+  "`2.1`", and a 12-week trend line (1.5px pr-blue) drifting down — the
   screenshot a champion sends their lead.
 
 ## Responsive
@@ -135,7 +137,7 @@ restraint demo.
 Tokens from DESIGN_LANGUAGE.md. Finding cards enter `spring-gentle` from 8px
 below, one at a time — even the choreography argues restraint. Patch apply:
 red lines compress out, green lines expand in (height auto-animate, 240ms
-`ease-in-out-soft`), then a violet check draws (300ms stroke). Rulebook
+`ease-in-out-soft`), then a pr-blue check draws (300ms stroke). Rulebook
 toggle: mono on/off tile swap + 150ms preview crossfade. Targets ≥44px;
 Apply/Dismiss in the thumb zone. Swipe a card to dismiss — it collapses to a
 24px receipt row ("Dismissed — won't repeat this pattern") at 60% opacity

@@ -21,14 +21,16 @@ real content, fonts must load.
 | `slate` | `#0E141B` | The ground. Every console screen. |
 | `panel` | `#151D26` | Framed objects only: sparkline wells, the report preview card |
 | `hairline` | `#232E3A` | 1px dividers, table rules — never brighter |
-| `text` | `#E2E8F0` | Primary text |
+| `text` | `#E4E9EF` | Primary text |
 | `text-2` | `#8A99A8` | Secondary text |
 | `text-3` | `#55636F` | Faint (untracked cells, placeholders) |
 | `paper` | `#EEF2F6` | **Primary buttons** (ink `#0E141B` text), key numerals |
-| `radar` | `#4ADE80` | THE accent. ≤10% of any screen: brand mark, active states, the scanline, page-1 ring, links |
-| `cyan` | `#38BDF8` | Semantic: rising deltas only |
-| `amber` | `#D97706` | Semantic: falling deltas and drop alerts only |
-| `report-ink` | `#0F172A` | The client-report light theme's text on `#FFFFFF` |
+| `radar` | `#4AA96C` | THE accent. ≤10% of any screen: brand mark, active states, the scanline, page-1 ring, links |
+| `cyan` | `#3FA9D6` | Semantic: rising deltas only |
+| `amber` | `#C67D1A` | Semantic: falling deltas and drop alerts only |
+| `report-ink` | `#101A2C` | The client-report light theme's text on `#FFFFFF` |
+
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
 
 Hard rules: radar green never fills a button or a surface; `paper` is the
 only high-emphasis fill; cyan/amber appear only beside a delta or in an

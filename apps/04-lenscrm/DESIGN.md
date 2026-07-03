@@ -29,6 +29,8 @@ real content, fonts must load.
 | `fern` | `#7BA05B` | Paid / signed / delivered only |
 | `clay` | `#C96C55` | Overdue / declined only |
 
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
+
 Hard rules: brass never fills a button or a surface — it is 1px rules, glyphs,
 and small text only; `paper` is the only high-emphasis fill on dark. Client
 pages (galleries, booking, contracts) run on `paper` ground with `#1B1B19`

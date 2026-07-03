@@ -29,12 +29,14 @@ carbon, joined by a hard 1px seam rule `#31353C`.
 | `text` | `#E8EAED` | Text on carbon |
 | `text-2` | `#8B919B` | Secondary text on carbon |
 | `paper-btn` | `#F2F3F0` | **Primary buttons on carbon** (ink text) |
-| `green` | `#10B981` | THE accent. ≤10%: brand mark, provenance boxes, confidence-high underlines, active states, links |
+| `verdigris` | `#2E9E77` | THE accent. ≤10%: brand mark, provenance boxes, confidence-high underlines, active states, links |
 | `amber` | `#C98A2E` | Semantic: confidence 0.70–0.89 only |
-| `gray-conf` | `#9CA3AF` | Semantic: confidence <0.70 — the honest unknown |
+| `gray-conf` | `#98A0AA` | Semantic: confidence <0.70 — the honest unknown |
 
-Syntax dye, scoped to code/JSON blocks only, never UI: keys `#7DD3FC`,
-strings `#FDE68A`, numbers `#F0ABFC`. Hard rules: green never fills a button
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
+
+Syntax dye, scoped to code/JSON blocks only, never UI: keys `#7CC2E4`,
+strings `#F0D98E`, numbers `#E9A3AE`. Hard rules: verdigris never fills a button
 or a surface; ink-filled primaries on paper, `paper-btn` on carbon; syntax
 colors never leak outside a code well.
 
@@ -82,22 +84,22 @@ Label chip (`DELIVERED`, `RETRY 2`), not a colored dot emoji.
 - **Primary on carbon:** `paper-btn` fill, ink text — same geometry.
 - **Secondary:** transparent, 1px hairline (side-appropriate), local text
   color. Press: border one step brighter.
-- **Quiet action:** text-only green; press dims to 80%.
+- **Quiet action:** text-only verdigris; press dims to 80%.
 - **Input:** local ground fill, hairline border, radius 8, height 48, 16px.
-  Focus: border green + 2px offset ring at 25% green.
+  Focus: border verdigris + 2px offset ring at 25% verdigris.
 - **Schema chips:** height 36, radius 8, hairline; `invoice · receipt ·
-  bank_statement · id_card · resume · custom` in JBM 13. Active = green 1px
-  border + green text. Row scrolls horizontally, no scrollbar.
+  bank_statement · id_card · resume · custom` in JBM 13. Active = verdigris 1px
+  border + verdigris text. Row scrolls horizontally, no scrollbar.
 - **Code well:** radius 10, JBM 14/1.7, padding 16, copy button top-right
   (28px hit area inside a 44px target); on paper the well is `#F1F0EB` with
   ink code; on carbon it is `#101216` with syntax dye.
 - **JSON field rows:** inside the output well, each extracted field carries
-  a **3px confidence underline** under its value: green ≥0.90, amber
+  a **3px confidence underline** under its value: verdigris ≥0.90, amber
   0.70–0.89, `gray-conf` below. Underline, never background fill.
 - **Drop target (playground):** dashed 1px hairline, radius 16, `upload`
   glyph 24px in `ink-2`, "Drop a PDF or image · 10 pages max" Secondary.
 - **API-key row:** hairline row, JBM `pf_live_••••••••3F9A`, reveal button;
-  revealed keys re-redact after 20s (a 1.5px green countdown ring on the
+  revealed keys re-redact after 20s (a 1.5px verdigris countdown ring on the
   copy button).
 - **Usage meter (dashboard):** a vertical 4px track, 120px tall, hairline
   with `text-2` fill; tier marks etched as 8px hairline ticks at 15k/100k;
@@ -105,9 +107,9 @@ Label chip (`DELIVERED`, `RETRY 2`), not a colored dot emoji.
 
 ## The signature — provenance & confidence
 Honesty rendered as design, exactly: tap (or hover) a JSON field and its
-source region on the document highlights with a 1.5px green box that draws
-its stroke in 150ms `ease-out-quart` (fill green at 8%); the field's row
-simultaneously gets a green left rule (2px). The reverse works — tap a
+source region on the document highlights with a 1.5px verdigris box that draws
+its stroke in 150ms `ease-out-quart` (fill verdigris at 8%); the field's row
+simultaneously gets a verdigris left rule (2px). The reverse works — tap a
 document region, the JSON scrolls to and marks its field. Confidence
 underlines (3px, colors above) are always present, and fields below 0.70
 render their value in `gray-conf` with a `LOW CONFIDENCE — REVIEW` Label.
@@ -144,10 +146,10 @@ smudged total landing at `0.61` gray. Canvas, lazy behind a static
 before/after poster, pointer-only, never in the mobile or app bundle.
 
 ## Motion & touch
-Tokens from DESIGN_LANGUAGE.md. Playground parse: a 1px green scan-beam
+Tokens from DESIGN_LANGUAGE.md. Playground parse: a 1px verdigris scan-beam
 passes down the document preview (500ms, once) as JSON lines assemble
 top-to-bottom (40ms stagger, ≤10 lines then instant). Copy: glyph swaps to
-`check` in green for 1.2s. Key reveal: characters resolve left → right over
+`check` in verdigris for 1.2s. Key reveal: characters resolve left → right over
 300ms. Presses: `dur-micro`, scale 0.97, no glow — lab restraint. Targets
 ≥44px; provenance is tap-first (no hover dependency); swipe between sample
 docs (invoice / receipt / statement) with chips as the equivalent.

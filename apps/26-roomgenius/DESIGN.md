@@ -28,6 +28,8 @@ real content, fonts must load.
 | `sage` | `#6F8455` | Success only (render complete, saved) |
 | `rust` | `#B0483A` | Failure only (bad render detected) |
 
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
+
 Hard rules: `ink` is the only high-emphasis fill; `clay` never fills a button
 or a surface larger than a hotspot dot; photography supplies all other color.
 Frosted pills over photos: `rgba(246,241,233,.82)` + blur 12, hairline border.

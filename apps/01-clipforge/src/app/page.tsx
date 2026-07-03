@@ -40,7 +40,7 @@ export default async function LandingPage() {
       <section className="relative overflow-hidden">
         <div
           className="absolute inset-0"
-          style={{ background: "radial-gradient(120% 60% at 70% -10%, rgba(122,108,255,0.22), transparent 62%)" }}
+          style={{ background: "radial-gradient(120% 60% at 70% -10%, rgba(232,163,61,0.22), transparent 62%)" }}
         />
         <span className="wm" style={{ top: 8, right: -26, fontSize: "clamp(200px, 34vw, 420px)" }} aria-hidden>
           14
@@ -163,7 +163,7 @@ export default async function LandingPage() {
                     className="absolute inset-0"
                     style={{
                       background:
-                        "radial-gradient(80% 55% at 50% 28%, rgba(122,108,255,0.30), transparent 70%), #12151C",
+                        "radial-gradient(80% 55% at 50% 28%, rgba(232,163,61,0.30), transparent 70%), #12151C",
                     }}
                   />
                   <div
@@ -306,7 +306,7 @@ export default async function LandingPage() {
       <section className="relative overflow-hidden px-5 pb-20 pt-16 text-center sm:pt-24">
         <div
           className="absolute inset-0"
-          style={{ background: "radial-gradient(120% 80% at 50% 120%, rgba(122,108,255,0.18), transparent 60%)" }}
+          style={{ background: "radial-gradient(120% 80% at 50% 120%, rgba(232,163,61,0.18), transparent 60%)" }}
         />
         <div className="noise" aria-hidden />
         <div className="relative">

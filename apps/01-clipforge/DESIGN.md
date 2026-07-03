@@ -2,7 +2,7 @@
 
 ## Vision
 A quiet, precise editing surface in the dark. The product's confidence shows in
-typography and restraint — off-white actions on near-black, one violet accent
+typography and restraint — off-white actions on near-black, one safelight accent
 rationed to almost nothing, and a single honest signature: clips that *develop*
 from grayscale to color as they render. Nothing decorative moves.
 
@@ -24,11 +24,13 @@ real content, fonts must load.
 | `text-2` | `#9BA3B4` | Secondary text |
 | `text-3` | `#5C6470` | Faint (timestamps in lists, placeholders) |
 | `paper` | `#F4F5F8` | **Primary buttons** (ink text on it), key numerals |
-| `violet` | `#7A6CFF` | THE accent. ≤10% of any screen: brand mark, active states, progress, links, develop-scan edge |
+| `safelight` | `#E8A33D` | THE accent. ≤10% of any screen: brand mark, active states, progress, links, develop-scan edge |
 | `green` | `#3ECF8E` | Success/Ready only |
 | `red` | `#F26D6D` | Failure only |
 
-Hard rules: violet never fills a button or a surface; `paper` is the only
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world. ClipForge's accent is the darkroom **safelight amber** — the lamp you develop film under.
+
+Hard rules: safelight never fills a button or a surface; `paper` is the only
 high-emphasis fill; success/danger appear only where they mean something.
 
 ## Type — exact specimen
@@ -68,43 +70,43 @@ the hook score renders as a mono label chip (`HOOK 94`), not an emoji.
   Disabled: `#2A2F3A` fill, `text-3` text.
 - **Secondary:** transparent, 1px hairline, text color `text`. Hover/press:
   border `#2A3140`.
-- **Quiet action:** text-only, violet, no underline; press dims to 80%.
+- **Quiet action:** text-only, safelight, no underline; press dims to 80%.
 - **Input:** ink fill, hairline border, radius 10, height 48, 16px text.
-  Focus: border violet + 2px offset ring at 25% violet.
+  Focus: border safelight + 2px offset ring at 25% safelight.
 - **Chips:** height 36, radius 10 (not pill — pills read generic here), hairline;
-  active = violet 1px border + violet text. Rows scroll horizontally, no scrollbar.
+  active = safelight 1px border + safelight text. Rows scroll horizontally, no scrollbar.
 - **List rows (projects):** NO boxes. Full-bleed rows, 16px vertical padding,
   1px hairline between rows, whole row tappable, ≥56px tall.
 - **Cards:** only for media/asset objects. `raised` fill, hairline border, radius 14
   (20 for the video frame inside), padding 16.
 - **Stage pill:** hairline pill shape allowed here (status is a special glyph),
-  height 28, dot 6px + Label(11) text. Active = violet dot (2s soft pulse),
+  height 28, dot 6px + Label(11) text. Active = safelight dot (2s soft pulse),
   Ready = green dot + one-time 1.4s ring, Failed = red dot.
 - **Bottom tab bar:** height 56 + safe-area, `raised` at 94% + blur, hairline top.
   Three items: film / plus / user icons at 22px with 10px GS 600 labels. Center
   action: 48px **circle**, paper fill, ink plus icon, raised −16px. Active item
-  icon+label = `text`; inactive = `text-3`; a 2px violet dot marks the active tab.
+  icon+label = `text`; inactive = `text-3`; a 2px safelight dot marks the active tab.
 
 ## The signature — film-develop (kept, refined)
 A clip's poster mounts grayscale at 55% brightness. As the render completes (or
 on first reveal) a develop wipe sweeps left→right in 900ms `ease-out-quart`:
 ahead of the edge grayscale, behind it full color; the moving edge itself is a
-1px violet line at 60% opacity (the only violet on the card). Rendering state =
+1px safelight line at 60% opacity (the only safelight on the card). Rendering state =
 the grayscale poster with a 1.5s traveling sheen at 8% white; label "Developing…"
 in `text-3`. This is the entire brand animation. Everything else is state
 feedback ≤240ms.
 
 ## Mobile layout (390×844 — primary spec)
 - **Landing:** gutter 20. Nav row (brand mark + "Log in" quiet action). Display
-  headline over two lines, the second line violet ("A week of content out.").
+  headline over two lines, the second line safelight ("A week of content out.").
   Body 16/`text-2`, max 34ch. Primary button full-width 48px; sticky above the
   safe-area after the hero scrolls off. Below: one art-directed 9:16 clip still
-  (duotone violet-on-ink image treatment, caption words set in real type) that
+  (duotone safelight-on-ink image treatment, caption words set in real type) that
   plays the develop wipe once on scroll into view; then a thread card and
   newsletter card with REAL copy; then pricing as three hairline-divided blocks
   (not boxes), price numerals in `paper`.
 - **Dashboard:** top row = brand mark + `3/15` mono quota. One hairline panel:
-  plan name + 20-frame quota strip (4×20px frames, filled = violet 80%).
+  plan name + 20-frame quota strip (4×20px frames, filled = safelight 80%).
   "Projects" H2 + quiet "+ New kit". Then full-bleed hairline rows: Title(16),
   mono meta(13 `text-3`), stage pill right. Bottom tab bar.
 - **Content kit:** sticky header (ink 92% + blur, hairline bottom): back chevron,
@@ -113,7 +115,7 @@ feedback ≤240ms.
   then a 2-col grid: secondary "Trim" / primary "Download" (48px). Trim expands
   inline as a raised panel (radius 14). Written assets: cards with an 11px
   uppercase kind label ("TWEET THREAD"), body 16, Edit/Copy quiet actions
-  top-right, citations behind a details row with violet mono timestamps.
+  top-right, citations behind a details row with safelight mono timestamps.
 - **Sheets (upload/account):** radius 20 top, 40×4 grab handle in `hairline`,
   padding 20, spring in 320ms. Drop target: dashed hairline, radius 14, SVG
   upload icon 24px in `text-2`.

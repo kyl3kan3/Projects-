@@ -18,14 +18,16 @@ real content, fonts must load.
 | Token | Hex | Use |
 |---|---|---|
 | `paper` | `#FAF7F2` | The ground. Every screen. |
-| `ink` | `#1C1917` | Primary text; **primary buttons** (paper text on it) |
+| `ink` | `#221D18` | Primary text; **primary buttons** (paper text on it) |
 | `hairline` | `#E7E1D8` | 1px dividers & card borders — never darker |
-| `stone` | `#78716C` | Secondary text |
-| `stone-2` | `#A8A29E` | Faint (timestamps, placeholders) |
+| `stone` | `#7A7268` | Secondary text |
+| `stone-2` | `#ABA49B` | Faint (timestamps, placeholders) |
 | `blue` | `#2456F0` | THE accent. ≤10% of any screen: active tab, links, focus rings, sync progress, on-air chip |
 | `coral` | `#E4573D` | Action items & risks only — meaning, never decoration |
 | `marker` | `#FFE8A3` | Transcript highlight wash only, never on controls |
 | `green` | `#2E9963` | Sync success only ("Synced · 4 fields") |
+
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
 
 Hard rules: blue never fills a button or a surface; primary buttons are `ink`
 fill on this light ground (the v2.1 premium default); coral marks action, not
@@ -55,7 +57,7 @@ Brief body measure held to ≤64ch. Speaker labels render as JBM caps
 - Scale: `4 · 8 · 12 · 16 · 20 · 24 · 32 · 40 · 56 · 80`. Screen gutter **20**.
 - Radii: **10** (controls: buttons, inputs, chips) · **12** (cards) ·
   **20** (sheets). Nothing else.
-- Elevation: none at rest. Cards get `0 1px 2px rgba(28,25,23,0.06)` on press
+- Elevation: none at rest. Cards get `0 1px 2px rgba(34,29,24,0.06)` on press
   only; the sheet scrim is the sole real shadow.
 
 ## Iconography

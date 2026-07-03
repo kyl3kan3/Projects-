@@ -24,10 +24,12 @@ expo-haptics), designed for a dim room and a half-asleep thumb.
 | `text-2` | `#7A80A8` | Secondary text |
 | `text-3` | `#4A5074` | Faint (durations in lists, placeholders) |
 | `paper` | `#EEF1FB` | **Primary buttons** (ink `#0B1026` text on them), the wake-time numerals |
-| `lavender` | `#8B87D8` | THE accent. ≤10% of any screen: brand mark, active states, the alarm-arc thumb, links, the last star |
+| `dusk` | `#6E93C8` | THE accent. ≤10% of any screen: brand mark, active states, the alarm-arc thumb, links, the last star |
 | `dawn` | `#F7C59F` | Morning report only — chart fill and one insight line. Never before 5 a.m. UI |
 
-Hard rules: lavender never fills a button or a surface; `paper` is the only
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
+
+Hard rules: dusk never fills a button or a surface; `paper` is the only
 high-emphasis fill. **There is no red anywhere in this app** — destructive
 actions confirm via the system dialog in plain text. Ambient gradients exist
 only as the ground itself (`deep` → `abyss`), never on components.
@@ -72,23 +74,23 @@ Required glyphs: `moon`, `sun`, `star`, `rain`, `waves`, `wind`, `fire`
   + `Haptics.selectionAsync`. Disabled: `#232948` fill, `text-3` text.
 - **Secondary:** transparent, 1px hairline border, `text` label. Press:
   border `#2A3156`.
-- **Quiet action:** text-only lavender; press dims to 80%.
+- **Quiet action:** text-only dusk; press dims to 80%.
 - **Sound rows:** NO boxes. Full-bleed rows, 60px tall, hairline between:
   glyph 20px in `text-2`, Title 16, `download` glyph when cached, JBM duration
   right (`∞` for loops renders as the word LOOP, Label style). Playing row:
-  lavender glyph + a 3-bar level meter (2px bars, lavender, 1.2s cycle).
+  dusk glyph + a 3-bar level meter (2px bars, dusk, 1.2s cycle).
 - **Mixer channel:** a `deep` well (radius 16, padding 16), one per layered
   sound, max 4: glyph + name + a 44px-tall slider whose track is hairline and
-  fill is `text-2` (not lavender — volume is not an event). Muted: well sinks
+  fill is `text-2` (not dusk — volume is not an event). Muted: well sinks
   12px and dims to 50%.
 - **Alarm dial:** 280px circle, hairline ring; the wake *window* is a
-  lavender 4px arc; the drag thumb is a 28px `paper` moon disc. A `−/+`
+  dusk 4px arc; the drag thumb is a 28px `paper` moon disc. A `−/+`
   stepper (12px radius controls, 5-min steps) is the precise equivalent.
 - **Sleep-timer chips:** height 36, radius 12, hairline; `15 · 30 · 45 · 60
-  min · End of track`. Active = lavender border + lavender text.
+  min · End of track`. Active = dusk border + dusk text.
 - **Bottom tab bar:** height 56 + safe-area, `abyss` 94% + blur, hairline
   top. Tonight / Sounds / Alarm / Morning at 22px icons, 10px Inter 600
-  labels. Active = `text` + 2px lavender dot; inactive = `text-3`. Fades to
+  labels. Active = `text` + 2px dusk dot; inactive = `text-3`. Fades to
   24% opacity 20s into a session; any touch restores it.
 
 ## The signature — the wind-down dim
@@ -97,7 +99,7 @@ ground interpolates `deep` → `abyss` (linear, imperceptible per-frame); UI
 text opacity eases 100% → 82%; the soundscape's texture drifts behind the
 now-playing row — rain = 1px streaks at 8% white falling over a 14s loop,
 waves = a 6% white caustic shimmer on a 21s loop (one Skia layer, 60fps).
-After 60s without touch, everything fades out over 8s except one 2px lavender
+After 60s without touch, everything fades out over 8s except one 2px dusk
 star at 40% opacity — the app's last word. Any touch returns the UI in 400ms
 `ease-in-out-soft`. This is the entire brand animation.
 

@@ -25,9 +25,11 @@ real content, fonts must load.
 | `paper` | `#FCFCFA` | Document surfaces; **primary buttons on dark** (ink text) |
 | `ink` | `#1A1D29` | Document text; **primary buttons on paper** (paper text) |
 | `hairline-l` | `#E4E3DC` | 1px dividers/borders on paper ground |
-| `blue` | `#4F6DF5` | THE accent. ≤10% of any screen: brand mark, links, active tab dot, X-ray field outlines, focus rings |
+| `blue` | `#3B66D9` | THE accent. ≤10% of any screen: brand mark, links, active tab dot, X-ray field outlines, focus rings |
 | `green` | `#3DDC97` | Covered keywords / apply-ready state only |
 | `amber` | `#F5B84D` | Missing keywords + unverified-AI underline only |
+
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
 
 Hard rules per ground: on `indigo`, the only high-emphasis fill is `paper`
 (ink text); on `paper` document surfaces, the only high-emphasis fill is `ink`

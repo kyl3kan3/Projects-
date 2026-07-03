@@ -25,9 +25,11 @@ ever touches a button or the position numeral.
 | `text-2` | `#8C93B8` | Secondary text |
 | `text-3` | `#585F88` | Faint (locked gates, placeholders) |
 | `paper` | `#F2F4FC` | **Primary buttons** (ink `#0A0E1F` text), the position numeral |
-| `flare` | `#FF6B4A` | THE accent. ≤10% of any screen: brand mark, active states, the roll's delta flash, the ignite underline, links |
+| `flare` | `#E8654F` | THE accent. ≤10% of any screen: brand mark, active states, the roll's delta flash, the ignite underline, links |
 | `mint` | `#4BD8BE` | Semantic: success only (signup confirmed, reward unlocked) |
 | `red` | `#E5484D` | Semantic: errors only (invalid email, fraud flag) |
+
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
 
 Hard rules: flare never fills a button or a surface (the v2 gradient CTA is
 replaced by `paper`); mint appears only at confirmation moments; founder

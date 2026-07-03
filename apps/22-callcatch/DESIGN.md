@@ -25,10 +25,12 @@ real content, fonts must load.
 | `text-2` | `#8C99A8` | Secondary text |
 | `text-3` | `#5B6672` | Faint (missed-call ash, timestamps) |
 | `paper` | `#F3F5F7` | **Primary buttons & the money numerals** (slate text on it) |
-| `orange` | `#FF7A1A` | THE accent. ≤10% of any screen: live activity ONLY — on-air bar, active call edge, brand mark, active tab |
+| `orange` | `#E87722` | THE accent. ≤10% of any screen: live activity ONLY — on-air bar, active call edge, brand mark, active tab |
 | `green` | `#3ECF8E` | Money semantic only — recovered value, booked confirmations |
 | `cyan` | `#39C7DD` | Rescue semantic only — the text-back reflex line and SMS events |
 | `red` | `#F26D6D` | Failures only (call dropped, number unreachable) |
+
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
 
 Hard rules: orange never fills a button or a surface — if nothing is live,
 there is no orange on screen; `paper` is the only high-emphasis fill; green

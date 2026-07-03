@@ -123,11 +123,11 @@ export function IconPlay(p: SVGProps<SVGSVGElement> & { size?: number }) {
   );
 }
 
-/** Brand mark: a violet rounded square with a film notch. The only violet fill allowed. */
+/** Brand mark: a amber rounded square with a film notch. The only amber fill allowed. */
 export function BrandMark({ size = 24 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden>
-      <rect width="24" height="24" rx="7" fill="#7A6CFF" />
+      <rect width="24" height="24" rx="7" fill="#E8A33D" />
       <path d="M8 5v14M16 5v14" stroke="#0B0D12" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );

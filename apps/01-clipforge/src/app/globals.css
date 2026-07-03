@@ -2,7 +2,7 @@
 
 /* ========================================================================
    ClipForge design system — v3 (redline). See DESIGN.md + DESIGN_LANGUAGE v2.1.
-   Off-white actions on near-black; one violet accent, rationed; hairlines,
+   Off-white actions on near-black; one amber accent, rationed; hairlines,
    not boxes; the film-develop reveal is the only brand animation.
    ======================================================================== */
 
@@ -13,9 +13,9 @@
   --color-panel-2: #161a22;
   --color-line: #1f242e;
   --color-paper: #f4f5f8;
-  --color-brand: #7a6cff;
-  --color-brand-2: #7a6cff; /* legacy alias — single accent */
-  --color-accent: #7a6cff; /* legacy alias — single accent */
+  --color-brand: #e8a33d;
+  --color-brand-2: #e8a33d; /* legacy alias — single accent */
+  --color-accent: #e8a33d; /* legacy alias — single accent */
   --color-success: #3ecf8e;
   --color-danger: #f26d6d;
   --color-text: #edeff4;
@@ -129,10 +129,10 @@ body {
 .input:focus {
   outline: none;
   border-color: var(--color-brand);
-  box-shadow: 0 0 0 2px rgba(122, 108, 255, 0.25);
+  box-shadow: 0 0 0 2px rgba(232, 163, 61, 0.25);
 }
 
-/* ---- Chips: radius 10, hairline; active = violet line + text ---- */
+/* ---- Chips: radius 10, hairline; active = amber line + text ---- */
 .chip-row {
   display: flex;
   gap: 0.5rem;
@@ -277,7 +277,7 @@ body {
 
 /* ========================================================================
    THE SIGNATURE — film-develop. Grayscale poster resolves to color with a
-   left→right wipe; the moving edge is a 1px violet line. Rendering holds a
+   left→right wipe; the moving edge is a 1px amber line. Rendering holds a
    quiet traveling sheen. This is the only brand animation.
    ======================================================================== */
 .develop-in { animation: developIn 0.9s var(--ease-out-quart) both; position: relative; }
@@ -293,13 +293,13 @@ body {
     mask-image: linear-gradient(90deg, #000 120%, #000 140%);
   }
 }
-/* The defining detail: a 1px violet line rides the develop edge, once. */
+/* The defining detail: a 1px amber line rides the develop edge, once. */
 .develop-edge {
   position: absolute;
   top: 0;
   bottom: 0;
   width: 1px;
-  background: rgba(122, 108, 255, 0.6);
+  background: rgba(232, 163, 61, 0.6);
   pointer-events: none;
   animation: developEdge 0.9s var(--ease-out-quart) both;
 }

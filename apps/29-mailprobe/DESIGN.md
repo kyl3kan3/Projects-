@@ -25,11 +25,13 @@ real content, fonts must load.
 | `text-2` | `#8A94A4` | Secondary text |
 | `text-3` | `#5A6372` | Faint (placeholders, footnotes) |
 | `paper` | `#F2F4F7` | **Primary buttons** (slate text), key numerals |
-| `teal` | `#2DD4A8` | THE accent. ≤10% of any screen: brand mark, links, active tab dot, focus rings, live-request lamp |
+| `teal` | `#35A483` | THE accent. ≤10% of any screen: brand mark, links, active tab dot, focus rings, live-request lamp |
 | `green` | `#34D399` | DELIVERABLE verdict only |
 | `red` | `#F26D6D` | UNDELIVERABLE verdict only |
 | `amber` | `#F5B84D` | RISKY verdict only |
 | `titanium` | `#A8B2C1` | UNKNOWN verdict only — never dimmed below the other three |
+
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
 
 Hard rules: `paper` is the only high-emphasis fill; `teal` never fills a button
 or a surface; verdict colors appear ONLY inside verdict constructions (chips,

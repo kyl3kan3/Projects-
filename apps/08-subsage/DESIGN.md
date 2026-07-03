@@ -2,7 +2,7 @@
 
 ## Vision
 A calm financial companion in your pocket — the opposite of banking-app
-anxiety. Deep-night navy, one soft mint accent, and a single emotion tuned
+anxiety. Deep-night navy, one soft patina accent, and a single emotion tuned
 above all: relief. Every subscription is a tidy object you can inspect and
 throw away, and the number getting smaller is the whole show. Native mobile
 first, last, and always.
@@ -25,12 +25,14 @@ real content, fonts must load.
 | `text-2` | `#8B93B5` | Secondary text |
 | `text-3` | `#565E85` | Faint (timestamps, placeholders) |
 | `paper` | `#F0F3FF` | **Primary buttons** (night text on it), the monthly total |
-| `mint` | `#5EEAD4` | THE accent. ≤10% of any screen: active tab, links, focus, the settle sweep, insight bars |
-| `green` | `#4ADE80` | Money saved only |
-| `amber` | `#FBBF24` | Renewal warnings only |
-| `rose` | `#FB7185` | Price hikes / cancel only |
+| `patina` | `#3FA796` | THE accent. ≤10% of any screen: active tab, links, focus, the settle sweep, insight bars |
+| `green` | `#46B274` | Money saved only |
+| `amber` | `#DFA83E` | Renewal warnings only |
+| `rose` | `#E0697B` | Price hikes / cancel only |
 
-Hard rules: mint never fills a button or a surface (the v2 mint-pill CTA is
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
+
+Hard rules: patina never fills a button or a surface (the v2 accent-pill CTA is
 retired); `paper` is the only high-emphasis fill; green/amber/rose carry
 meaning only. Service-brand tints on cards are capped at a 10% wash over
 `surface`, derived from the service logo, never saturated.
@@ -79,11 +81,11 @@ GS 600 monogram fallback on `hairline`.
   in thumb zone), GS 600 15. Press: scale 0.97 + fill `#DDE3F5`. Disabled:
   `#28304F` fill, `text-3` text.
 - **Secondary:** transparent, 1px hairline, `text`. Press: border `#2E3760`.
-- **Quiet action:** text-only, mint, no underline; press dims to 80%.
+- **Quiet action:** text-only, patina, no underline; press dims to 80%.
 - **Input:** night fill, hairline border, radius 12, height 48, 16px text.
-  Focus: border mint + 2px offset ring at 25% mint.
+  Focus: border patina + 2px offset ring at 25% patina.
 - **Chips (category: Streaming / Software / Fitness):** height 36, radius 12,
-  hairline; active = mint 1px border + mint text.
+  hairline; active = patina 1px border + patina text.
 - **Subscription cards:** the one framed object — `surface` + 10% brand wash,
   hairline border, radius 16, padding 16, ≥72px tall: logo 32px left, Title
   name + Secondary next-renewal ("Renews `Jul 11`"), JBM price right
@@ -94,20 +96,20 @@ GS 600 monogram fallback on `hairline`.
   1px border.
 - **Saved chip:** height 28, hairline, green text ("saved `$15.99`/mo") —
   appears only after a cancel.
-- **Insight bars:** rounded-cap 8px mint bars on hairline tracks, JBM values
+- **Insight bars:** rounded-cap 8px patina bars on hairline tracks, JBM values
   right; category rows are hairline rows, not boxes.
 - **Paywall sheet:** radius 24 top, padding 20; weekly-with-trial as the
   primary paper button ("Start 3-day free trial · then `$4.99`/wk"), annual as
   a secondary button beneath ("`$34.99`/yr — save 87%"), close X at full
   opacity from the first second, 44×44.
 - **Bottom tab bar:** height 56 + safe-area, `surface` at 94% + blur, hairline
-  top. Four items, 22px icons + 10px labels; active = `text` + 2px mint dot;
+  top. Four items, 22px icons + 10px labels; active = `text` + 2px patina dot;
   inactive = `text-3`.
 
 ## The signature — the total that responds (kept, refined)
 The monthly total is a live odometer. Cancel a subscription and the digits
 roll **down** with `spring-gentle` (≤600ms, ~1px motion blur mid-roll) while a
-saved chip floats up 12px and settles; beneath the settled figure a 1.5px mint
+saved chip floats up 12px and settles; beneath the settled figure a 1.5px patina
 underline sweeps left→right in 240ms `ease-out-quart` and fades. Adding rolls
 up, no sweep — only relief earns the sweep. Reanimated 3 on the UI thread at
 60fps; one roll per 2s, batched. No particles, no space scene. Everything
@@ -147,7 +149,7 @@ choreographed and motion-independent: light tick on card grab, medium on
 cancel confirm, success notch on the roll-down.
 
 ## Reduced motion & fallback
-Odometer → direct number swap with a single 100ms mint underline fade.
+Odometer → direct number swap with a single 100ms patina underline fade.
 Card-deal → cards appear at once with an 80ms fade. Hike seam → static
 old→new with a rose label. Breathing → solid amber. **Haptics are preserved**
 — they are motion-independent and carry the relief. Every figure and status

@@ -4,7 +4,7 @@
 CloudSpend watches an engineer's cloud bill so they don't have to — the moment
 that matters is a Slack alert at the wrong hour naming the deploy that did it.
 A dark observatory: night-sky ground, money as tabular mono telemetry,
-paper-filled actions, one rationed cyan, and a signature that draws the
+paper-filled actions, one rationed steel blue, and a signature that draws the
 deploy-correlation thesis literally.
 
 ## Ground rules inherited
@@ -25,12 +25,14 @@ real content, fonts must load.
 | `text-2` | `#8794AD` | Secondary text |
 | `text-3` | `#57627A` | Faint (axis labels, placeholders) |
 | `paper` | `#F1F4F9` | **Primary buttons** (night text), key numerals |
-| `cyan` | `#38BDF8` | THE accent. ≤10% of any screen: brand mark, now-line, active tab dot, links, focus rings |
-| `steel` | `#4A5C85` | Chart series fill/stroke (data, not accent) |
+| `steel` | `#4596C7` | THE accent. ≤10% of any screen: brand mark, now-line, active tab dot, links, focus rings |
+| `dusk` | `#4A5C85` | Chart series fill/stroke (data, not accent) |
 | `amber` | `#FFB020` | Anomaly flare + open-anomaly state only |
 | `green` | `#34D399` | Resolved / savings only |
 
-Hard rules: `paper` is the only high-emphasis fill; `cyan` never fills a
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
+
+Hard rules: `paper` is the only high-emphasis fill; `steel` never fills a
 button, a surface, or a chart series; amber/green appear only where they mean
 anomaly or recovery.
 
@@ -74,32 +76,32 @@ ever** — including in Slack: severity is a Label + figure, never a siren.
   (full-width in thumb zone). Press: scale 0.98 + fill `#DFE5EE`. Disabled:
   `#222B3F` fill, `text-3` text.
 - **Secondary:** transparent, 1px hairline, `text`. Press: border `#2E3952`.
-- **Quiet action:** text-only `cyan`, no underline; press dims to 80%.
+- **Quiet action:** text-only `steel`, no underline; press dims to 80%.
 - **MTD block:** NOT a card — the top of the page itself. `MONTH TO DATE`
   Label, `$12,483.07` in `paper` Display, then mono `FORECAST $19,940 · +8%
   VS JUNE` in `text-2`.
 - **Spend chart:** `panel` frame, radius 12, padding 16; area series in
-  `steel` (35% fill, 1.5px stroke); dashed 1px `text-3` baseline ghost;
-  now-line 1px `cyan`. Deploy pennants: 10px flags on 1px masts along the
+  `dusk` (35% fill, 1.5px stroke); dashed 1px `text-3` baseline ghost;
+  now-line 1px `steel`. Deploy pennants: 10px flags on 1px masts along the
   axis; tap raises a plumb-line + chip (`9f3c2ab · api-server · TUE 14:02`).
 - **Anomaly card:** `panel`, hairline, radius 12, padding 16: state Label
   (`OPEN` amber · `ACKED` `text-2` · `RESOLVED` green), Title ("EC2 —
   us-east-1"), mono 20 delta (`+$342/DAY`), correlated deploy row in mono,
-  48×16 `steel` trend thumbnail, full-width Ack primary.
-- **Burn-rate meter (budgets):** 4px `hairline` track, `steel` fill (amber
+  48×16 `dusk` trend thumbnail, full-width Ack primary.
+- **Burn-rate meter (budgets):** 4px `hairline` track, `dusk` fill (amber
   past 80%), mono caption (`$3,120 OF $4,000 · RESETS IN 9D`).
 - **Waste rows:** NO boxes. Hairline rows, dollar-ranked: mono figure left
   (`$611/MO`), Title ("8 unattached EBS volumes"), remedy in Secondary
   ("Delete or snapshot; last attached 47d ago"), `check` action.
 - **Bottom tab bar:** height 56 + safe-area, `panel` 94% + blur, hairline top:
   pulse / flare / rocket-pennant / broom at 22px + 10px labels; active =
-  `text` + 2px cyan dot; inactive = `text-3`.
+  `text` + 2px steel dot; inactive = `text-3`.
 
 ## The Slack alert card (co-flagship, Block Kit — exact)
 Mirrored pixel-for-pixel in-app. Blocks, in order:
 1. `header`: `Cost anomaly — EC2 in us-east-1`.
 2. `section` with two `fields`: `*Delta*\n+$342/day vs baseline` ·
-   `*Since*\nTue 14:00 UTC (9h)`; `accessory`: 300×80 trend image (steel
+   `*Since*\nTue 14:00 UTC (9h)`; `accessory`: 300×80 trend image (dusk
    series, dashed baseline, amber flare dot at the peak — server-rendered PNG,
    2x).
 3. `section`: `*Probable cause*\nDeploy \`9f3c2ab\` of \`api-server\`, 2h

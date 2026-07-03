@@ -30,6 +30,8 @@ real content, fonts must load.
 | `loss` | `#F6465D` | Realized losses + destructive confirmation ONLY |
 | `leak` | `#FFB020` | Leak findings semantic only — left rules, the gap fill |
 
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
+
 **P/L color rules (exact, binding):** `profit`/`loss` may color: money and
 R-multiple values, the P&L table column, calendar heatmap cells, and the fill
 of daily bars. They may NEVER color: buttons, icons, links, backgrounds,

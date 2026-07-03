@@ -89,7 +89,8 @@ lazy after first paint, always a static poster fallback. On mobile it does not l
 
 ## Anti-slop guardrails
 
-Avoid the current AI-design clichés unless an app's identity genuinely calls for one:
+Avoid the current AI-design clichés (purple is banned outright — see rule 11; the
+rest need genuine identity justification):
 purple→blue hero gradients on white; a lone acid-green pop on near-black; Inter/Space
 Grotesk as the reflexive "safe" pairing; emoji as section markers; everything centered;
 `rounded-2xl` on every surface; a colored accent-bar on every card; faux-glassmorphism
@@ -136,6 +137,16 @@ These rules are now binding on every DESIGN.md and every build:
    assign them to roles (controls / cards / sheets & media). Nothing else.
 10. **Hairlines, not borders.** Dividers and card borders are 1px at low contrast
     (~12–16% lightness delta from the ground), never full-contrast strokes.
+11. **No purple. Ever.** Violet, purple, lavender, and purple-leaning indigo are
+    banned as accents, gradients, glows, or brand marks — the violet-on-dark look
+    is the single strongest "this was AI-generated" tell in 2025–26 interfaces.
+    If a hue sits between ~250° and ~310°, pick something else.
+12. **No framework-default hexes.** Tailwind/Bootstrap palette values
+    (`#8B5CF6`, `#2DD4BF`, `#4ADE80`, `#38BDF8`, `#2563EB`, `#10B981`, …) are as
+    recognizable as a default theme. Accents are custom-mixed and slightly
+    desaturated — professional color is muted color. Anchor each palette in the
+    product's real world (ledger green, darkroom amber, blueprint cobalt,
+    safety orange), not in a component library's swatch page.
 
 ## DESIGN.md anatomy (v2 — tighter)
 

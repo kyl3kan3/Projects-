@@ -29,6 +29,8 @@ real content, fonts must load.
 | `seal` | `#4CC38A` | Verified states ONLY — a backup is never green until its checksum passes |
 | `torch` | `#E5534B` | Failed / destructive only |
 
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
+
 Hard rules: brass never fills a button or a surface — it marks the things that
 lock; `paper` is the only high-emphasis fill; `seal` is a semantic earned by
 verification, not a decoration. The design enforces the product's honesty.

@@ -26,10 +26,12 @@ real content, fonts must load.
 | `text-2` | `#7FA39E` | Secondary text |
 | `text-3` | `#4E6E69` | Faint (timestamps, placeholders) |
 | `paper` | `#F2F4F3` | **Primary buttons** (sea text on it), user bubbles, key numerals |
-| `teal` | `#2DD4BF` | THE accent. ≤10% of any screen: status dot, citation chips, links, active tab, focus rings |
+| `teal` | `#379E96` | THE accent. ≤10% of any screen: status dot, citation chips, links, active tab, focus rings |
 | `linen` | `#E8E3D8` | Uncertain-state material only (the dot, the "not certain" capsule) |
 | `amber` | `#F5B15C` | Handoff/human semantic only — dot, handoff card rule, Slack event rows |
 | `green` | `#3ECF8E` | Resolved/success only |
+
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
 
 Hard rules: teal never fills a button or a surface; `paper` is the only
 high-emphasis fill; amber appears only where a human enters the story; the

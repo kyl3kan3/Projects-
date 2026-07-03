@@ -31,6 +31,8 @@ one brass mark.
 | `green` | `#2E8F63` | Success only (draft inserted, voice calibrated) |
 | `amber` | `#C07A1A` | Warning only (low quota — never red) |
 
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
+
 Hard rules: brass never fills a button or a surface; ink-filled primaries on
 light grounds, `paper-btn` on navy. Inside Gmail the ONLY InboxPilot colors
 are brass (mark + caret) and ink text — everything else is Gmail's.

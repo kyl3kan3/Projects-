@@ -58,7 +58,7 @@ export default async function DashboardPage() {
               className="h-5 w-[9px] rounded-[2px] border"
               style={{
                 borderColor: "var(--color-line)",
-                background: i < used ? "rgba(122,108,255,0.8)" : "var(--color-panel-2)",
+                background: i < used ? "rgba(232,163,61,0.8)" : "var(--color-panel-2)",
               }}
             />
           ))}

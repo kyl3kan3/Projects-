@@ -196,7 +196,7 @@ function ClipCard({ candidate, variants, onChange }: { candidate?: CandidateDto;
           <>
             <video key={clip.id} src={clip.videoUrl} poster={clip.thumbnailUrl ?? undefined} controls playsInline
               className="develop-in h-full w-full object-cover" />
-            {/* the signature: violet line rides the develop edge, once */}
+            {/* the signature: amber line rides the develop edge, once */}
             <span key={`edge-${clip.id}`} className="develop-edge" />
           </>
         ) : (

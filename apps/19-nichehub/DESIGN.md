@@ -30,9 +30,13 @@ real content, fonts must load.
 | `green` | `#5B7553` | Verified/success semantic only |
 | `red` | `#B3261E` | Errors/moderation flags only |
 
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
+
 Hard rules: accent never fills a button or a surface; `ink` is the only
 high-emphasis fill; sponsored cards get a 1px accent border + a `SPONSORED`
-Label — no special color washes. Each directory overrides only `accent`.
+Label — no special color washes. Each directory overrides only `accent`, and
+every per-directory override must obey the color law above: custom-mixed,
+non-purple-family, never a framework-default swatch.
 
 ## Type — exact specimen
 

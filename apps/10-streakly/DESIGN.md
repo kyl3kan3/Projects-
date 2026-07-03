@@ -23,11 +23,13 @@ real content, fonts must load. Native Expo app (Reanimated 3 + expo-haptics).
 | `ink` | `#241F1A` | Primary text; **primary button fill on cream** |
 | `text-2` | `#8A8178` | Secondary text, meta |
 | `text-3` | `#B7AE9F` | Faint (placeholders, future dates in heatmap) |
-| `night` | `#1C1720` | Focus screen ground only |
+| `night` | `#1E1915` | Focus screen ground only |
 | `paper` | `#F7F2E8` | **Primary buttons on `night`** (ink text), timer numerals |
 | `ember` | `#E85D2A` | THE accent. ≤10% of any screen: flame mark, ring fills, active tab dot, links, completion spark |
 | `green` | `#2E8F63` | Success only (freeze earned, milestone toast) |
 | `red` | `#C74A3C` | Destructive only (archive habit, leave circle) |
+
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
 
 Hard rules: ember never fills a button or a surface; ink is the only
 high-emphasis fill on cream, paper the only one on night; habit rows are
@@ -110,7 +112,7 @@ campfire, three static SVGs) with an 80ms crossfade at streaks 1 / 7 / 30.
   sit under the DONE TODAY divider at 60% opacity. Bottom: primary button
   "Start next focus · Deep work 50:00" pinned above the tab bar.
 - **Focus:** full-screen `night`. Habit glyph centered inside a 260px timer
-  ring (4px stroke: track `#332B36`, progress ember); JBM digits `41:22`
+  ring (4px stroke: track `#38302A`, progress ember); JBM digits `41:22`
   beneath; Pause (secondary, paper text) and End as thumb-zone buttons.
   Last 10s: ring stroke thickens to 6px. Completion auto-logs the habit and
   returns to Today where the completion plays.

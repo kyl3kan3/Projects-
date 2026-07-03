@@ -4,8 +4,9 @@
 A native desktop instrument with one superpower made just visible enough: your
 screenshots become searchable text. ShotStash should feel like it shipped with
 the OS — platform-faithful chrome, sub-100ms response, obsessive spacing — and
-its identity lives in a rationed cyan, honest yellow match marks, and mono
-queries, not custom chrome. The wow is retrieval speed.
+its identity lives in a rationed, slightly desaturated steel blue, honest
+yellow match marks, and mono queries, not custom chrome. The wow is retrieval
+speed.
 
 ## Ground rules inherited
 Obeys DESIGN_LANGUAGE.md v2.1 fully: no emoji anywhere, no gradient/glow on
@@ -26,14 +27,16 @@ spec is the window, with small-window rules replacing the phone spec.
 | `text-2` | `#8E96A3` | Secondary text, hotkey hints |
 | `text-3` | `#5A616C` | Faint (empty states, disabled) |
 | `paper` | `#F2F4F6` | **Primary buttons** (charcoal text on it), key counts |
-| `cyan` | `#3EE0F0` | THE accent. ≤10% of any window: focus/selection edge, active filter, capture crosshair, scan sweep, brand mark |
+| `steel` | `#4BA3C7` | THE accent. ≤10% of any window: focus/selection edge, active filter, capture crosshair, scan sweep, brand mark |
 | `match` | `#FFD84D` | Match highlight semantic only — never decoration |
 | `green` | `#3ECF8E` | Indexed/success only |
 | `red` | `#F26D6D` | Failure only |
 
+> **Color law (v5):** No purple — violet/lavender/purple-indigo hues (~250–310°) are banned outright as the strongest AI-design tell. No framework-default palette hexes (Tailwind/Bootstrap swatches). Accents are custom-mixed, slightly desaturated, and anchored in the product's real world.
+
 Light theme mirrors the system: ground `#F5F6F8`, panel `#FFFFFF`, hairline
 `#E2E5EA`, ink `#1B1D21`; primary buttons invert to ink fill + paper text.
-Hard rules: cyan never fills a button or a surface; `match` yellow appears
+Hard rules: steel never fills a button or a surface; `match` yellow appears
 only on real OCR geometry.
 
 ## Type — exact specimen
@@ -79,16 +82,16 @@ anywhere, ever** — the tray icon is the brand glyph, monochrome per platform.
 - **Secondary:** transparent, 1px hairline, `text`. Hover: `panel` fill.
 - **Toolbar search field:** height 32, radius 6, `charcoal` well inside a
   hairline; query text JBM 400 13; token chips (`app:figma`, `before:march`,
-  `"api key"`) as 22px-tall mono chips, radius 6, hairline, active = 1px cyan.
+  `"api key"`) as 22px-tall mono chips, radius 6, hairline, active = 1px steel.
 - **Left rail (240px):** Label(11) group headers, 28px rows (glyph 18 + name +
   mono count right-aligned), NO boxes — hover is a full-row `panel` wash,
-  selection adds a 2px cyan left edge.
-- **Grid thumbnails:** radius 6, 1px hairline; hover raises a 2px cyan edge;
+  selection adds a 2px steel left edge.
+- **Grid thumbnails:** radius 6, 1px hairline; hover raises a 2px steel edge;
   keyboard selection uses the *same* edge (one visual language). Match marks
   render on-thumbnail (below). Virtualized; 4–8 columns, 8px gutters.
 - **Inspector (320px):** shot metadata as hairline rows (mono values —
   `2026-06-14 09:32`, `figma.app`, `2.1 MB`), then the full OCR text,
-  selectable, JBM 13/1.5, with an optional 1px `cyan` @30% word-box overlay
+  selectable, JBM 13/1.5, with an optional 1px `steel` @30% word-box overlay
   toggle.
 - **Quick-search palette:** 640×64 input (JBM 15) dropping from screen top,
   radius 10; visible <100ms from hotkey; results grid (max 480px tall) fills
@@ -105,7 +108,7 @@ Search made visible from real OCR geometry — it can never over-claim:
 - Opening a result zooms to the first match — 240ms `ease-in-out-soft` camera —
   then one pulse: box scales 1→1.06→1 in 300ms. `Enter` cycles matches; the
   pan between matches is 320ms `ease-in-out-soft`.
-- On capture, a single cyan scan sweep marks that indexing ran: a 1px `cyan`
+- On capture, a single steel scan sweep marks that indexing ran: a 1px `steel`
   edge with a 24px trailing gradient at 12% opacity crosses the thumbnail
   once, ~300ms, `ease-out-quart`. No glow wall, no loop.
 
@@ -134,7 +137,7 @@ Search made visible from real OCR geometry — it can never over-claim:
 
 ## Motion & touch
 Tokens from DESIGN_LANGUAGE.md. Palette drop-in: `spring-snappy`, 8px travel.
-Capture flow: hotkey → dim overlay + crosshair with live 1px cyan edges and
+Capture flow: hotkey → dim overlay + crosshair with live 1px steel edges and
 mono dimensions (`1440 × 900`); release fires a 120ms border-only shutter
 flash; the thumbnail flies to the corner with `ease-out-quart`, 240ms. Drag a
 shot onto a collection: chip scales 1.06 `spring-snappy` and the shot deals
