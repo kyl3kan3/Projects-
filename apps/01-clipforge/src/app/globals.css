@@ -1,8 +1,10 @@
 @import "tailwindcss";
 
 /* ========================================================================
-   ClipForge design system — see DESIGN.md ("The Ribbon" / midnight edit suite)
-   Shared motion tokens per DESIGN_LANGUAGE.md.
+   ClipForge design system — v2, mobile-first (see DESIGN.md).
+   A dark, focused editing surface. The one signature detail is the
+   "film-develop" reveal: a clip resolves grayscale→color as it renders.
+   No WebGL, no spectacle — craft in the type, spacing, and one honest cue.
    ======================================================================== */
 
 @theme {
@@ -14,136 +16,139 @@
   --color-brand-2: #a78bfa;
   --color-accent: #22d3ee;
   --color-success: #34d399;
+  --color-danger: #f0655a;
+  --color-text: #e8ecf6;
   --color-muted: #8b97b3;
 
   --font-display: "Clash Display", "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
-  /* Motion tokens (DESIGN_LANGUAGE.md) */
-  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 :root {
   color-scheme: dark;
+  --tabbar-h: 56px;
 }
 
 html,
 body {
   background: var(--color-ink);
-  color: #e8ecf6;
+  color: var(--color-text);
   -webkit-font-smoothing: antialiased;
   font-family: var(--font-sans);
+  font-size: 16px; /* never below 16 on mobile (prevents iOS zoom-on-focus) */
+  line-height: 1.55;
+  overscroll-behavior-y: none;
 }
 
-/* Timecodes & figures are mono with tabular numerals everywhere (DESIGN.md) */
-.mono,
-time,
-.tc {
+/* Fluid type scale — everything via clamp, nothing fixed across breakpoints */
+.t-hero { font-size: clamp(2.5rem, 9vw, 4.5rem); line-height: 1.02; letter-spacing: -0.03em; }
+.t-h2 { font-size: clamp(1.5rem, 5vw, 2.25rem); line-height: 1.1; letter-spacing: -0.02em; }
+.t-h3 { font-size: clamp(1.125rem, 3.5vw, 1.375rem); line-height: 1.2; }
+.t-lead { font-size: clamp(1.0625rem, 2.5vw, 1.25rem); }
+
+.font-display { font-family: var(--font-display); letter-spacing: -0.02em; }
+.mono, time, .tc {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
-}
-
-.font-display {
-  font-family: var(--font-display);
-  letter-spacing: -0.02em;
-}
-
-/* ---- Ambient film grain (marketing surfaces only) ---- */
-.grain::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  pointer-events: none;
-  opacity: 0.035;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  animation: grain 0.6s steps(3) infinite;
-}
-@keyframes grain {
-  0%, 100% { transform: translate(0, 0); }
-  33% { transform: translate(-2%, 1%); }
-  66% { transform: translate(1%, -2%); }
 }
 
 /* ---- Surfaces ---- */
 .card {
   background: var(--color-panel);
   border: 1px solid var(--color-line);
-  border-radius: 14px;
+  border-radius: 16px;
   position: relative;
 }
-/* 1px top inner highlight — depth from light, not borders */
 .card::after {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
-}
-.card-lift {
-  transition: transform 0.24s var(--ease-out-expo), box-shadow 0.24s var(--ease-out-expo),
-    border-color 0.24s var(--ease-out-expo);
-}
-.card-lift:hover {
-  transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--color-brand) 55%, var(--color-line));
-  box-shadow: 0 18px 40px -20px rgba(109, 94, 252, 0.55);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
 }
 
-/* ---- Buttons ---- */
+/* ---- Buttons (44px min height, thumb-friendly) ---- */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border-radius: 10px;
-  padding: 0.6rem 1.05rem;
+  min-height: 44px;
+  border-radius: 12px;
+  padding: 0.7rem 1.15rem;
   font-weight: 600;
-  font-size: 0.9rem;
-  transition: transform 0.12s var(--ease-out-expo), filter 0.12s, box-shadow 0.24s,
-    border-color 0.15s;
-  cursor: pointer;
+  font-size: 0.95rem;
   border: 1px solid transparent;
+  cursor: pointer;
+  transition: transform 0.12s var(--ease-out-quart), filter 0.12s, border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
-.btn:active {
-  transform: scale(0.97);
-}
+.btn:active { transform: scale(0.97); }
 .btn-primary {
   background: linear-gradient(180deg, var(--color-brand-2), var(--color-brand));
-  color: white;
-  box-shadow: 0 12px 30px -12px rgba(109, 94, 252, 0.7);
+  color: #fff;
 }
-.btn-primary:hover {
-  filter: brightness(1.08);
-  box-shadow: 0 16px 40px -12px rgba(109, 94, 252, 0.9);
-}
+.btn-primary:hover { filter: brightness(1.07); }
 .btn-ghost {
   background: var(--color-panel-2);
   border-color: var(--color-line);
-  color: #e8ecf6;
+  color: var(--color-text);
 }
-.btn-ghost:hover {
-  border-color: var(--color-brand);
-}
+.btn-ghost:hover { border-color: var(--color-brand); }
+.btn-block { width: 100%; }
 
 .input {
   background: var(--color-ink);
   border: 1px solid var(--color-line);
-  border-radius: 10px;
-  padding: 0.6rem 0.8rem;
-  color: #e8ecf6;
+  border-radius: 12px;
+  padding: 0.75rem 0.85rem;
+  color: var(--color-text);
   width: 100%;
-  font-size: 0.95rem;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  font-size: 16px; /* keep ≥16 so mobile Safari never zooms */
+  min-height: 44px;
 }
 .input:focus {
   outline: none;
   border-color: var(--color-brand);
   box-shadow: 0 0 0 3px rgba(109, 94, 252, 0.25);
+}
+
+/* ---- Chips (horizontally scrollable rows on phone) ---- */
+.chip-row {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2px;
+}
+.chip-row::-webkit-scrollbar { display: none; }
+.chip {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 36px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-line);
+  color: var(--color-muted);
+  background: color-mix(in srgb, var(--color-panel) 60%, transparent);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.chip[data-active="true"] {
+  color: var(--color-text);
+  border-color: var(--color-brand);
 }
 
 .badge {
@@ -159,48 +164,114 @@ time,
   background: color-mix(in srgb, var(--color-panel) 60%, transparent);
 }
 
-/* Focus ring — designed, never default (DESIGN_LANGUAGE.md) */
+/* Designed focus ring */
 :focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
-  border-radius: 6px;
+  border-radius: 8px;
 }
 
-/* ---- Signature effects ---- */
+/* ---- Bottom tab bar (the primary nav on phone) ---- */
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  background: color-mix(in srgb, var(--color-panel) 92%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-line);
+}
+.tabbar a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  text-decoration: none;
+}
+.tabbar a[data-active="true"] { color: var(--color-text); }
+.tabbar .tab-icon { font-size: 1.15rem; line-height: 1; }
+/* Center action stands proud */
+.tabbar .tab-cta .tab-icon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--color-brand-2), var(--color-brand));
+  color: #fff;
+  margin-top: -14px;
+  box-shadow: 0 8px 20px -8px rgba(109, 94, 252, 0.8);
+}
 
-/* Cyan scanline sweep — the universal ClipForge loader */
-.scan {
+/* Sticky bottom action bar (thumb zone) */
+.action-bar {
+  position: sticky;
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 8px);
+  z-index: 30;
+}
+
+/* ---- Stage pill (Queued → … → Ready) ---- */
+.stage-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-line);
+  background: color-mix(in srgb, var(--color-panel) 70%, transparent);
+}
+.stage-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--color-accent); }
+.stage-pill.is-active .dot { animation: blip 1.4s var(--ease-in-out-soft) infinite; }
+.stage-pill.is-ready { color: var(--color-success); }
+.stage-pill.is-ready .dot { background: var(--color-success); }
+.stage-pill.is-failed { color: var(--color-danger); }
+.stage-pill.is-failed .dot { background: var(--color-danger); }
+@keyframes blip { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+/* Completed-stage pulse ring (fires once, not a loop) */
+.pulse-once {
   position: relative;
-  overflow: hidden;
 }
-.scan::after {
+.pulse-once::after {
   content: "";
   position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    100deg,
-    transparent 40%,
-    rgba(34, 211, 238, 0.14) 50%,
-    transparent 60%
-  );
-  transform: translateX(-100%);
-  animation: scan 1.6s var(--ease-in-out-soft) infinite;
+  inset: -2px;
+  border-radius: inherit;
+  border: 1px solid var(--color-accent);
+  opacity: 0;
+  animation: pulseonce 1.4s var(--ease-out-quart);
 }
-@keyframes scan {
-  to { transform: translateX(100%); }
+@keyframes pulseonce {
+  0% { opacity: 0.4; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.12); }
 }
 
-/* Film-develop wipe — grayscale→color left to right, tied to render progress */
-.developing {
-  filter: grayscale(1) brightness(0.7) contrast(0.9);
-  -webkit-mask-image: linear-gradient(90deg, #000 var(--develop, 0%), rgba(0, 0, 0, 0.25) calc(var(--develop, 0%) + 12%));
-  mask-image: linear-gradient(90deg, #000 var(--develop, 0%), rgba(0, 0, 0, 0.25) calc(var(--develop, 0%) + 12%));
-  transition: filter 0.4s var(--ease-out-expo);
+/* ========================================================================
+   THE SIGNATURE DETAIL — film-develop reveal.
+   A clip poster resolves grayscale→color via a mask wipe driven by
+   --develop (0→100). Ready clips play a one-time develop-in; rendering
+   clips hold an indeterminate shimmer.
+   ======================================================================== */
+.develop {
+  --develop: 0%;
+  filter: grayscale(1) brightness(0.65) contrast(0.92);
+  -webkit-mask-image: linear-gradient(90deg, #000 var(--develop), rgba(0, 0, 0, 0.2) calc(var(--develop) + 14%));
+  mask-image: linear-gradient(90deg, #000 var(--develop), rgba(0, 0, 0, 0.2) calc(var(--develop) + 14%));
 }
-
-/* Film-develop: a clip "develops" from grayscale to color once on arrival */
 .develop-in {
-  animation: developIn 0.9s var(--ease-out-expo) both;
+  animation: developIn 0.9s var(--ease-out-quart) both;
 }
 @keyframes developIn {
   0% {
@@ -209,83 +280,47 @@ time,
     mask-image: linear-gradient(90deg, #000 -20%, transparent 0%);
   }
   100% {
-    filter: grayscale(0) brightness(1) contrast(1);
+    filter: none;
     -webkit-mask-image: linear-gradient(90deg, #000 120%, #000 140%);
     mask-image: linear-gradient(90deg, #000 120%, #000 140%);
   }
 }
-
-/* Specular shimmer for re-rendering clips */
-.shimmer::before {
+.shimmer { position: relative; overflow: hidden; }
+.shimmer::after {
   content: "";
   position: absolute;
   inset: 0;
-  z-index: 2;
-  background: linear-gradient(115deg, transparent 45%, rgba(167, 139, 250, 0.35) 50%, transparent 55%);
-  transform: translateX(-120%);
-  animation: shimmer 1.2s linear infinite;
+  background: linear-gradient(100deg, transparent 42%, rgba(34, 211, 238, 0.16) 50%, transparent 58%);
+  transform: translateX(-100%);
+  animation: shimmer 1.5s var(--ease-in-out-soft) infinite;
 }
-@keyframes shimmer {
-  to { transform: translateX(120%); }
-}
+@keyframes shimmer { to { transform: translateX(100%); } }
 
-/* Cyan pulse ring on stage completion */
-.pulse-ring::after {
-  content: "";
-  position: absolute;
-  inset: -2px;
-  border-radius: inherit;
-  border: 1px solid var(--color-accent);
-  opacity: 0;
-  animation: pulsering 1.4s var(--ease-out-expo);
+/* Copied-check draw */
+.check {
+  stroke-dasharray: 20;
+  stroke-dashoffset: 20;
+  animation: draw 0.24s var(--ease-out-quart) forwards;
 }
-@keyframes pulsering {
-  0% { opacity: 0.4; transform: scale(1); }
-  100% { opacity: 0; transform: scale(1.12); }
-}
+@keyframes draw { to { stroke-dashoffset: 0; } }
 
-/* Breathing drop zone (idle upload target) */
-.breathe {
-  animation: breathe 3s var(--ease-in-out-soft) infinite;
-}
-@keyframes breathe {
-  0%, 100% { transform: scale(1); border-color: var(--color-line); }
-  50% { transform: scale(1.015); border-color: color-mix(in srgb, var(--color-brand) 60%, var(--color-line)); }
-}
+/* Utility */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.safe-b { padding-bottom: env(safe-area-inset-bottom); }
 
-/* Sprocket-hole edge for project "reels" */
-.sprockets {
-  background-image: radial-gradient(circle, var(--color-line) 1.5px, transparent 2px);
-  background-size: 12px 100%;
-  background-repeat: repeat-x;
-}
-
-/* Brand glow blob behind hero CTAs / active elements */
-.glow {
-  position: relative;
-}
-.glow::before {
-  content: "";
-  position: absolute;
-  inset: -30%;
-  z-index: -1;
-  background: radial-gradient(circle at 50% 50%, rgba(109, 94, 252, 0.35), transparent 65%);
-  filter: blur(24px);
-}
-
-/* ---- Reduced motion: collapse all movement (DESIGN_LANGUAGE.md) ---- */
+/* ---- Reduced motion: collapse to fast fades ---- */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 80ms !important;
+    transition-duration: 90ms !important;
   }
-  .grain::before,
-  .scan::after,
-  .shimmer::before,
-  .pulse-ring::after {
+  .shimmer::after,
+  .pulse-once::after,
+  .stage-pill.is-active .dot {
     animation: none !important;
     opacity: 0 !important;
   }

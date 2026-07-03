@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -7,13 +7,19 @@ export const metadata: Metadata = {
     "Turn one long-form video or podcast into clips, tweet threads, LinkedIn posts, and a newsletter draft.",
 };
 
+export const viewport: Viewport = {
+  themeColor: "#0b0f17",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover", // let content use the full screen incl. safe areas
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
       <head>
-        {/* Display + mono faces load progressively; system stack is the fallback. */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://api.fontshare.com" />

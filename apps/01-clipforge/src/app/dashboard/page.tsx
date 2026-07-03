@@ -5,8 +5,9 @@ import { getDb } from "@/db";
 import { projects } from "@/db/schema";
 import { planFor } from "@/lib/plans";
 import { formatDuration, STATUS_LABELS } from "@/lib/utils";
-import { UploadCard } from "@/components/UploadCard";
-import { PlanControls } from "@/components/PlanControls";
+import { BottomNav } from "@/components/BottomNav";
+import { UploadSheet } from "@/components/UploadSheet";
+import { NewKitButton } from "@/components/NewKitButton";
 
 export const dynamic = "force-dynamic";
 
@@ -26,107 +27,95 @@ export default async function DashboardPage() {
     .limit(50);
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-8">
-      <header className="mb-8 flex items-center justify-between">
-        <Link href="/dashboard" className="flex items-center gap-2 text-lg font-bold">
+    <main className="mx-auto max-w-2xl px-5 pb-28 pt-4">
+      <header className="mb-5 flex items-center justify-between">
+        <div className="flex items-center gap-2 font-display text-lg font-bold">
           <span className="inline-block h-6 w-6 rounded-md bg-gradient-to-br from-[var(--color-brand-2)] to-[var(--color-brand)]" />
           ClipForge
-        </Link>
-        <div className="flex items-center gap-3 text-sm text-[var(--color-muted)]">
-          <span>{user.email}</span>
-          <form action="/api/auth/logout" method="post">
-            <button className="btn btn-ghost text-xs">Log out</button>
-          </form>
+        </div>
+        <div className="mono text-xs text-[var(--color-muted)]">
+          {used}/{limit} uploads
         </div>
       </header>
 
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4 card p-5">
+      {/* Plan + quota as a compact strip */}
+      <div className="card mb-5 flex items-center justify-between p-4">
         <div>
-          <div className="text-sm text-[var(--color-muted)]">Current plan</div>
-          <div className="font-display text-xl font-bold">
+          <div className="text-xs text-[var(--color-muted)]">Plan</div>
+          <div className="font-display text-lg font-bold">
             {plan.name}
             {workspace.subscriptionStatus === "past_due" && (
               <span className="badge ml-2 text-amber-300">past due</span>
             )}
           </div>
-          <div className="mt-1 text-sm text-[var(--color-muted)]">
-            <span className="mono">{used}</span> / <span className="mono">{limit}</span>{" "}
-            uploads used this period
-          </div>
-          {/* Quota as a film strip: one frame per upload, used frames lit. */}
-          <div className="mt-3 flex gap-1" aria-hidden>
-            {Array.from({ length: Math.min(limit, 40) }).map((_, i) => (
-              <span
-                key={i}
-                className="h-5 w-3 rounded-[2px] border"
-                style={{
-                  borderColor: "var(--color-line)",
-                  background:
-                    i < used
-                      ? "linear-gradient(180deg, var(--color-brand-2), var(--color-brand))"
-                      : "var(--color-panel-2)",
-                  boxShadow: i < used ? "0 0 8px -2px var(--color-brand)" : "none",
-                }}
-              />
-            ))}
-          </div>
         </div>
-        <PlanControls currentPlan={plan.id} />
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-[360px_1fr]">
-        <div>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[var(--color-muted)]">
-            New content kit
-          </h2>
-          <UploadCard overLimit={overLimit} />
-        </div>
-
-        <div>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[var(--color-muted)]">
-            Your projects
-          </h2>
-          {rows.length === 0 ? (
-            <div className="card p-8 text-center text-sm text-[var(--color-muted)]">
-              No projects yet. Upload a video or podcast to get started.
-            </div>
-          ) : (
-            <ul className="space-y-2">
-              {rows.map((p) => (
-                <li key={p.id}>
-                  <Link
-                    href={`/projects/${p.id}`}
-                    className="group card card-lift flex items-center justify-between overflow-hidden p-4"
-                  >
-                    {/* sprocket reel edge, revealed on hover */}
-                    <span className="sprockets absolute inset-x-0 top-0 h-1.5 opacity-0 transition-opacity group-hover:opacity-60" />
-                    <span className="sprockets absolute inset-x-0 bottom-0 h-1.5 opacity-0 transition-opacity group-hover:opacity-60" />
-                    <div>
-                      <div className="font-medium">{p.title}</div>
-                      <div className="mono text-xs text-[var(--color-muted)]">
-                        {formatDuration(p.durationSeconds)} ·{" "}
-                        {new Date(p.createdAt).toLocaleDateString()}
-                      </div>
-                    </div>
-                    <StatusPill status={p.status} />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
+        {/* quota as a mini film strip */}
+        <div className="flex gap-[3px]" aria-hidden>
+          {Array.from({ length: Math.min(limit, 20) }).map((_, i) => (
+            <span
+              key={i}
+              className="h-5 w-[9px] rounded-[2px] border"
+              style={{
+                borderColor: "var(--color-line)",
+                background:
+                  i < used
+                    ? "linear-gradient(180deg, var(--color-brand-2), var(--color-brand))"
+                    : "var(--color-panel-2)",
+              }}
+            />
+          ))}
         </div>
       </div>
+
+      <div className="mb-3 flex items-center justify-between">
+        <h1 className="font-display text-xl font-bold">Your projects</h1>
+        <NewKitButton />
+      </div>
+
+      {rows.length === 0 ? (
+        <div className="card p-8 text-center">
+          <div className="text-3xl">🎬</div>
+          <p className="mt-2 text-sm text-[var(--color-muted)]">
+            No projects yet. Add a video, podcast, or a YouTube link to get your first kit.
+          </p>
+          <div className="mt-4">
+            <NewKitButton primary />
+          </div>
+        </div>
+      ) : (
+        <ul className="space-y-2.5">
+          {rows.map((p) => (
+            <li key={p.id}>
+              <Link
+                href={`/projects/${p.id}`}
+                className="card flex items-center justify-between gap-3 p-4 active:scale-[0.99]"
+              >
+                <div className="min-w-0">
+                  <div className="truncate font-medium">{p.title}</div>
+                  <div className="mono mt-0.5 text-xs text-[var(--color-muted)]">
+                    {formatDuration(p.durationSeconds)} · {new Date(p.createdAt).toLocaleDateString()}
+                  </div>
+                </div>
+                <StatusPill status={p.status} />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <UploadSheet overLimit={overLimit} />
+      <BottomNav email={user.email} />
     </main>
   );
 }
 
 function StatusPill({ status }: { status: string }) {
-  const done = status === "ready";
-  const failed = status === "failed";
-  const color = done
-    ? "text-emerald-300"
-    : failed
-      ? "text-red-300"
-      : "text-[var(--color-accent)]";
-  return <span className={`badge ${color}`}>{STATUS_LABELS[status] ?? status}</span>;
+  const cls =
+    status === "ready" ? "is-ready" : status === "failed" ? "is-failed" : "is-active";
+  return (
+    <span className={`stage-pill ${cls} shrink-0`}>
+      <span className="dot" />
+      {STATUS_LABELS[status] ?? status}
+    </span>
+  );
 }
