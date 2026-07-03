@@ -37,6 +37,7 @@ interface TextDto {
   kind: string;
   variant: string;
   contentJson: TextOutputContent;
+  editedContentJson: TextOutputContent | null;
 }
 interface ProjectDto {
   id: string;
@@ -190,6 +191,13 @@ function ProgressBar({ status }: { status: string }) {
   );
 }
 
+const ASPECT_LABEL: Record<string, string> = { "9x16": "9:16", "1x1": "1:1", "16x9": "16:9" };
+const ASPECT_CLASS: Record<string, string> = {
+  "9x16": "aspect-[9/16]",
+  "1x1": "aspect-square",
+  "16x9": "aspect-video",
+};
+
 function ClipsGrid({
   clips,
   candidates,
@@ -206,58 +214,91 @@ function ClipsGrid({
       </div>
     );
   }
-  const byCandidate = new Map(candidates.map((c) => [c.id, c]));
+  // Group clip variants (9:16, 1:1, …) under their source candidate.
+  const groups = candidates
+    .map((cand) => ({
+      candidate: cand,
+      variants: clips.filter((c) => c.candidateId === cand.id),
+    }))
+    .filter((g) => g.variants.length > 0);
+  // Any orphan clips (no candidate) still render on their own.
+  const orphans = clips.filter((c) => !c.candidateId);
+
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {clips.map((clip, i) => (
+      {groups.map((g, i) => (
         <motion.div
-          key={clip.id}
+          key={g.candidate.id}
           initial={{ opacity: 0.001, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...SPRING_GENTLE, delay: Math.min(i, 8) * 0.04 }}
         >
-          <ClipCard
-            clip={clip}
-            candidate={clip.candidateId ? byCandidate.get(clip.candidateId) : undefined}
-            onChange={onChange}
-          />
+          <ClipCard candidate={g.candidate} variants={g.variants} onChange={onChange} />
         </motion.div>
+      ))}
+      {orphans.map((clip) => (
+        <ClipCard key={clip.id} variants={[clip]} onChange={onChange} />
       ))}
     </div>
   );
 }
 
 function ClipCard({
-  clip,
   candidate,
+  variants,
   onChange,
 }: {
-  clip: ClipDto;
   candidate?: CandidateDto;
+  variants: ClipDto[];
   onChange: () => void;
 }) {
+  const aspects = variants.map((v) => v.aspect);
+  const [activeAspect, setActiveAspect] = useState(aspects[0]);
+  const clip = variants.find((v) => v.aspect === activeAspect) ?? variants[0];
+
   const [style, setStyle] = useState(clip.captionStyle);
   const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [startS, setStartS] = useState(() => secOf(candidate?.startMs, clip.editedStartMs));
+  const [endS, setEndS] = useState(() => secOf(candidate?.endMs, clip.editedEndMs));
+
+  // Apply an edit to every aspect variant of this clip, then re-render each.
+  async function patchAll(body: Record<string, unknown>) {
+    setSaving(true);
+    await Promise.all(
+      variants.map((v) =>
+        fetch(`/api/clips/${v.id}`, {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(body),
+        }),
+      ),
+    );
+    setSaving(false);
+    onChange();
+  }
 
   async function restyle(next: string) {
     setStyle(next);
-    setSaving(true);
-    await fetch(`/api/clips/${clip.id}`, {
-      method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ captionStyle: next }),
-    });
-    setSaving(false);
-    onChange();
+    await patchAll({ captionStyle: next });
+  }
+
+  async function saveTrim() {
+    const startMs = Math.max(0, Math.round(startS * 1000));
+    const endMs = Math.round(endS * 1000);
+    if (endMs <= startMs) return;
+    setEditing(false);
+    await patchAll({ editedStartMs: startMs, editedEndMs: endMs });
   }
 
   const rendering = clip.status === "rendering" || clip.status === "pending" || saving;
 
   return (
     <div className="card card-lift overflow-hidden">
-      <div className={`relative aspect-[9/16] bg-black ${rendering ? "shimmer" : ""}`}>
+      <div className={`relative bg-black ${ASPECT_CLASS[clip.aspect] ?? "aspect-[9/16]"} ${rendering ? "shimmer" : ""}`}>
         {clip.status === "ready" && clip.videoUrl && !saving ? (
           <video
+            key={clip.id}
             src={clip.videoUrl}
             poster={clip.thumbnailUrl ?? undefined}
             controls
@@ -265,46 +306,106 @@ function ClipCard({
           />
         ) : (
           <div className="scan flex h-full items-center justify-center text-xs text-[var(--color-muted)]">
-            {rendering
-              ? "Developing…"
-              : clip.status === "failed"
-                ? "Render failed"
-                : "Waiting"}
+            {rendering ? "Developing…" : clip.status === "failed" ? "Render failed" : "Waiting"}
           </div>
         )}
       </div>
       <div className="p-3">
         <div className="flex items-center justify-between">
           <div className="truncate text-sm font-medium">{candidate?.title ?? "Clip"}</div>
-          {candidate && (
-            <span className="badge text-[10px]">🎣 {candidate.hookScore}</span>
-          )}
+          {candidate && <span className="badge text-[10px]">🎣 {candidate.hookScore}</span>}
         </div>
         {candidate && (
-          <div className="mt-1 text-[11px] text-[var(--color-muted)]">
-            {msToClock(candidate.startMs)}–{msToClock(candidate.endMs)}
+          <div className="mono mt-1 text-[11px] text-[var(--color-muted)]">
+            {msToClock(clip.editedStartMs ?? candidate.startMs)}–
+            {msToClock(clip.editedEndMs ?? candidate.endMs)}
           </div>
         )}
-        <div className="mt-3 flex items-center gap-2">
+
+        {/* aspect switch */}
+        {variants.length > 1 && (
+          <div className="mt-3 flex gap-1">
+            {variants.map((v) => (
+              <button
+                key={v.id}
+                onClick={() => setActiveAspect(v.aspect)}
+                className={`badge text-[10px] ${v.aspect === activeAspect ? "text-white" : ""}`}
+                style={v.aspect === activeAspect ? { borderColor: "var(--color-brand)" } : {}}
+              >
+                {ASPECT_LABEL[v.aspect] ?? v.aspect}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-3 flex flex-wrap items-center gap-2">
           <select
             value={style}
             onChange={(e) => restyle(e.target.value)}
             disabled={saving}
             className="input py-1 text-xs"
+            style={{ width: "auto" }}
           >
             <option value="bold-center">Bold center</option>
             <option value="clean-bottom">Clean bottom</option>
             <option value="pop-yellow">Pop yellow</option>
           </select>
+          {candidate && (
+            <button
+              onClick={() => setEditing((v) => !v)}
+              disabled={saving}
+              className="btn btn-ghost px-2 py-1 text-xs"
+            >
+              Trim
+            </button>
+          )}
           {clip.status === "ready" && clip.videoUrl && (
             <a href={clip.videoUrl} download className="btn btn-ghost px-2 py-1 text-xs">
               Download
             </a>
           )}
         </div>
+
+        {editing && (
+          <div className="mt-3 rounded-lg bg-[var(--color-panel-2)] p-3 text-xs">
+            <div className="mb-2 text-[var(--color-muted)]">Trim (seconds)</div>
+            <div className="flex items-center gap-2">
+              <label className="flex items-center gap-1">
+                Start
+                <input
+                  type="number"
+                  min={0}
+                  step={0.5}
+                  value={startS}
+                  onChange={(e) => setStartS(Number(e.target.value))}
+                  className="input mono w-20 py-1"
+                />
+              </label>
+              <label className="flex items-center gap-1">
+                End
+                <input
+                  type="number"
+                  min={0}
+                  step={0.5}
+                  value={endS}
+                  onChange={(e) => setEndS(Number(e.target.value))}
+                  className="input mono w-20 py-1"
+                />
+              </label>
+            </div>
+            <button onClick={saveTrim} disabled={saving} className="btn btn-primary mt-3 px-3 py-1 text-xs">
+              {saving ? "Rendering…" : "Save & re-render"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
+}
+
+function secOf(candidateMs: number | undefined, editedMs: number | null): number {
+  const ms = editedMs ?? candidateMs ?? 0;
+  return Math.round(ms / 100) / 10;
 }
 
 function TextAssets({ outputs }: { outputs: TextDto[] }) {
@@ -324,16 +425,21 @@ function TextAssets({ outputs }: { outputs: TextDto[] }) {
   );
 }
 
-function TextCard({ output }: { output: TextDto }) {
-  const [copied, setCopied] = useState(false);
-  const c = output.contentJson;
+function toPlain(c: TextOutputContent): string {
+  return c.type === "tweet_thread"
+    ? c.tweets.join("\n\n")
+    : c.type === "linkedin_post"
+      ? c.body
+      : c.markdown;
+}
 
-  const plain =
-    c.type === "tweet_thread"
-      ? c.tweets.join("\n\n")
-      : c.type === "linkedin_post"
-        ? c.body
-        : c.markdown;
+function TextCard({ output }: { output: TextDto }) {
+  const original = output.editedContentJson ?? output.contentJson;
+  const [content, setContent] = useState<TextOutputContent>(original);
+  const [editing, setEditing] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const isEdited = output.editedContentJson != null;
 
   const label =
     output.kind === "tweet_thread"
@@ -343,38 +449,96 @@ function TextCard({ output }: { output: TextDto }) {
         : "Newsletter";
 
   async function copy() {
-    await navigator.clipboard.writeText(plain);
+    await navigator.clipboard.writeText(toPlain(content));
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
+  }
+
+  async function save() {
+    setSaving(true);
+    await fetch(`/api/text/${output.id}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ content }),
+    });
+    setSaving(false);
+    setEditing(false);
+  }
+
+  function setTweet(i: number, val: string) {
+    if (content.type !== "tweet_thread") return;
+    const tweets = [...content.tweets];
+    tweets[i] = val;
+    setContent({ ...content, tweets });
   }
 
   return (
     <div className="card p-5">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="font-semibold">{label}</h3>
-        <button onClick={copy} className="btn btn-ghost text-xs">
-          {copied ? "Copied!" : "Copy"}
-        </button>
+        <h3 className="font-display font-semibold">
+          {label}
+          {isEdited && <span className="badge ml-2 text-[10px]">edited</span>}
+        </h3>
+        <div className="flex gap-2">
+          <button onClick={() => setEditing((v) => !v)} className="btn btn-ghost text-xs">
+            {editing ? "Done" : "Edit"}
+          </button>
+          <button onClick={copy} className="btn btn-ghost text-xs">
+            {copied ? "Copied!" : "Copy"}
+          </button>
+        </div>
       </div>
-      {c.type === "tweet_thread" ? (
+
+      {content.type === "tweet_thread" ? (
         <ol className="space-y-3">
-          {c.tweets.map((t, i) => (
+          {content.tweets.map((t, i) => (
             <li key={i} className="rounded-lg bg-[var(--color-panel-2)] p-3 text-sm">
-              <span className="mr-2 text-[var(--color-muted)]">{i + 1}/{c.tweets.length}</span>
-              {t}
+              <span className="mono mr-2 text-[var(--color-muted)]">
+                {i + 1}/{content.tweets.length}
+              </span>
+              {editing ? (
+                <textarea
+                  value={t}
+                  onChange={(e) => setTweet(i, e.target.value)}
+                  rows={2}
+                  className="input mt-1 text-sm"
+                />
+              ) : (
+                t
+              )}
             </li>
           ))}
         </ol>
+      ) : editing ? (
+        <textarea
+          value={content.type === "linkedin_post" ? content.body : content.markdown}
+          onChange={(e) =>
+            setContent(
+              content.type === "linkedin_post"
+                ? { ...content, body: e.target.value }
+                : { ...content, markdown: e.target.value },
+            )
+          }
+          rows={10}
+          className="input text-sm"
+        />
       ) : (
-        <pre className="whitespace-pre-wrap font-sans text-sm text-[#dfe5f3]">{plain}</pre>
+        <pre className="whitespace-pre-wrap font-sans text-sm text-[#dfe5f3]">{toPlain(content)}</pre>
       )}
-      {"citations" in c && c.citations.length > 0 && (
+
+      {editing && (
+        <button onClick={save} disabled={saving} className="btn btn-primary mt-3 text-xs">
+          {saving ? "Saving…" : "Save edits"}
+        </button>
+      )}
+
+      {"citations" in content && content.citations.length > 0 && (
         <details className="mt-3 text-xs text-[var(--color-muted)]">
-          <summary className="cursor-pointer">Sources ({c.citations.length})</summary>
+          <summary className="cursor-pointer">Sources ({content.citations.length})</summary>
           <ul className="mt-2 space-y-1">
-            {c.citations.map((cit, i) => (
+            {content.citations.map((cit, i) => (
               <li key={i}>
-                <span className="text-[var(--color-accent)]">[{msToClock(cit.timestampMs)}]</span>{" "}
+                <span className="mono text-[var(--color-accent)]">[{msToClock(cit.timestampMs)}]</span>{" "}
                 “{cit.quote}”
               </li>
             ))}

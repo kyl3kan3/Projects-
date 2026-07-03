@@ -35,6 +35,39 @@ export function extractAudio(input: string, output: string): Promise<void> {
   });
 }
 
+/**
+ * Split an audio file into fixed-length segments (mp3) for chunked
+ * transcription of long recordings. Returns the ordered segment paths;
+ * segment N starts at N * segmentSec in the original timeline.
+ */
+export async function segmentAudio(
+  input: string,
+  outDir: string,
+  segmentSec: number,
+): Promise<string[]> {
+  const pattern = path.join(outDir, "chunk_%03d.mp3");
+  await new Promise<void>((resolve, reject) => {
+    ffmpeg(input)
+      .noVideo()
+      .audioChannels(1)
+      .audioFrequency(16000)
+      .audioBitrate("64k")
+      .outputOptions([
+        "-f segment",
+        `-segment_time ${segmentSec}`,
+        "-reset_timestamps 1",
+      ])
+      .on("end", () => resolve())
+      .on("error", reject)
+      .save(pattern);
+  });
+  const { readdir } = await import("node:fs/promises");
+  const files = (await readdir(outDir))
+    .filter((f) => /^chunk_\d+\.mp3$/.test(f))
+    .sort();
+  return files.map((f) => path.join(outDir, f));
+}
+
 export interface CaptionStyleSpec {
   fontName: string;
   primaryColor: string; // hex #RRGGBB

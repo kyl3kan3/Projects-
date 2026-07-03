@@ -25,15 +25,27 @@ import {
   type TextOutputContent,
 } from "@/db/schema";
 import { presignDownload, putObject } from "@/lib/r2";
-import { extractAudio, probeDurationSeconds, renderClip, renderThumbnail } from "@/lib/ffmpeg";
-import { transcribeFile } from "@/lib/transcribe";
+import {
+  extractAudio,
+  segmentAudio,
+  probeDurationSeconds,
+  renderClip,
+  renderThumbnail,
+} from "@/lib/ffmpeg";
+import { transcribeFile, mergeTranscripts, type TranscriptResult } from "@/lib/transcribe";
+import { importMedia, type ImportSource } from "@/lib/media-import";
 import { selectClips, generateCopy } from "@/lib/ai";
 import { planFor } from "@/lib/plans";
 import { renderHash } from "@/lib/hash";
+import { extForContentType } from "@/lib/utils";
 import { sendReadyEmail } from "@/lib/email";
+import { readFile } from "node:fs/promises";
 import type { PipelineJob } from "@/lib/queue";
 
-const RENDER_TOP_N = 6; // render the best N candidates automatically
+const RENDER_TOP_N = 5; // render the best N candidates automatically (×2 aspects)
+const WHISPER_MAX_BYTES = 24 * 1024 * 1024; // stay under the 25MB API limit
+const SEGMENT_SECONDS = 600; // 10-minute audio chunks when over the limit
+const RENDER_ASPECTS = ["9x16", "1x1"] as const; // vertical + square (README MVP)
 
 async function audit(
   projectId: string,
@@ -82,7 +94,6 @@ export async function processProject(projectId: string): Promise<void> {
   const db = getDb();
   const [project] = await db.select().from(projects).where(eq(projects.id, projectId));
   if (!project) throw new Error(`Project ${projectId} not found`);
-  if (!project.mediaKey) throw new Error(`Project ${projectId} has no media`);
 
   const [ws] = await db.select().from(workspaces).where(eq(workspaces.id, project.workspaceId));
   const plan = planFor(ws?.plan);
@@ -91,11 +102,32 @@ export async function processProject(projectId: string): Promise<void> {
     : [];
 
   const workDir = await mkdtemp(path.join(tmpdir(), "clipforge-"));
-  const sourcePath = path.join(workDir, "source");
+  let sourcePath = path.join(workDir, "source");
   const audioPath = path.join(workDir, "audio.mp3");
 
   try {
-    await downloadTo(project.mediaKey, sourcePath);
+    // ---- Stage 0: acquire media (upload already in R2, or import from URL) ----
+    if (project.mediaKey) {
+      await downloadTo(project.mediaKey, sourcePath);
+    } else if (project.sourceUrl && project.sourceType !== "upload") {
+      await setStatus(projectId, "importing");
+      await audit(projectId, "import", async () => {
+        const local = await importMedia(
+          project.sourceType as ImportSource,
+          project.sourceUrl!,
+          workDir,
+        );
+        sourcePath = local;
+        // Persist the imported media to R2 so re-renders don't re-download.
+        const ext = extForContentType(local.endsWith(".mp3") ? "audio/mpeg" : "video/mp4");
+        const key = `sources/${project.workspaceId}/${projectId}.${ext}`;
+        await putObject(key, await readFile(local), "application/octet-stream");
+        await db.update(projects).set({ mediaKey: key }).where(eq(projects.id, projectId));
+        return 0;
+      });
+    } else {
+      throw new Error(`Project ${projectId} has no media`);
+    }
 
     const duration = await probeDurationSeconds(sourcePath);
     await db
@@ -103,27 +135,36 @@ export async function processProject(projectId: string): Promise<void> {
       .set({ durationSeconds: Math.round(duration) })
       .where(eq(projects.id, projectId));
 
-    // ---- Stage 1: transcribe ----
+    // ---- Stage 1: transcribe (chunked for long recordings) ----
     await setStatus(projectId, "transcribing");
     let words: TranscriptWord[] = [];
     await audit(projectId, "transcribe", async () => {
       await extractAudio(sourcePath, audioPath);
       const size = (await stat(audioPath)).size;
-      if (size > 25 * 1024 * 1024) {
-        throw new Error(
-          "Audio exceeds 25MB after compression; time-chunking not enabled in this build.",
-        );
+
+      let result: TranscriptResult;
+      if (size <= WHISPER_MAX_BYTES) {
+        result = await transcribeFile(audioPath);
+      } else {
+        // Split into fixed-length chunks; each chunk's timestamps are offset
+        // by its position in the original timeline, then merged back together.
+        const segments = await segmentAudio(audioPath, workDir, SEGMENT_SECONDS);
+        const parts: TranscriptResult[] = [];
+        for (let i = 0; i < segments.length; i++) {
+          parts.push(await transcribeFile(segments[i], i * SEGMENT_SECONDS));
+        }
+        result = mergeTranscripts(parts);
       }
-      const t = await transcribeFile(audioPath);
-      words = t.words;
+
+      words = result.words;
       await db.insert(transcripts).values({
         projectId,
-        language: t.language,
-        fullText: t.fullText,
-        wordsJson: t.words,
-        whisperCostCents: t.costCents,
+        language: result.language,
+        fullText: result.fullText,
+        wordsJson: result.words,
+        whisperCostCents: result.costCents,
       });
-      return t.costCents;
+      return result.costCents;
     });
 
     if (words.length === 0) throw new Error("Empty transcript");
@@ -205,59 +246,59 @@ export async function processProject(projectId: string): Promise<void> {
       return 65;
     });
 
-    // ---- Stage 3: render top clips ----
+    // ---- Stage 3: render top clips (vertical 9:16 + square 1:1) ----
     await setStatus(projectId, "rendering");
     await audit(projectId, "render", async () => {
       const top = candidateIds.slice(0, RENDER_TOP_N);
+      const style = preset?.captionStyle ?? "bold-center";
+      const height = plan.maxExportHeight;
+
       for (const cand of top) {
-        const style = preset?.captionStyle ?? "bold-center";
-        const aspect = "9x16" as const;
-        const height = plan.maxExportHeight;
-        const hash = renderHash(projectId, cand.startMs, cand.endMs, style, aspect);
+        for (const aspect of RENDER_ASPECTS) {
+          const hash = renderHash(projectId, cand.startMs, cand.endMs, style, aspect);
+          const [clip] = await db
+            .insert(clips)
+            .values({
+              projectId,
+              candidateId: cand.id,
+              aspect,
+              captionStyle: style,
+              status: "rendering",
+              durationMs: cand.endMs - cand.startMs,
+              renderHash: hash,
+            })
+            .returning();
 
-        const [clip] = await db
-          .insert(clips)
-          .values({
-            projectId,
-            candidateId: cand.id,
-            aspect,
+          const outPath = path.join(workDir, `clip_${clip.id}.mp4`);
+          const thumbPath = path.join(workDir, `clip_${clip.id}.jpg`);
+          await renderClip({
+            input: sourcePath,
+            output: outPath,
+            startMs: cand.startMs,
+            endMs: cand.endMs,
+            words,
             captionStyle: style,
-            status: "rendering",
-            durationMs: cand.endMs - cand.startMs,
-            renderHash: hash,
-          })
-          .returning();
+            aspect,
+            height,
+            watermark: plan.watermark,
+            workDir,
+          });
+          await renderThumbnail(
+            outPath,
+            thumbPath,
+            Math.min(1000, (cand.endMs - cand.startMs) / 2),
+          );
 
-        const outPath = path.join(workDir, `clip_${clip.id}.mp4`);
-        const thumbPath = path.join(workDir, `clip_${clip.id}.jpg`);
-        await renderClip({
-          input: sourcePath,
-          output: outPath,
-          startMs: cand.startMs,
-          endMs: cand.endMs,
-          words,
-          captionStyle: style,
-          aspect,
-          height,
-          watermark: plan.watermark,
-          workDir,
-        });
-        await renderThumbnail(
-          outPath,
-          thumbPath,
-          Math.min(1000, (cand.endMs - cand.startMs) / 2),
-        );
+          const renderKey = `renders/${projectId}/${clip.id}.mp4`;
+          const thumbKey = `renders/${projectId}/${clip.id}.jpg`;
+          await putObject(renderKey, await readFile(outPath), "video/mp4");
+          await putObject(thumbKey, await readFile(thumbPath), "image/jpeg");
 
-        const renderKey = `renders/${projectId}/${clip.id}.mp4`;
-        const thumbKey = `renders/${projectId}/${clip.id}.jpg`;
-        const { readFile } = await import("node:fs/promises");
-        await putObject(renderKey, await readFile(outPath), "video/mp4");
-        await putObject(thumbKey, await readFile(thumbPath), "image/jpeg");
-
-        await db
-          .update(clips)
-          .set({ status: "ready", renderKey, thumbnailKey: thumbKey })
-          .where(eq(clips.id, clip.id));
+          await db
+            .update(clips)
+            .set({ status: "ready", renderKey, thumbnailKey: thumbKey })
+            .where(eq(clips.id, clip.id));
+        }
       }
       return 0;
     });
@@ -298,8 +339,12 @@ export async function reRenderClip(clipId: string): Promise<void> {
   const [ws] = await db.select().from(workspaces).where(eq(workspaces.id, project.workspaceId));
   const plan = planFor(ws?.plan);
 
-  const startMs = clip.editedStartMs ?? 0;
-  const endMs = clip.editedEndMs ?? clip.durationMs ?? startMs + 30000;
+  // Fall back to the candidate's original bounds when only one edge was edited.
+  const [cand] = clip.candidateId
+    ? await db.select().from(clipCandidates).where(eq(clipCandidates.id, clip.candidateId))
+    : [];
+  const startMs = clip.editedStartMs ?? cand?.startMs ?? 0;
+  const endMs = clip.editedEndMs ?? cand?.endMs ?? clip.durationMs ?? startMs + 30000;
 
   const workDir = await mkdtemp(path.join(tmpdir(), "clipforge-rr-"));
   const sourcePath = path.join(workDir, "source");
@@ -308,6 +353,7 @@ export async function reRenderClip(clipId: string): Promise<void> {
     await downloadTo(project.mediaKey, sourcePath);
 
     const outPath = path.join(workDir, `clip_${clip.id}.mp4`);
+    const thumbPath = path.join(workDir, `clip_${clip.id}.jpg`);
     await renderClip({
       input: sourcePath,
       output: outPath,
@@ -320,14 +366,17 @@ export async function reRenderClip(clipId: string): Promise<void> {
       watermark: plan.watermark,
       workDir,
     });
+    await renderThumbnail(outPath, thumbPath, Math.min(1000, (endMs - startMs) / 2));
     const renderKey = `renders/${clip.projectId}/${clip.id}.mp4`;
-    const { readFile } = await import("node:fs/promises");
+    const thumbKey = `renders/${clip.projectId}/${clip.id}.jpg`;
     await putObject(renderKey, await readFile(outPath), "video/mp4");
+    await putObject(thumbKey, await readFile(thumbPath), "image/jpeg");
     await db
       .update(clips)
       .set({
         status: "ready",
         renderKey,
+        thumbnailKey: thumbKey,
         durationMs: endMs - startMs,
         renderHash: renderHash(clip.projectId, startMs, endMs, clip.captionStyle, clip.aspect),
       })

@@ -103,6 +103,7 @@ transcribe → select → render pipeline.
 - Node 20+
 - Postgres (local or Neon), Redis (local or Upstash)
 - `ffmpeg` and `ffprobe` on your PATH (`brew install ffmpeg` / `apt install ffmpeg`)
+- `yt-dlp` on your PATH for YouTube import (`brew install yt-dlp` / `pipx install yt-dlp`) — only needed if you use URL import
 - API keys: OpenAI (Whisper), Anthropic (Claude), Cloudflare R2, Stripe (optional for billing)
 
 ### Setup
@@ -122,17 +123,21 @@ Then: sign up → upload a video/podcast → watch the project page live-update 
 it transcribes, selects clips, and renders. Clips download as MP4s; threads /
 LinkedIn posts / newsletter appear under **Written assets** with source quotes.
 
-### What's implemented
+### What's implemented (the full MVP)
 - Email/password auth (scrypt + signed JWT cookie), route middleware, per-user trial workspace
-- Direct-to-R2 presigned uploads (browser → storage, no server proxying) + YouTube/RSS URL import path
-- Worker pipeline: ffmpeg audio extraction → Whisper word-timestamps → Claude clip selection + grounded copy (JSON tool-schema, zod-validated) → ffmpeg 9:16 cut + burned-in ASS captions + thumbnail → R2
-- Live dashboard + project polling, per-clip caption restyle with fast-lane re-render
-- Stripe checkout / customer portal / webhooks, upload-quota enforcement with $3 metered overage
-- Resend "kit ready" email (no-ops with a log line when `RESEND_API_KEY` is unset)
+- **Ingest:** direct-to-R2 presigned uploads (browser → storage, no server proxying) **and** working URL import — YouTube via `yt-dlp`, podcast RSS via direct enclosure fetch — downloaded to R2 then run through the same pipeline
+- **Transcription:** ffmpeg audio extraction → Whisper word-level timestamps, with **automatic time-chunking** of long recordings (>24MB audio is split into 10-min segments, transcribed with per-chunk offsets, and merged)
+- **Selection + copy:** Claude clip selection + grounded copy (JSON tool-schema, zod-validated) — tweet thread, 2 LinkedIn variants, newsletter, each with timestamped source citations
+- **Render:** ffmpeg cuts **both 9:16 (vertical) and 1:1 (square)** variants per top clip, with burned-in animated ASS captions (3 style presets) + thumbnail → R2
+- **Editable outputs:** transcript-based **clip trimming** (edit start/end → fast-lane re-render of every aspect), per-clip **caption restyle**, and inline **text editing** of every written asset (persisted; copy/download use your edits)
+- Live dashboard + project polling; Stripe checkout / customer portal / webhooks; upload-quota enforcement with $3 metered overage; Resend "kit ready" email (no-ops with a log line when `RESEND_API_KEY` is unset)
 
-### Not yet built (post-MVP, per ROADMAP.md)
-Time-chunked transcription for >25MB audio, active-speaker crop (MVP is center-crop),
-direct social publishing, team approval flows, and the public API.
+### Deliberately out of MVP scope (see ROADMAP.md)
+Per the product spec these are explicitly not part of v1: direct social publishing/scheduling,
+AI voice-over/dubbing, team approval flows, and the public API. Speaker-diarized transcripts
+are noted as a later enhancement — the Whisper API gives word timestamps but not reliable
+speaker labels, so the build does not fake them; that needs a diarization pass (e.g. pyannote).
+Active-speaker crop is also future work — the current cut is a center-crop.
 
 ### Verify the build
 ```bash
