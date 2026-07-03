@@ -63,11 +63,10 @@ Money always mono, always tabular: `$12,483.07`, `+$342/DAY`, `9f3c2ab`.
 ## Iconography
 Single SVG set, 20×20 viewBox, stroke 1.75, round caps/joins, currentColor.
 Required glyphs: `pulse` (spend), `flare` (anomalies: dot + 4 short rays),
-`rocket-pennant` (deploys: flag on a mast), `broom` (waste), `chevron-down`
-(account switcher), `check` (ack), `magnifier` (investigate), `bell`, `plug`
-(add account), `slack-hash`, `arrow-down-right` (savings), `clock`. Nav at
-22px, inline at 18px. **No emoji, anywhere, ever** — including inside Slack
-messages: severity is a Label + figure, never a siren or fire emoji.
+`rocket-pennant` (deploys: flag on mast), `broom` (waste), `chevron-down`,
+`check` (ack), `magnifier` (investigate), `bell`, `plug` (add account),
+`slack-hash`, `clock`. Nav at 22px, inline at 18px. **No emoji, anywhere,
+ever** — including in Slack: severity is a Label + figure, never a siren.
 
 ## Component construction (exact)
 
@@ -77,25 +76,24 @@ messages: severity is a Label + figure, never a siren or fire emoji.
 - **Secondary:** transparent, 1px hairline, `text`. Press: border `#2E3952`.
 - **Quiet action:** text-only `cyan`, no underline; press dims to 80%.
 - **MTD block:** NOT a card — the top of the page itself. `MONTH TO DATE`
-  Label, `$12,483.07` Display numeral in `paper`, second line mono
-  (`FORECAST $19,940 · +8% VS JUNE`) in `text-2`.
-- **Spend chart:** `panel` frame, radius 12, padding 16; area series in `steel`
-  at 35% fill / 100% 1.5px stroke; dashed 1px `text-3` baseline ghost; the
-  now-line is 1px `cyan`. Deploy pennants: 10px flags on 1px masts along the
-  axis; tap raises a plumb-line + metadata chip (`9f3c2ab · api-server ·
-  TUE 14:02`).
-- **Anomaly card:** `panel`, hairline, radius 12, padding 16: Label state
+  Label, `$12,483.07` in `paper` Display, then mono `FORECAST $19,940 · +8%
+  VS JUNE` in `text-2`.
+- **Spend chart:** `panel` frame, radius 12, padding 16; area series in
+  `steel` (35% fill, 1.5px stroke); dashed 1px `text-3` baseline ghost;
+  now-line 1px `cyan`. Deploy pennants: 10px flags on 1px masts along the
+  axis; tap raises a plumb-line + chip (`9f3c2ab · api-server · TUE 14:02`).
+- **Anomaly card:** `panel`, hairline, radius 12, padding 16: state Label
   (`OPEN` amber · `ACKED` `text-2` · `RESOLVED` green), Title ("EC2 —
-  us-east-1"), delta in mono 20 (`+$342/DAY`), correlated deploy row in mono,
-  48×16 trend thumbnail in `steel`, and a full-width Ack primary.
-- **Burn-rate meter (budgets):** 4px track `hairline`, fill `steel` (amber
+  us-east-1"), mono 20 delta (`+$342/DAY`), correlated deploy row in mono,
+  48×16 `steel` trend thumbnail, full-width Ack primary.
+- **Burn-rate meter (budgets):** 4px `hairline` track, `steel` fill (amber
   past 80%), mono caption (`$3,120 OF $4,000 · RESETS IN 9D`).
 - **Waste rows:** NO boxes. Hairline rows, dollar-ranked: mono figure left
-  (`$611/MO`), Title ("8 unattached EBS volumes"), one-line remedy in
-  Secondary ("Delete or snapshot; last attached 47d ago"), `check` action.
+  (`$611/MO`), Title ("8 unattached EBS volumes"), remedy in Secondary
+  ("Delete or snapshot; last attached 47d ago"), `check` action.
 - **Bottom tab bar:** height 56 + safe-area, `panel` 94% + blur, hairline top:
   pulse / flare / rocket-pennant / broom at 22px + 10px labels; active =
-  `text` + 2px `cyan` dot; inactive = `text-3`.
+  `text` + 2px cyan dot; inactive = `text-3`.
 
 ## The Slack alert card (co-flagship, Block Kit — exact)
 Mirrored pixel-for-pixel in-app. Blocks, in order:
@@ -115,32 +113,31 @@ by context `Acked by @dana 11:42 UTC`. The in-app Ack button matches exactly.
 
 ## The signature — the flare + survey line
 When an anomaly opens on the chart: the service's series rises above its
-dashed baseline ghost; a single amber flare (6px dot, one 1.5px expanding ring
-1→2.2× over 900ms `ease-out-quart`, two pulses max) marks the peak; then a 1px
-amber survey line draws down from the flare to the correlated deploy pennant
-in 400ms `ease-in-out-soft`, and the excess area between series and baseline
-tints amber at 18%. Ack: pulsing stops, flare settles to a steady 4px lamp.
-Resolve: the excess region sweeps `green` at 25% once (600ms) and the card
-files to history. Pure SVG stroke/opacity — phone-size, 60fps, no WebGL. This
-is the entire brand animation.
+dashed baseline ghost; an amber flare (6px dot, one 1.5px ring expanding
+1→2.2× over 900ms `ease-out-quart`, two pulses max) marks the peak; a 1px
+amber survey line draws down from flare to the correlated deploy pennant in
+400ms `ease-in-out-soft`; the excess area tints amber at 18%. Ack: pulsing
+stops, flare settles to a steady 4px lamp. Resolve: the excess region sweeps
+`green` at 25% once (600ms), card files to history. Pure SVG stroke/opacity —
+phone-size, 60fps, no WebGL. This is the entire brand animation.
 
 ## Mobile layout (390 × 844 — primary spec)
 - **The Watch (dashboard, money screen):** top bar: account switcher
   (`4821-prod` mono + chevron), `flare` badge with count. MTD block, spend
-  chart (14-day window) with deploy pennants, then the open-anomaly rail —
-  flares first: the EC2 card above, then "NAT Gateway — egress +$88/day".
-  Empty state: "Connect your first AWS account — read-only, 5 minutes." over
-  a `plug` glyph, primary "Add account".
+  chart (14-day window) with pennants, then the open-anomaly rail — flares
+  first: the EC2 card above, then "NAT Gateway — egress +$88/day". Empty
+  state: "Connect your first AWS account — read-only, 5 minutes.", `plug`
+  glyph, primary "Add account".
 - **Anomaly detail:** zoomed chart window with the full signature; contributor
   strata as hairline rows (`i-09f3… g4dn.xlarge · +$212/DAY`); deploy metadata
   in mono; live counter (`$127 SINCE TUE 14:00`); action log rows (`ACKED BY
   DANA · 11:42`). Thumb-zone: Ack primary, Investigate secondary.
-- **Waste report ("the roast"):** recoverable total in Display mono
-  (`$1,847/MO RECOVERABLE`) that rolls down as items are actioned; then the
-  dollar-ranked rows ("3 idle g4dn GPU instances — $438/mo", "Stale snapshots
-  older than 180d — $196/mo"). The monthly email reuses this layout statically.
-- **Deploys:** vertical list of pennant rows (`9f3c2ab · api-server · TUE
-  14:02 · +$342/DAY CORRELATED`), hairline-divided, GitHub link per row.
+- **Waste report ("the roast"):** Display mono total (`$1,847/MO RECOVERABLE`)
+  rolling down as items are actioned; then the dollar-ranked rows ("3 idle
+  g4dn GPU instances — $438/mo", "Stale snapshots older than 180d — $196/mo").
+  The monthly email reuses this layout statically.
+- **Deploys:** hairline pennant rows (`9f3c2ab · api-server · TUE 14:02 ·
+  +$342/DAY CORRELATED`), GitHub commit link per row.
 
 ## Responsive
 ≥768px: chart grows, anomaly rail docks right, gutters 32. ≥1024px: full
@@ -158,7 +155,7 @@ present. Targets ≥44px; push + haptic on a new anomaly (native).
 
 ## Reduced motion & fallback
 Chart draw → instant, plumb-lines intact. Flare → steady lamp, no rings.
-Survey line + tint → shown complete. Aurora sweep → a green `RESOLVED` chip.
-Counter → updates stepwise. Marketing WebGL → poster of the flare-and-survey
-moment. Every correlation and figure is always present as a text row beneath
-the chart. All motion collapses to ≤100ms opacity; nothing is motion-only.
+Survey line + tint → shown complete. Green sweep → a `RESOLVED` chip. Counter
+→ stepwise. Marketing WebGL → poster of the flare-and-survey moment. Every
+correlation and figure is always present as a text row beneath the chart. All
+motion collapses to ≤100ms opacity; nothing is motion-only.

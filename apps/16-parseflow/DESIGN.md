@@ -15,8 +15,8 @@ real content, fonts must load.
 
 ## Color — exact values and usage ratios
 
-Two grounds, one seam. The document/input side is paper; the code/output
-side is carbon. The seam between them is a hard 1px rule, `#31353C`.
+Two grounds, one seam: document/input side is paper, code/output side is
+carbon, joined by a hard 1px seam rule `#31353C`.
 
 | Token | Hex | Use |
 |---|---|---|
@@ -35,8 +35,8 @@ side is carbon. The seam between them is a hard 1px rule, `#31353C`.
 
 Syntax dye, scoped to code/JSON blocks only, never UI: keys `#7DD3FC`,
 strings `#FDE68A`, numbers `#F0ABFC`. Hard rules: green never fills a button
-or a surface; ink-filled primaries on paper, `paper-btn` primaries on carbon;
-syntax colors never leak outside a code well.
+or a surface; ink-filled primaries on paper, `paper-btn` on carbon; syntax
+colors never leak outside a code well.
 
 ## Type — exact specimen
 
@@ -115,7 +115,6 @@ Cheap SVG overlay, fully touch-native. This interaction *is* the wow.
 
 ## Mobile layout (390×844 — primary spec)
 Developers integrate on a laptop but *evaluate* on a phone.
-
 - **The split becomes a stack:** paper input on top, carbon output below,
   the 1px seam between. Wide JSON scrolls in its own `overflow-x:auto` well;
   the page never scrolls sideways.
@@ -155,8 +154,7 @@ docs (invoice / receipt / statement) with chips as the equivalent.
 
 ## Reduced motion & fallback
 Scan-beam and line assembly → the JSON fades in complete (100ms); provenance
-boxes appear instantly without stroke animation (the link itself is
-retained — it is function). Key resolve → plain show/hide with the 20s
-re-redact kept. Desktop dissolve → its static poster. Errors are full JSON
-objects (`{"error": {"code": "page_limit_exceeded", ...}}`) typeset as
-carefully as success.
+boxes appear instantly without stroke animation (the link is retained — it
+is function). Key resolve → plain show/hide, 20s re-redact kept. Desktop
+dissolve → its static poster. Errors are full JSON objects (`{"error":
+{"code": "page_limit_exceeded", ...}}`) typeset as carefully as success.
