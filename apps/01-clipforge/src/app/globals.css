@@ -360,3 +360,73 @@ body {
     opacity: 0 !important;
   }
 }
+
+/* ===== v4 · darkroom editorial (marketing surfaces only) ===== */
+.noise {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 30;
+  opacity: 0.3;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='nz'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23nz)' opacity='0.55'/%3E%3C/svg%3E");
+}
+.outl-v { color: transparent; -webkit-text-stroke: 1.5px var(--color-brand); }
+.t-hero-xl {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(52px, 13vw, 108px);
+  line-height: 0.96;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+}
+.wm {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: transparent;
+  -webkit-text-stroke: 1px #242a38;
+  line-height: 1;
+}
+.strip { position: relative; overflow: hidden; background: #050609; padding: 14px 0; }
+.strip::before,
+.strip::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 12px;
+  z-index: 2;
+  background-image: radial-gradient(2.6px 3.4px at 10px 6px, #2a303c 0 58%, transparent 60%);
+  background-size: 20px 12px;
+  background-repeat: repeat-x;
+}
+.strip::before { top: 3px; }
+.strip::after { bottom: 3px; }
+.striptrack {
+  display: flex;
+  gap: 10px;
+  width: max-content;
+  padding: 6px 0;
+  animation: stripmove 30s linear infinite;
+}
+@keyframes stripmove { to { transform: translateX(-50%); } }
+.frame {
+  position: relative;
+  flex: 0 0 auto;
+  width: 132px;
+  aspect-ratio: 9 / 16;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--color-panel-2);
+  border: 1px solid #191e28;
+}
+.paperband { background: var(--color-paper); color: var(--color-ink); }
+.paperband .t-label { color: #6a7180; }
+.btn-ink { background: var(--color-ink); color: var(--color-paper); }
+.btn-ink:hover { background: #181c25; }
+@media (prefers-reduced-motion: reduce) {
+  .striptrack { animation: none; }
+}
