@@ -2,11 +2,21 @@
 
 A curated portfolio of **30 buildable, high-profit-potential software products** — each researched, specified, and scaffolded so it can be lifted out of this repo and built as a standalone project.
 
-> **Nothing here is built.** Every folder is a *launchpad*: a full product spec, market/profitability research, architecture, roadmap, and code scaffolding with stub files. Pick one, extract it, and start building.
+> **One is built, 29 are launchpads.** `apps/01-clipforge` is a complete working MVP; every other folder is a full product spec, market/profitability research, architecture, redline design spec, roadmap, and code scaffolding with stub files. Pick one, extract it, and start building.
+
+## How to build one with an AI agent
+
+Every app folder is designed to be handed directly to a coding agent (Claude Opus,
+Claude Code, etc.) with zero outside context. Extract the folder, then point the
+agent at **`BUILD.md`** — it contains the reading order, the non-negotiable craft
+rules (no purple, no emoji, fonts must load, one rationed accent…), the build
+order, and the definition of done. The folder carries its own copies of
+`DESIGN_LANGUAGE.md` and `MARKETING_PLAYBOOK.md`, so the binding rules survive
+extraction.
 
 ## How to extract an app into its own repo
 
-Every app folder under `apps/` is fully self-contained (own README, `.gitignore`, `.env.example`, config, and source tree). To spin one out:
+Every app folder under `apps/` is fully self-contained (own `BUILD.md`, README, `.gitignore`, `.env.example`, config, and source tree). To spin one out:
 
 ```bash
 # 1. Copy the folder out

@@ -13,9 +13,13 @@ Every app folder under `apps/` follows the same conventions so that any of them 
 
 | File | Contents |
 |------|----------|
+| `BUILD.md` | **Start here when building.** The agent brief: reading order, non-negotiable ground rules, build order, definition of done. Hand this folder to an AI agent (e.g. Claude Opus) and point it at this file first |
 | `README.md` | Product spec: one-liner, problem, target user, market & profitability evidence, monetization & pricing, MVP feature list, differentiation, go-to-market, competition, risks |
 | `ARCHITECTURE.md` | Tech stack + rationale, system diagram (Mermaid), data model, key flows, third-party services, estimated running costs |
+| `DESIGN.md` | Redline visual spec: exact palette (v5 color law — no purple, no framework-default hexes), type specimen, spacing, component construction, signature detail, motion |
 | `ROADMAP.md` | Phase 0 (setup) → Phase 1 (MVP) → Phase 2 (v1 launch) → Phase 3 (growth), with acceptance criteria per phase |
+| `DESIGN_LANGUAGE.md` | In-folder copy of the global craft rules, so the folder stays binding after extraction |
+| `MARKETING_PLAYBOOK.md` | In-folder copy of the landing-page laws (enemy, 5-second demo, the device, honest receipts, one CTA phrase) |
 
 ## Source stubs
 
