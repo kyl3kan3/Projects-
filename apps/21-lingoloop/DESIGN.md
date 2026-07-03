@@ -1,82 +1,144 @@
-# LingoLoop — Design Specification
+# LingoLoop — Design Specification (v3, redline level)
 
 ## Vision
-A table for two in another country. LingoLoop's job is to lower the fear of speaking, so
-the design is a warm conversational stage — soft evening colors, one attentive presence,
-and your own voice made gently visible. Nothing gamified-cute; the feel is a candlelit
-café where mistakes are part of the music. Duolingo is a playground; LingoLoop is a
-passport.
+A table for two in another country. LingoLoop lowers the fear of speaking, so
+the design is a warm evening stage — plum dark, one gold thread for your own
+voice, corrections as a friend's pencil, never a red X. Nothing gamified-cute;
+mistakes are part of the music. This is an Expo app and voice is the product:
+the mic button is the most carefully built object in the system.
 
-## Mobile layout (390 × 844)
-This is a phone-native voice app; the whole product lives one-handed.
-- **The Exchange (core screen):** the tutor is a single calm presence at top; the
-  conversation flows as a vertical thread of two voices below. The **mic button is a
-  large gold circle centered in the bottom third** — the one thing your thumb needs.
-  Slower-speech toggle and "say it for me" lifeline flank it as 44px pills; End is a
-  quiet top-corner affordance.
-- **Voice made visible:** while you speak, a soft gold amplitude ribbon rises from the
-  mic (real level data, rounded curves, no spiky bars); when you finish, it settles and
-  your transcribed sentence fades in beneath it. The tutor's replies render in soft
-  lilac. Corrections attach afterward as gold-underline marginalia, not red errors.
-- **Nav:** a bottom tab bar (Talk · Scenarios · Progress · Profile) on non-session
-  screens; the Exchange itself hides chrome to keep focus on speech.
-- **Post-session report** is a scroll: your two-voice summary at top, correction note
-  cards, one fluency insight, tomorrow's warm-up queue.
+## Ground rules inherited
+Obeys DESIGN_LANGUAGE.md v2.1 fully: no emoji anywhere, no gradient/glow on
+controls, SVG icon set only, space-before-boxes, 4px spacing scale, hairlines,
+real content, fonts must load (expo-font, preloaded before first screen).
 
-## Identity
-| Role | Name | Hex |
+---
+
+## Color — exact values and usage ratios
+
+| Token | Hex | Use |
 |---|---|---|
-| Evening | Plum black | `#191322` |
-| Stage | Stage plum | `#241B30` |
-| Brand | Conversation coral | `#FF7A6B` |
-| Your voice | Warm gold | `#FFC96B` |
-| Tutor voice | Soft lilac | `#B7A4F4` |
-| Fluency | Fluency green | `#63D6A3` |
+| `evening` | `#191322` | The ground. Every screen. |
+| `stage` | `#241B30` | Tutor bubbles, cards, sheets only |
+| `hairline` | `#352A47` | 1px dividers & borders — never brighter |
+| `text` | `#F4EFF7` | Primary text |
+| `text-2` | `#9C90AC` | Secondary text |
+| `text-3` | `#655A76` | Faint (timestamps, placeholders) |
+| `paper` | `#F6F1EA` | **Primary buttons & the mic face** (evening text on it) |
+| `gold` | `#FFC96B` | THE accent. ≤10% of any screen: your voice — amplitude ribbon, mic ring, correction underlines — plus links and active states |
+| `green` | `#63D6A3` | Fluency/success semantic only (goal complete, ring fill) |
+| `red` | `#E5766B` | Errors only (permission denied, connection lost) — never corrections |
 
-Text `#F4EFF7`, muted `#9C90AC`.
+Hard rules: gold never fills a button or a surface; `paper` is the only
+high-emphasis fill; corrections are gold marginalia, never red; the tutor's
+speech is plain `text` on `stage` — your voice is the only colored voice.
 
-- **Display:** `Canela Text` (fallback `Fraunces`) — travel-journal warmth. **UI:**
-  `Inter`, 16px min; **target-language text** always 1px larger with generous
-  line-height — the language is the guest of honor. **Data:** tabular Inter for streaks.
-- **Signature detail — voice becomes words:** when you finish a sentence, the gold
-  amplitude ribbon resolves into your transcribed text (a quick 240ms opacity/settle,
-  not a glyph-by-glyph shader) — you watch your speech become language, then a friend's
-  pencil (gold underline + italic note) appears where a phrase could be better. Small,
-  meaningful, 60fps on a mid Android. No blob shader.
+## Type — exact specimen
+
+Faces: **Fraunces** (600, optical 40+) for display · **Satoshi** (400/500/700,
+Fontshare) for UI · **IBM Plex Mono** (500) for data. Bundled via expo-font.
+
+| Role | Face/weight | Size/lh | Tracking |
+|---|---|---|---|
+| Display (screen title, report headline) | Fraunces 600 | `clamp(28px, 7.5vw, 40px)` / 1.12 | 0 |
+| H2 (section) | Fraunces 600 | 22 / 1.2 | 0 |
+| Target-language line | Satoshi 500 | 18 / 1.6 | 0 — the guest of honor, always 1 step larger |
+| Body / your transcript | Satoshi 400 | 16 / 1.55 | 0 |
+| Correction note | Fraunces 400 italic | 15 / 1.5 | 0 |
+| Secondary | Satoshi 400 | 13 / 1.45 | 0 |
+| Label | Satoshi 700 | 11 / 1.2 | +0.08em, uppercase |
+| Data (timers, streaks, CEFR) | IBM Plex Mono 500 | 13 / 1.2 | 0, tabular figures |
+| Button | Satoshi 700 | 15 / 1 | 0 |
+
+## Spacing, radius, elevation
+- Scale: `4 · 8 · 12 · 16 · 20 · 24 · 32 · 40 · 56 · 80`. Screen gutter **20**.
+- Radii: **12** (controls: buttons, inputs, chips) · **16** (cards, bubbles) ·
+  **24** (sheets, scenario stills, the paywall frost). Nothing else.
+- Elevation: none — depth is `stage` on `evening` plus hairlines. The mic
+  alone carries `0 8px 24px rgba(0,0,0,0.35)` (it is a physical object).
+
+## Iconography
+Single SVG set, 20×20 viewBox, stroke 1.75, round caps/joins, currentColor.
+Required glyphs: `mic`, `speaker` (tutor audio replay), `turtle` (slower
+speech), `lifeline` (speech bubble + hand — "say it for me"), `translate`
+(tap-word), `scenario` (open book), `progress` (ring), `person`, `chevron-left`,
+`check`, `pencil` (correction), `close`, `pause`. Tab bar 22px, session
+controls 20px. **No emoji, anywhere, ever** — languages are set as text
+(`ES · Español`), levels as mono chips (`B1`), never flags or faces.
+
+## Component construction (exact)
+- **Primary button:** paper fill, evening text, radius 12, height 48
+  (full-width in thumb zone), Satoshi 700 15. Press: scale 0.98 + fill
+  `#E9E2D7`. Disabled: `#3A3049` fill, `text-3` text.
+- **Secondary:** transparent, 1px hairline, `text`. Press: border `#4A3D60`.
+- **Quiet action:** text-only gold, no underline; press dims to 80%.
+- **The mic button (the product):** 72px circle, paper face, evening `mic`
+  glyph 28px, centered horizontally, its center 120px above the safe-area
+  bottom. At rest: a 2px gold ring at radius +6px, breathing 1→1.04 over 2.8s.
+  Recording: the ring becomes live amplitude — ring width maps RMS 2→6px at
+  60fps (Reanimated, UI thread) — and the face dims to `#EDE6DB`. Press-in:
+  scale 0.96, `Haptics.selectionAsync`. End of speech: `impactLight`. Flanked
+  by two 44px pill controls at 16px gap: `turtle` and `lifeline` (hairline,
+  radius 12).
+- **Conversation thread:** tutor = `stage` bubble, radius 16 (4 top-left),
+  padding 12/16, target-language 18/1.6 with `speaker` replay 32px. You = no
+  box — your transcript sits full-bleed right-aligned with a 2px gold left
+  rule; hierarchy from space, not bubbles-on-bubbles.
+- **Correction (marginalia):** a gold 1.5px underline under the phrase +
+  `pencil` glyph 14px; tapping expands a `stage` card (radius 16): the better
+  phrasing 18/Satoshi 500, note in Fraunces italic 15 ("More natural: 'me
+  gustaría' softens the request"), one gold-hairline "Drill tomorrow" chip.
+- **Scenario cards:** 24-radius duotone film stills (plum + the language's
+  hue), title 17, goal line 13/`text-2` ("Order for two, ask for the check"),
+  difficulty as mono `A2`, locked tiers behind 60% frost + Label `PREMIUM`.
+- **Paywall:** mid-conversation frost (blur 16, `evening` 60%), "Keep the
+  conversation going", annual card first with mono `7-DAY TRIAL`, honest 44px
+  close X top-right. No countdowns.
+
+## The signature — voice becomes words
+While you speak, a gold amplitude ribbon rises from the mic: a single path of
+live RMS data, 2px `gold` stroke with a 20% gold fill beneath, rounded curves,
+no spiky bars. When you finish: the ribbon settles to a flat line over 240ms
+`ease-out-quart`, and 20ms later your transcribed sentence fades in beneath it
+(200ms opacity, 4px rise). If a phrase could be better, the pencil arrives:
+the gold underline draws left→right in 300ms `ease-out-quart`, `impactLight`
+as it lands. Reanimated on the UI thread; 60fps on a mid Android. This is the
+entire brand animation.
+
+## Mobile layout (390×844 — primary spec)
+- **Nav:** bottom tab bar 56px + safe-area (`mic` Talk · `scenario` Scenarios ·
+  `progress` Progress · `person` Profile), 22px glyphs, 10px Satoshi 700
+  labels; active = `text` + 2px gold dot. The Exchange hides all chrome.
+- **The Exchange (money screen):** tutor presence strip at top (name "Sofía",
+  mono `B1 · ES`, End as a quiet 44px top-right affordance), conversation
+  thread scrolling beneath, mic + flanking pills in the bottom third. Live
+  session timer mono 13 `text-3` top-center.
+- **Post-session report:** Display "Nice — 12 minutes on your feet." Then
+  hairline-divided rows, not boxes: exchanges count, words spoken (mono `214`),
+  goal state in green ("Rebooked the flight — done"). Correction cards follow,
+  then one insight ("You avoid past tense — tomorrow's warm-up drills it"),
+  then a 48px primary "Queue warm-up".
+- **Onboarding:** no forms first — mic permission asked in-context as the
+  tutor "leans in" after the first typed hello; a 3-minute spoken exchange
+  calibrates CEFR, ending on the mono stamp `ESTIMATED LEVEL — A2+`.
 
 ## Responsive
-Phone-first everywhere. On tablet the Exchange keeps its single centered column
-(conversation is intimate, not wide) with the report as a side panel. **Optional desktop
-enhancement:** the marketing site may show a looping muted demo of the ribbon-to-text
-moment — CSS/video, never a WebGL scene, and the app itself never depends on it.
+Phone-first everywhere. Tablet: the Exchange keeps one centered 480px column
+(conversation is intimate); the report may sit as a right panel. The marketing
+site may loop a muted ribbon-to-text demo — CSS/video only, never load-bearing,
+mobile gets a three-frame still sequence.
 
 ## Motion & touch
-- Shared tokens: ribbon settle `ease-out-quart` at `dur-emphasis`; report cards deal in
-  with `spring-gentle`, 40ms stagger, ≤8. Scenario placard sets, then recedes to a chip.
-- Mic button ≥64px with a live amplitude ring at rest; all controls ≥44px.
-- **Haptics:** a soft tick when the tutor starts speaking and when a correction lands
-  (Reanimated + Expo Haptics). Hesitation support: if you stall >4s the lifeline pulses
-  once, softly, never repeating within 30s — a dignity spec.
-- Fluency shown as a filling ring around the day, not a fire streak.
+Tokens from DESIGN_LANGUAGE.md. Report rows deal in with `spring-gentle`,
+40ms stagger, ≤8. Scenario placard sets then recedes to a chip (320ms). All
+controls ≥44px; the mic is 72px. Haptics: `selectionAsync` on mic press,
+`impactLight` when the tutor starts speaking and when a correction lands.
+Hesitation support: stall >4s → the lifeline pill pulses once (scale 1.05,
+600ms), never repeating within 30s — a dignity spec. Fluency is a ring that
+fills, drawn in green, not a flame.
 
-## Key screens
-1. **Onboarding / level calibration:** a 3-minute first spoken exchange — the calibration
-   *is* the demo; mic permission asked in-context as the tutor "leans in." No forms first.
-2. **The Exchange (money screen):** as specced — mic in the thumb zone, voice as light,
-   corrections as marginalia, minimal chrome.
-3. **Report:** two-voice summary, correction note cards, one insight, tomorrow's warm-up.
-4. **Scenario library:** scene cards (duotone film-still illustrations in the language's
-   ambient hue) with a goal + difficulty dots; locked tiers show softly through frost.
-
-## Component language
-- Buttons: soft pills; primary coral with plum text; mic = large gold circle.
-- Cards: 20px radius, stage-toned, 1px lighter inner edge.
-- Correction notes: italic serif on small gold-ruled cards.
-- Paywall: the tutor sits behind soft frost mid-conversation — "keep the conversation
-  going" — annual hero card, honest close X.
-- Empty state: the tutor asleep with a tiny snore ripple: "Wake your tutor — say hola."
-
-## Reduced-motion & fallback
-Presence → static gradient with a subtle listening/speaking color shift. Ribbons → simple
-level meters; voice-to-text → plain fade-in after speech. Scene dimming off. All
-conversational states also captioned in text ("Listening…") for accessibility.
+## Reduced motion & fallback
+Ribbon → a simple 3-segment level meter; transcript appears with a 100ms fade.
+Underline draw → instant underline. Breathing ring and lifeline pulse off.
+Frost → flat scrim. Every conversational state is also captioned in text
+("Listening…", "Sofía is speaking") for screen readers — never motion-only.

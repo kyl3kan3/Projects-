@@ -1,84 +1,154 @@
-# SubSage — Design Specification
+# SubSage — Design Specification (v3, redline level)
 
 ## Vision
-A calm financial companion in your pocket — the opposite of banking-app anxiety.
-Deep-night navy, soft mint, and one emotion tuned above all: relief. Every subscription
-is a tidy object you can inspect and throw away, and throwing one away should feel
-quietly great. This is a native mobile app first, last, and always.
+A calm financial companion in your pocket — the opposite of banking-app
+anxiety. Deep-night navy, one soft mint accent, and a single emotion tuned
+above all: relief. Every subscription is a tidy object you can inspect and
+throw away, and the number getting smaller is the whole show. Native mobile
+first, last, and always.
 
-## Mobile layout (390 × 844 — the primary spec)
-SubSage *is* a phone app (Expo). The entire product is the 390-wide screen; there is no
-"real" desktop version to scale from.
+## Ground rules inherited
+Obeys DESIGN_LANGUAGE.md v2.1 fully: no emoji anywhere, no gradient/glow on
+controls, SVG icon set only, space-before-boxes, 4px spacing scale, hairlines,
+real content, fonts must load.
 
-- **Nav:** bottom tab bar — Home · Renewals · Insights · Settings — above the home
-  indicator; mint on the active item only.
-- **Home:** the **monthly total** owns the top third — large, tabular, 700 weight, the
-  app's face. Beneath it a "next 7 days" renewal strip, then a single vertical list of
-  subscription cards (not an orbit — a calm, scannable stack), then one insight teaser
-  card at the bottom.
-- **Primary action** in the thumb zone: a full-width **Add subscription** button pinned
-  bottom; the **Scan email for subscriptions** entry sits just above it on first run.
-- **Subscription card:** 20px radius, service logo left, price right in tabular figures,
-  next-renewal below. Tinted with a 12% wash of the service's brand color on the
-  midnight surface. Swipe left reveals **cancel-assist** (rose); swipe right **snoozes**
-  a reminder (amber) — each also reachable via a tap-in detail sheet.
-- **Key components at phone width:** renewal strip chip; price-history sparkline; the
-  privacy card ("we read receipts, never store bodies"); the paywall sheet.
+---
 
-## Identity
-| Role | Hex |
-|---|---|
-| Night (navy) | `#0A1128` |
-| Surface (midnight card) | `#141B36` |
-| Brand mint | `#5EEAD4` |
-| Money saved (green) | `#4ADE80` |
-| Renewal warning (amber) | `#FBBF24` |
-| Price hike (rose) | `#FB7185` |
-| Text | `#EEF2FF` / muted `#8B93B5` |
+## Color — exact values and usage ratios
 
-- **Display & numerals:** `General Sans` (fallback `Plus Jakarta Sans`); the monthly
-  total is 700 weight, tabular figures. Body ≥16px throughout.
-- **Voice:** wise friend. "Hulu went up $2 — that's $24 a year. Want the cancel guide?"
-- **Signature detail — the total that responds.** The monthly-total figure is a live
-  odometer: cancel a subscription and the number **rolls down** (`spring-gentle`, digits
-  blur ~1px mid-roll) while a "saved $15.99/mo" chip floats up and settles; add one and
-  it rolls up. It's the one satisfying, shareable moment, done with Reanimated on the UI
-  thread at 60fps — no Skia orbital physics, no particle field. The relief is in the
-  number moving, not in a space scene.
+| Token | Hex | Use |
+|---|---|---|
+| `night` | `#0A1128` | The ground. Every screen. |
+| `surface` | `#141B36` | Sheets, subscription cards, the paywall panel only |
+| `hairline` | `#232B4D` | 1px dividers & card borders — never brighter |
+| `text` | `#EEF2FF` | Primary text |
+| `text-2` | `#8B93B5` | Secondary text |
+| `text-3` | `#565E85` | Faint (timestamps, placeholders) |
+| `paper` | `#F0F3FF` | **Primary buttons** (night text on it), the monthly total |
+| `mint` | `#5EEAD4` | THE accent. ≤10% of any screen: active tab, links, focus, the settle sweep, insight bars |
+| `green` | `#4ADE80` | Money saved only |
+| `amber` | `#FBBF24` | Renewal warnings only |
+| `rose` | `#FB7185` | Price hikes / cancel only |
+
+Hard rules: mint never fills a button or a surface (the v2 mint-pill CTA is
+retired); `paper` is the only high-emphasis fill; green/amber/rose carry
+meaning only. Service-brand tints on cards are capped at a 10% wash over
+`surface`, derived from the service logo, never saturated.
+
+## Type — exact specimen
+
+Faces: **General Sans** (400/500/600/700) for display and UI · **JetBrains
+Mono** (500) for list prices and dates. Both self-hosted/embedded (Expo asset
+fonts), preloaded before first paint.
+
+| Role | Face/weight | Mobile size/lh | Tracking |
+|---|---|---|---|
+| Monthly total (hero) | GS 700 | `clamp(40px, 11vw, 64px)` / 1.0 | −0.02em, tabular figures |
+| H2 (screen title) | GS 600 | 22 / 1.2 | −0.01em |
+| Title (service name) | GS 600 | 16 / 1.3 | 0 |
+| Body | GS 400 | 16 / 1.55 | 0 |
+| Secondary | GS 400 | 13 / 1.45 | 0 |
+| Label | GS 600 | 11 / 1.2 | +0.08em, uppercase |
+| Data (list price, renewal date) | JBM 500 | 13 / 1.2 | 0, tabular figures |
+| Button | GS 600 | 15 / 1 | 0 |
+
+The hero total is the app's face; cents render at 60% size. All list-level
+money and dates are mono tabular so columns of prices align.
+
+## Spacing, radius, elevation
+- Scale: `4 · 8 · 12 · 16 · 20 · 24 · 32 · 40 · 56 · 80`. Screen gutter **20**.
+- Radii: **12** (controls: buttons, inputs, chips) · **16** (subscription
+  cards) · **24** (sheets, paywall). Nothing else — the v2 20px card radius
+  consolidates to 16.
+- Elevation: none. Depth is `surface` vs `night` plus hairlines; only the
+  sheet scrim shadows.
+
+## Iconography
+Single SVG set, 20×20 viewBox, stroke 1.75, round caps/joins, currentColor.
+Required glyphs: `home`, `renewals` (calendar-clock), `insights` (bars),
+`gear`, `plus`, `scan-mail` (envelope + magnifier), `bell`, `bell-snooze`,
+`scissors` (cancel), `arrow-up-right` (price hike), `arrow-down` (saved),
+`shield` (privacy), `check`, `x`, `chevron-right`, `export`. Nav renders at
+22px, inline at 18px. **No emoji, anywhere, ever** — service identity comes
+from real logos in a 32px rounded container (radius 12), with a two-letter
+GS 600 monogram fallback on `hairline`.
+
+## Component construction (exact)
+
+- **Primary button:** paper fill, night text, radius 12, height 52 (full-width
+  in thumb zone), GS 600 15. Press: scale 0.97 + fill `#DDE3F5`. Disabled:
+  `#28304F` fill, `text-3` text.
+- **Secondary:** transparent, 1px hairline, `text`. Press: border `#2E3760`.
+- **Quiet action:** text-only, mint, no underline; press dims to 80%.
+- **Input:** night fill, hairline border, radius 12, height 48, 16px text.
+  Focus: border mint + 2px offset ring at 25% mint.
+- **Chips (category: Streaming / Software / Fitness):** height 36, radius 12,
+  hairline; active = mint 1px border + mint text.
+- **Subscription cards:** the one framed object — `surface` + 10% brand wash,
+  hairline border, radius 16, padding 16, ≥72px tall: logo 32px left, Title
+  name + Secondary next-renewal ("Renews `Jul 11`"), JBM price right
+  ("`$15.49`"). Swipe left reveals cancel-assist (rose), right snoozes
+  (amber); both also live in the detail sheet.
+- **Renewal strip:** horizontal scroller of chips (height 44, radius 12,
+  hairline): logo 20px + JBM day ("`Fri`") + price; imminent (≤48h) = amber
+  1px border.
+- **Saved chip:** height 28, hairline, green text ("saved `$15.99`/mo") —
+  appears only after a cancel.
+- **Insight bars:** rounded-cap 8px mint bars on hairline tracks, JBM values
+  right; category rows are hairline rows, not boxes.
+- **Paywall sheet:** radius 24 top, padding 20; weekly-with-trial as the
+  primary paper button ("Start 3-day free trial · then `$4.99`/wk"), annual as
+  a secondary button beneath ("`$34.99`/yr — save 87%"), close X at full
+  opacity from the first second, 44×44.
+- **Bottom tab bar:** height 56 + safe-area, `surface` at 94% + blur, hairline
+  top. Four items, 22px icons + 10px labels; active = `text` + 2px mint dot;
+  inactive = `text-3`.
+
+## The signature — the total that responds (kept, refined)
+The monthly total is a live odometer. Cancel a subscription and the digits
+roll **down** with `spring-gentle` (≤600ms, ~1px motion blur mid-roll) while a
+saved chip floats up 12px and settles; beneath the settled figure a 1.5px mint
+underline sweeps left→right in 240ms `ease-out-quart` and fades. Adding rolls
+up, no sweep — only relief earns the sweep. Reanimated 3 on the UI thread at
+60fps; one roll per 2s, batched. No particles, no space scene. Everything
+else is state feedback ≤240ms.
+
+## Mobile layout (390×844 — primary spec)
+- **Home:** gutter 20. Label "THIS MONTH" over the hero total `$142.47`, then
+  Secondary "12 subscriptions · `$1,709` a year". The 7-day renewal strip
+  ("Netflix `Fri` `$15.49`", "iCloud `Sun` `$2.99`"). Then the card stack —
+  real services, real prices. One insight teaser row at the bottom ("Streaming
+  is 41% of your total →"). **Add subscription** primary pinned in the thumb
+  zone; **Scan email for subscriptions** quiet action above it on first run.
+- **Onboarding:** value promise → Gmail connect with the privacy card
+  (`shield` glyph, "We read receipts. We never store bodies. Everything lives
+  on this phone.") → paywall sheet. No dark patterns; the free path (5 manual
+  subs) is stated on the paywall itself.
+- **Subscription detail (sheet):** logo + Title, JBM price history sparkline
+  (1.5px, rose segment where a hike occurred, "`$13.99 → $15.49 · Mar`"),
+  next renewal, reminder toggles, cancel-assist guide with deep link.
+- **Insights:** monthly/annual totals, category bars, month-over-month delta
+  ("`−$8.50` vs June" in green).
 
 ## Responsive
-This is a phone app; there is no tablet/desktop product. It adapts *within* mobile:
-respect `env(safe-area-inset-*)` and Dynamic Island; scale type via the OS font-size
-setting; support landscape by widening the card list to two columns on larger phones
-and small tablets. No WebGL, no desktop enhancement — the constraint is the point.
+A phone app; there is no desktop product. It adapts within mobile: respect
+`env(safe-area-inset-*)` and Dynamic Island; scale with the OS font-size
+setting (layouts tolerate 130%); landscape and small tablets widen the card
+stack to two columns. No WebGL anywhere — the constraint is the point.
 
 ## Motion & touch
-- Uses the shared token spirit via Reanimated 3 equivalents. Money figures odometer-roll
-  (`spring-gentle`). Renewal strip: imminent renewals breathe amber (3s); day-of gets a
-  single 9am ripple.
-- Price-hike alert: the card tilts 2° and a rose seam splits old price from new (old
-  price slides down to 40% opacity with a strikethrough drawing).
-- Email scan (onboarding): detected subscriptions deal onto the screen like cards from a
-  deck (80ms stagger, ±2° rotation), each confirmed/denied by swipe or button.
-- **Touch:** targets ≥44px; primary buttons are full-width pills, mint fill with navy
-  text, press scales 0.97.
-- **Gestures:** swipe-to-cancel and swipe-to-snooze on cards (both mirrored as buttons
-  in the detail sheet); pull-to-refresh re-scans recent receipts (also a refresh
-  control). **Haptics choreographed and motion-independent:** light tick on card grab,
-  medium on cancel confirm, success notch on the total's roll-down.
+Shared token spirit via Reanimated 3. Imminent renewals breathe amber (3s
+cycle); day-of gets a single 9am ripple. Price hike: the card's rose seam
+splits old from new — old price slides down to 40% opacity as a strikethrough
+draws (240ms); no tilt. Scan results deal in with 80ms stagger, confirmed or
+denied by swipe or buttons. Targets ≥44px; primary actions in the thumb zone.
+Pull-to-refresh re-scans recent receipts (also a button). Haptics
+choreographed and motion-independent: light tick on card grab, medium on
+cancel confirm, success notch on the roll-down.
 
-## Key screens (mobile-first)
-1. **Home:** monthly total + 7-day renewal strip + subscription list + insight teaser.
-2. **Onboarding:** value promise → Gmail connect with an explicit sealed-envelope
-   privacy card → paywall (weekly-with-trial hero SKU, annual beneath, close X visible
-   at full opacity from the first second; no dark patterns).
-3. **Subscription detail:** logo, price history sparkline, next renewal, cancel-assist
-   guide with deep link.
-4. **Insights:** monthly/annual totals, category breakdown, month-over-month delta as
-   rounded-cap mint bars that grow with `spring-gentle`.
-
-## Reduced-motion & fallback
-Odometer rolls → direct number swap with a mint flash. Card-deal onboarding → cards
-appear at once with an 80ms fade. Price-hike tilt/seam → static old→new price with a
-rose label. Amber breathing → solid amber. **Haptics are preserved** (they're
-motion-independent and carry the relief). Every figure and status is also plain text.
+## Reduced motion & fallback
+Odometer → direct number swap with a single 100ms mint underline fade.
+Card-deal → cards appear at once with an 80ms fade. Hike seam → static
+old→new with a rose label. Breathing → solid amber. **Haptics are preserved**
+— they are motion-independent and carry the relief. Every figure and status
+is also plain text.

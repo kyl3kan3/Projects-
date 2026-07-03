@@ -1,86 +1,146 @@
-# PulseWatch — Design Specification
+# PulseWatch — Design Specification (v3, redline level)
 
 ## Vision
-A monitor that never blinks, built for one person. Phosphor traces on black glass,
-the calm authority of medical telemetry: your services have a heartbeat and PulseWatch
-watches it. The feeling sits between mission-critical and cozy — an indie dev at 2am
-should feel watched over, not alarmed.
+A monitor that never blinks, built for one person. Phosphor traces on black
+glass — the calm authority of medical telemetry. Your services have a
+heartbeat and PulseWatch watches it; an indie dev at 2am should feel watched
+over, not alarmed. The only motion is information: the trace runs, or it
+flatlines.
 
-## Mobile layout (390 × 844 — the primary spec)
-The core interaction is a glance: something broke, or nothing did. Indie devs get the
-alert on their phone and open the app one-handed to triage, so the phone is where the
-product has to be perfect.
+## Ground rules inherited
+Obeys DESIGN_LANGUAGE.md v2.1 fully: no emoji anywhere, no gradient/glow on
+controls, SVG icon set only, space-before-boxes, 4px spacing scale, hairlines,
+real content, fonts must load.
 
-- **Nav:** bottom tab bar — Monitors · Incidents · Status pages · Settings — above the
-  safe-area inset. Mono labels.
-- **Monitor wall (core):** a single scrolling column of monitor rows. Each row:
-  **status light** (left), name, a 60px live sparkline, p50/p99 in mono, region dots.
-  A header line reads the global state — "All systems: steady" — with a slow ambient
-  trace behind it. Status is a light language: green steady, amber breathing (3s), red
-  pulsing (1s), readable at a glance.
-- **Primary action** in the thumb zone: a full-width **Add monitor** button pinned
-  bottom (time-to-first-monitor under 60s is a product goal — the form is one screen).
-- **Incident detail:** a vertical timeline — detection tick, region confirmations,
-  alerts sent (channel chips), acknowledgment, recovery — with the response-time trace
-  below and the outage band shaded red at 10%.
-- **Key components at phone width:** monitor row (self-contained, tappable ≥44px);
-  incident card (red edge-light); alert-channel toggles; the public status page in a
-  clean light-on-dark read, 90-day uptime bars scrollable in their own track.
+---
 
-## Identity
-| Role | Hex |
-|---|---|
-| Void (black-green) | `#070B0A` |
-| Glass panel | `#0E1513` |
-| Phosphor green | `#3DFFA2` |
-| Trace dim | `#1E6B4A` |
-| Flatline red | `#FF4D5E` |
-| Degraded amber | `#FFC24D` |
-| Text | `#DCE7E2` / muted `#7C8F87` |
+## Color — exact values and usage ratios
 
-- **Display/UI:** `Space Grotesk` — technical but warm; body ≥16px on mobile.
-- **Data/mono:** `IBM Plex Mono` for every latency, uptime, timestamp. The 99.98%
-  figure is typographic hero material — large, mono, phosphor.
-- **Signature detail — the live trace, and the flatline.** Each monitor row runs a
-  60px sparkline drawing right-to-left in real time (canvas, ~30fps, a few KB). When a
-  monitor fails, its sparkline literally **drops to baseline and runs flat** while the
-  row's left edge ignites red; on recovery the trace jumps back with one exaggerated
-  spike (400ms overshoot) then normalizes. This single, informational metaphor carries
-  the whole product — no 3D globe, no perspective wall on the phone.
+| Token | Hex | Use |
+|---|---|---|
+| `void` | `#070B0A` | The ground. Every screen. |
+| `glass` | `#0E1513` | Sheets, incident panels, status-page cards only |
+| `hairline` | `#1A2420` | 1px dividers & panel borders — never brighter |
+| `text` | `#DCE7E2` | Primary text |
+| `text-2` | `#7C8F87` | Secondary text |
+| `text-3` | `#48564F` | Faint (timestamps, placeholders) |
+| `paper` | `#F0F5F2` | **Primary buttons** (void text on it) |
+| `phosphor` | `#3DFFA2` | THE accent. ≤10% of any screen: live traces, up-status dots, active tab, the 99.98% hero figure, links |
+| `trace-dim` | `#1E6B4A` | Historical traces, filled uptime bars — phosphor's quiet past |
+| `red` | `#FF4D5E` | Down / flatline only |
+| `amber` | `#FFC24D` | Degraded / slow only |
+
+Hard rules: phosphor never fills a button or a surface; `paper` is the only
+high-emphasis fill; red and amber appear only as true states. Single visual
+world — no light theme; the public status page shares these exact tokens.
+
+## Type — exact specimen
+
+Faces: **Space Grotesk** (500/700) for display · **Inter** (400/500/600) for
+body/UI · **IBM Plex Mono** (400/500) for every metric. All self-hosted woff2,
+preloaded.
+
+| Role | Face/weight | Mobile size/lh | Tracking |
+|---|---|---|---|
+| Display (hero) | SG 700 | `clamp(32px, 8.5vw, 56px)` / 1.08 | −0.015em |
+| Hero stat (99.98%) | IPM 500 | `clamp(36px, 10vw, 60px)` / 1.0 | −0.01em, tabular |
+| H2 (screen title) | SG 700 | 22 / 1.2 | −0.01em |
+| Title (monitor name) | SG 500 | 16 / 1.3 | 0 |
+| Body | Inter 400 | 16 / 1.55 | 0 |
+| Secondary | Inter 400 | 13 / 1.45 | 0 |
+| Label | Inter 600 | 11 / 1.2 | +0.08em, uppercase |
+| Data (latency, uptime, cron) | IPM 400 | 13 / 1.2 | 0, tabular figures |
+| Button | Inter 600 | 15 / 1 | 0 |
+
+Every latency, percentage, and timestamp is mono tabular, no exceptions.
+
+## Spacing, radius, elevation
+- Scale: `4 · 8 · 12 · 16 · 20 · 24 · 32 · 40 · 56 · 80`. Screen gutter **20**.
+- Radii: **8** (controls: buttons, inputs, chips) · **12** (panels/cards) ·
+  **18** (sheets). Nothing else.
+- Elevation: none. Depth is `glass` vs `void` plus hairlines; only the sheet
+  scrim shadows. Status lights are flat dots — no bloom, no glow.
+
+## Iconography
+Single SVG set, 20×20 viewBox, stroke 1.75, round caps/joins, currentColor.
+Required glyphs: `pulse` (monitors), `flame` (incidents), `broadcast` (status
+pages), `gear` (settings), `globe` (region), `heartbeat` (cron), `lock-ssl`,
+`bell`, `webhook`, `slack-hash`, `discord`, `pause`, `check`, `chevron-right`,
+`plus`, `refresh`. Nav renders at 22px, inline at 18px. **No emoji, anywhere,
+ever** — an outage is a red dot and the word "DOWN", not a siren glyph.
+
+## Component construction (exact)
+
+- **Primary button:** paper fill, void text, radius 8, height 48 mobile
+  (full-width in thumb zone), Inter 600 15. Press: scale 0.98 + fill `#DFE8E3`.
+  Disabled: `#22302B` fill, `text-3` text.
+- **Secondary:** transparent, 1px hairline, `text`. Press: border `#27332E`.
+- **Quiet action:** text-only, phosphor, no underline; press dims to 80%.
+- **Input:** void fill, hairline border, radius 8, height 48, 16px text; URL
+  and cron fields render in IPM. Focus: border phosphor + 2px offset ring at
+  25% phosphor.
+- **Chips (check type: HTTP / Cron / SSL):** height 36, radius 8, hairline;
+  active = phosphor 1px border + phosphor text.
+- **Monitor rows:** NO boxes. Full-bleed hairline rows ≥64px: 8px status dot
+  left (phosphor steady / amber breathing 3s / red pulsing 1s), Title name,
+  IPM p50/p99 ("`212ms · 480ms`"), a 60×20 live canvas sparkline right, region
+  dots (3×4px) beneath. Whole row tappable.
+- **Incident cards:** `glass` fill, hairline border, radius 12, a 2px red left
+  rule; Title, IPM duration ("`down 4m 12s`"), channel chips.
+- **Alert-channel toggles:** 44×28 track, radius 14 (pill exception for
+  toggles); on = paper knob on `trace-dim` track — never phosphor-filled.
+- **Uptime bars (status page):** 90 cells of 3×24px, radius 0; filled =
+  `trace-dim`, incident days = red, today = phosphor. Scrolls in its own
+  `overflow-x:auto` track.
+- **Bottom tab bar:** height 56 + safe-area, `glass` at 94% + blur, hairline
+  top. Four items, 22px icons + 10px Inter 600 labels; active = `text` + 2px
+  phosphor dot; inactive = `text-3`.
+
+## The signature — the live trace, and the flatline (kept, refined)
+Each monitor row's 60px sparkline draws right-to-left in real time — canvas,
+~30fps, 1.5px phosphor stroke on transparent, a few KB of points. On failure
+the trace **drops to baseline and runs flat** in red while the row's left edge
+shows a 2px red rule; on recovery it rejoins with one exaggerated 400ms
+overshoot spike, then normalizes. Ambient proof-of-life: each real probe cycle
+sends a 1px tick of phosphor at 20% opacity along the row baseline. That is
+the entire brand animation — no globe, no radar. Everything else is state
+feedback ≤240ms.
+
+## Mobile layout (390×844 — primary spec)
+- **Monitor wall:** gutter 20. Header: Label "ALL SYSTEMS" + SG "Steady." with
+  a slow ambient trace behind at 8% phosphor. Then monitor rows with real
+  content — "api.helvet.ico · `184ms · 402ms`", "nightly-backup (cron) ·
+  `last ping 22m ago`", "SSL: shopfront.dev · `expires in 41d`". Primary
+  button **Add monitor** pinned in the thumb zone.
+- **Incident detail:** vertical hairline timeline — detection tick
+  (`02:14:07`), region confirmations ("`2/3 regions`"), alerts sent (channel
+  chips), acknowledge, recovery — with the response trace below, outage band
+  shaded red at 10% opacity.
+- **Add monitor:** one screen, sane defaults (60s interval, 3 regions, 2-fail
+  threshold), URL field in IPM, primary **Start watching** in the thumb zone.
+  Time-to-first-monitor under 60s is a layout requirement.
+- **Public status page:** `void` ground, brand name + Label "ALL SYSTEMS
+  OPERATIONAL", per-service rows with 90-day bars, incident history as
+  hairline rows, "Monitored by PulseWatch" footer (free tier).
 
 ## Responsive
-The phone's single column of rows becomes a denser multi-column wall on desktop, and
-the incident timeline gains a side-by-side trace panel. The public status page scales
-from a phone-width card to a wide grid. **Optional desktop-only enhancement:** the
-marketing hero's "heartbeat wall" (a receding grid of tiles with a probe-network
-confirmation animation) may use R3F, lazy-loaded behind a static poster; it never
-loads on mobile, where the hero is a single live sparkline on the void with the stat
-"Median detection: 11 seconds." Live sparklines are canvas, not WebGL — they run
-everywhere.
+≥768px: monitor rows become a 2-column wall, incident timeline gains a
+side-by-side trace panel, gutters 32. ≥1024px: 3-column wall, persistent left
+rail replaces the tab bar, max width 1280. The marketing hero's R3F
+"heartbeat wall" stays desktop-only, lazy behind a poster; on phone the hero
+is one live sparkline plus "`Median detection: 11s`" in IPM. Sparklines are
+canvas everywhere — never WebGL.
 
 ## Motion & touch
-- Shared tokens. Ambient check-pulse: on each real probe cycle a 1px tick of light
-  travels the row baseline (20% opacity) — quiet proof-of-life, not decoration.
-- Status-page uptime bars fill on scroll with 8ms stagger.
-- Alert-channel toggles snap with `spring-snappy` and emit a one-frame glow of the
-  channel's color.
-- **Touch:** targets ≥44px, ≥8px apart; Add-monitor and channel toggles in the thumb
-  zone.
-- **Gestures:** swipe a monitor row to pause/mute (also in row overflow); pull-to-
-  refresh forces a re-check (also a header control). Native haptic on incident
-  acknowledge in the mobile client; web silent.
+Tokens from DESIGN_LANGUAGE.md. Status-page bars fill on scroll with 8ms
+stagger. Toggles snap `spring-snappy` — no glow frame. Row status changes
+crossfade 200ms. Targets ≥44px, ≥8px apart; Add-monitor and toggles in the
+thumb zone. Swipe a row to pause/mute (also row overflow); pull-to-refresh
+forces a re-check (also a header control). Native haptic on incident
+acknowledge; web silent.
 
-## Key screens (mobile-first)
-1. **Monitor wall:** global-state header, scrolling rows with live traces, Add button
-   bottom.
-2. **Incident view:** detection → confirmations → alerts → recovery timeline with the
-   outage band.
-3. **Add monitor:** one-screen form, sane defaults, big Save in the thumb zone.
-4. **Public status page:** phosphor-clean, 90-day bars, incident history, "monitored
-   by PulseWatch" footer on free tier.
-
-## Reduced-motion & fallback
-Live sparklines → static last-5-min images refreshed on poll. Pulsing/breathing status
-→ solid color states. Recovery spike → instant. The flatline is *retained as a static
-flat trace* — it's information, not decoration. Marketing wall → poster frame. Every
-state has a text equivalent ("down 42s · 2/3 regions").
+## Reduced motion & fallback
+Live sparklines → static last-5-minutes image refreshed on poll. Breathing/
+pulsing dots → solid states. Recovery spike → instant rejoin. The flatline is
+retained as a static flat trace — it is information, not decoration. Marketing
+wall → poster. Every state also reads as text ("down 42s · 2/3 regions").
