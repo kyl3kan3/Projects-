@@ -84,12 +84,18 @@ Key findings from the research that drove selection and ranking:
 apps/NN-name/
 ├── README.md          # Product spec: problem, market, monetization, MVP, GTM, risks
 ├── ARCHITECTURE.md    # Stack, system design, data model, third-party services, cost structure
+├── DESIGN.md          # Studio design spec: brand identity, art direction, motion system,
+│                      #   3D/animation signature moment, key screens, reduced-motion plan
 ├── ROADMAP.md         # Phased build plan: MVP → v1 → growth
 ├── .gitignore
 ├── .env.example       # Every secret/config the app will need
 ├── package.json       # (or requirements.txt / src-tauri config, per platform)
 └── src/               # Full folder structure with stub files — headers + TODOs, no implementation
 ```
+
+All 30 design specs share one motion-and-craft constitution — easing tokens, 3D
+budgets, performance and reduced-motion rules — defined in
+[DESIGN_LANGUAGE.md](./DESIGN_LANGUAGE.md).
 
 ## Sources
 
