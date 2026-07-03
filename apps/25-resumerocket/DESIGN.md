@@ -1,82 +1,149 @@
-# ResumeRocket — Design Specification
+# ResumeRocket — Design Specification (v3, redline level)
 
 ## Vision
 A job search runs on a phone between other obligations, so ResumeRocket turns
-application anxiety into calm instrumentation: paste a posting, see the gap, close
-it. The signature is honesty made visible — an ATS X-ray that shows what the robot
-actually reads, legible on a 390px screen, not a spectacle.
+application anxiety into calm instrumentation: paste a posting, see the gap,
+close it. Two honest grounds — deep indigo app chrome and bright paper documents
+— and one signature: the X-ray flip that shows what the ATS robot actually reads.
 
-## Mobile layout (390 × 844)
-- **Nav:** compact top bar — back chevron, the current application's title (company ·
-  role, truncating), and a match-score pill on the right that stays pinned. Primary
-  navigation (Applications · Tailor · Documents · Tracker) is a bottom tab bar,
-  thumb-reachable, clearing the home indicator.
-- **Hero (Tailor screen):** a single vertical stack, no side-by-side panels. Top: the
-  **match dial** as a slim horizontal meter with its number in large data type. Below
-  it, a segmented control — **Resume view / X-ray view** — one tap flips the document
-  between the human render and the machine render (this replaces any sweeping
-  animation). Under that, the gap list scrolls: covered / partial / missing keyword
-  chips grouped by status.
-- **Primary action:** a full-width **Apply-ready** / **Tailor now** button fixed in the
-  bottom third above the tab bar, in thrust blue; it reflects state (disabled-quiet
-  until a posting is loaded, solid when actionable).
-- **Key components at phone width:** the resume renders as bright paper edge-to-edge
-  with 16px margins; suggestion bullets appear as full-width cards you accept with a
-  44px checkmark; the posting is pasted via a bottom sheet, not a second column.
+## Ground rules inherited
+Obeys DESIGN_LANGUAGE.md v2.1 fully: no emoji anywhere, no gradient/glow on
+controls, SVG icon set only, space-before-boxes, 4px spacing scale, hairlines,
+real content, fonts must load.
 
-## Identity
-| Role | Name | Hex |
+---
+
+## Color — exact values and usage ratios
+
+| Token | Hex | Use |
 |---|---|---|
-| Control indigo (app chrome) | `#141A3B` |
-| Panel | `#1C2450` |
-| Thrust blue (brand/CTA) | `#4F6DF5` |
-| Match green | `#3DDC97` |
-| Gap amber (unverified + missing) | `#FFC24D` |
-| Paper / document ink | `#FCFCFA` / `#1A1D29` |
+| `indigo` | `#12172E` | App-chrome ground: nav, tailor workspace, tracker |
+| `panel` | `#1A2140` | Sheets and grouped panels on `indigo` only |
+| `hairline-d` | `#262E52` | 1px dividers/borders on dark ground |
+| `text` | `#EAEDF9` | Primary text on dark |
+| `text-2` | `#8B93BC` | Secondary text on dark |
+| `paper` | `#FCFCFA` | Document surfaces; **primary buttons on dark** (ink text) |
+| `ink` | `#1A1D29` | Document text; **primary buttons on paper** (paper text) |
+| `hairline-l` | `#E4E3DC` | 1px dividers/borders on paper ground |
+| `blue` | `#4F6DF5` | THE accent. ≤10% of any screen: brand mark, links, active tab dot, X-ray field outlines, focus rings |
+| `green` | `#3DDC97` | Covered keywords / apply-ready state only |
+| `amber` | `#F5B84D` | Missing keywords + unverified-AI underline only |
 
-Text `#EAEDF9`, muted `#8B93BC`.
+Hard rules per ground: on `indigo`, the only high-emphasis fill is `paper`
+(ink text); on `paper` document surfaces, the only high-emphasis fill is `ink`
+(paper text). `blue` never fills a button or a surface; green/amber appear only
+where they mean coverage or a gap. Match score is not a color — it is a numeral.
 
-- **Type:** display **Archivo** (condensed 700) for scores and screen titles — a quiet
-  launch-poster note; **Inter** for UI/body (≥16px mobile); resume body offers three
-  ATS-safe suites (**Source Serif 4** classic, **Inter** modern, **IBM Plex Sans**
-  compact). Keywords and scores set in **IBM Plex Mono**.
-- **Signature detail — the X-ray flip:** the segmented control cross-dissolves the paper
-  into its parsed skeleton (200ms, `dur-standard`): readable fields (name, dates,
-  titles) snap into labeled outline boxes in thrust blue; anything the parser drops
-  (multi-column, tables, icons) desaturates to flat gray with a "not read" tag. It is
-  a state toggle, not a cinematic sweep — instant, honest, replayable, 60fps on any
-  phone because it is opacity + color, no canvas.
-- **Honesty layer:** AI-suggested text the user hasn't confirmed carries a dashed amber
-  underline and a confirm control; nothing dashed can export.
+## Type — exact specimen
+
+Faces: **Archivo** (SemiExpanded 700) for display · **Inter** (400/500/600) for
+UI · **IBM Plex Mono** (500) for data · resume-body suites: **Source Serif 4**,
+Inter, **IBM Plex Sans**. All self-hosted woff2, preloaded.
+
+| Role | Face/weight | Mobile size/lh | Tracking |
+|---|---|---|---|
+| Display (score, hero) | Archivo 700 | `clamp(34px, 9vw, 60px)` / 1.05 | −0.01em |
+| H2 (screen title) | Archivo 700 | 24 / 1.15 | 0 |
+| Title (row/card) | Inter 600 | 16 / 1.3 | 0 |
+| Body | Inter 400 | 16 / 1.55 | 0 |
+| Secondary | Inter 400 | 13 / 1.45 | 0 |
+| Label | Inter 600 | 11 / 1.2 | +0.08em, uppercase |
+| Data (score, keywords) | IBM Plex Mono 500 | 13 / 1.2 | 0, tabular figures |
+| Resume body (default) | Source Serif 4 400 | 15 / 1.5 | 0 |
+| Button | Inter 600 | 15 / 1 | 0 |
+
+## Spacing, radius, elevation
+- Scale: `4 · 8 · 12 · 16 · 20 · 24 · 32 · 40 · 56 · 80`. Screen gutter **20**.
+- Radii: **10** (buttons, inputs, chips) · **14** (suggestion cards, panels) ·
+  **20** (sheets, the document frame). Nothing else.
+- Elevation: none on dark; the paper document alone carries one soft shadow
+  (`0 2px 12px rgba(10,12,24,.35)`) because it is a physical object.
+
+## Iconography
+Single SVG set, 20×20 viewBox, stroke 1.75, round caps/joins, currentColor.
+Required glyphs: `file-text` (applications), `crosshair` (tailor), `layers`
+(documents), `kanban` (tracker), `chevron-left`, `plus`, `check`, `x`,
+`clipboard-paste`, `download`, `scan` (X-ray), `arrow-up-down` (reorder),
+`link`. Nav renders at 22px, inline at 18px. **No emoji, anywhere, ever** —
+match score renders as a mono chip (`MATCH 74`), never a face or a rocket.
+
+## Component construction (exact)
+
+- **Primary button (dark ground):** `paper` fill, `ink` text, radius 10, height
+  48, full-width in thumb zone. Press: scale 0.98 + fill `#ECEDE8`. Disabled:
+  `#232A4C` fill, `text-2` text.
+- **Primary button (paper ground):** `ink` fill, `paper` text, radius 10,
+  height 44. Press: fill `#2B2F3D`.
+- **Secondary:** transparent, 1px hairline (per ground), text color of ground.
+- **Quiet action:** text-only `blue`, no underline; press dims to 80%.
+- **Input:** ground fill, hairline border, radius 10, height 48, 16px text.
+  Focus: `blue` border + 2px offset ring at 25% blue.
+- **Keyword chips:** height 32, radius 10, mono 13 text; covered = green 1px
+  border + green text; partial = hairline border, `text` text; missing = amber
+  1px border + amber text. Grouped under 11px uppercase labels (COVERED 12 ·
+  PARTIAL 4 · MISSING 6), horizontally scrolling, no scrollbar.
+- **Match meter:** 4px track `hairline-d`, fill `text` (not blue), numeral in
+  Archivo 34 mono-spaced beside it; the meter only moves on real change.
+- **Suggestion card:** `panel` fill, hairline border, radius 14, padding 16;
+  proposed text in resume face with a 1px dashed amber underline; right column
+  holds a 44px `check` accept and a 44px `x` dismiss. Nothing dashed exports.
+- **Application rows (tracker):** NO boxes. Full-bleed rows ≥56px, 16px vertical
+  padding, hairline dividers: Title 16 ("Senior Product Designer — Stripe"),
+  mono meta ("MATCH 91 · APPLIED JUN 24"), status Label right.
+- **Segmented control (Resume / X-ray):** height 40, radius 10 container with
+  hairline; active segment `paper` fill + `ink` text on dark.
+- **Bottom tab bar:** height 56 + safe-area, `panel` at 94% + blur, hairline
+  top. Four items (file-text / crosshair / layers / kanban) at 22px with 10px
+  Inter 600 labels; active = `text` + 2px blue dot; inactive = `text-2`.
+
+## The signature — the X-ray flip
+The segmented control cross-dissolves the paper document into its machine read
+in 200ms `ease-out-quart`: parsed fields (NAME, TITLE, DATES, SKILLS) snap into
+1px `blue` outline boxes with 11px uppercase blue labels; anything the parser
+drops (two-column sidebar, skill icons, tables) desaturates to `#B9B7AE` flat
+gray with a mono `NOT READ` tag. A count line prints beneath in mono:
+`PARSED 23 FIELDS · DROPPED 2 REGIONS`. It is a state toggle — instant, honest,
+replayable, opacity + color only, 60fps on any phone. No sweep, no scan-line
+theatrics. This is the entire brand animation.
+
+## Mobile layout (390 × 844 — primary spec)
+- **Tailor workspace (money screen):** gutter 20. Top bar: back chevron, "Stripe
+  · Senior Product Designer" truncating, pinned mono chip `MATCH 74`. Match
+  meter block, then the Resume/X-ray segmented control, then the document at
+  full width with 16px inner margins, then keyword chip groups, then suggestion
+  cards ("Led migration of design tokens across 4 platform teams" — dashed
+  amber until accepted). Primary button fixed above the tab bar: "Tailor now"
+  (paper fill), becoming "Apply-ready" with a single quiet green meter band at
+  all-clear — never confetti.
+- **Free ATS X-ray (funnel):** paste/upload sheet (radius 20, 40×4 grab handle
+  in `hairline-d`, spring 320ms) → the flip reveals the machine view → three
+  findings free as hairline rows ("Your skills table is invisible to ATS"),
+  rest behind signup. The result card is a phone screenshot by design.
+- **Document editor:** paper ground edge-to-edge; sections reorder via
+  long-press drag (`spring-gentle`) with up/down `arrow-up-down` buttons as
+  equivalent; pagination chip in mono (`PAGE 1 OF 1`). Ink primary "Export PDF"
+  at bottom.
+- **Tracker:** hairline application rows as specced; a weekly cadence line at
+  top in mono (`THIS WEEK 6 SENT · 1 INTERVIEW`). Status segments: Applied ·
+  Interview · Offer.
 
 ## Responsive
-Single column is the design; on `md`+ the Tailor screen splits into posting (left) ·
-document (center) · gap rail (right), and the segmented X-ray toggle becomes a
-side-by-side human/machine pair. The match dial grows from meter to circular gauge.
-**Optional desktop enhancement:** a larger annotated X-ray inspector with hover
-tooltips per parsed field — lazy, pointer-only, never on the mobile path.
+≥768px: Tailor splits posting (left) · document (center) · gap rail (right);
+the segmented toggle becomes a side-by-side human/machine pair; gutters 32.
+≥1024px: max content 1120 centered; tracker becomes a board. Optional desktop
+enhancement: hover tooltips per parsed X-ray field — pointer-only, lazy, never
+on the mobile path. The flip is the signature at every size.
 
 ## Motion & touch
-- Match dial animates only on real change (`spring-gentle`); rest position is honest,
-  never a fake 90.
-- Chip extraction from a pasted posting: keywords file into covered/partial/missing at
-  a calm 80ms cadence, capped at 8 visible before batching.
-- Targets ≥44px, ≥8px apart. Accepting a suggestion is a large checkmark; **swipe-left
-  on a suggestion card** to dismiss, with a visible dismiss button as equivalent.
-- Export confirmation gives a light haptic tap on native.
+Tokens from DESIGN_LANGUAGE.md. Chips file into their groups at an 80ms cadence,
+≤8 before batching (`+ 4 more`). Meter animates only on real change
+(`spring-gentle`). Accepting a suggestion draws the check in 200ms and the
+dashed underline dissolves. Swipe-left dismisses a suggestion card — dismiss
+button always present. Targets ≥44px, ≥8px apart. Export gives a light haptic
+tap on native.
 
-## Key screens
-1. **Free ATS X-ray (funnel):** drop a resume → the flip reveals the machine view →
-   three findings free, rest behind signup. Marketing-tier polish; the shareable result
-   card is a phone screenshot by design.
-2. **Tailor workspace (money screen):** the stacked layout above; reaching all-clear
-   fires a single quiet green readiness band across the dial — never confetti.
-3. **Document editor:** paper-first, section reorder via long-press drag (`spring-gentle`)
-   with up/down buttons as equivalent; a fuel-gauge pagination chip shows 1-page / 2-page.
-4. **Tracker:** applications as a vertical list with mini match meters and a status
-   segment (applied · interview · offer); a weekly cadence line at top.
-
-## Reduced-motion & fallback
-X-ray flip → instant swap, no dissolve. Chip filing → chips appear pre-docked with a
-count. Dial → set value, no wind. Suggestion underline stays (it is information). All
-motion collapses to ≤100ms opacity.
+## Reduced motion & fallback
+X-ray flip → instant swap, count line still prints. Chip filing → pre-docked
+with counts. Meter → set value. Dashed amber underline stays (it is
+information). Sheets fade instead of spring. All motion collapses to ≤100ms
+opacity; nothing is motion-only.
