@@ -98,16 +98,15 @@ glyphs** below. Nav at 22px, inline at 18px. **No emoji, anywhere, ever.**
   timing right-aligned mono (`842 MS`), `chevron-down` to expand the trace.
 - **Evidence trace rows:** NO boxes. Hairline rows inside the card: Label left
   (`SYNTAX` · `DNS` · `MX` · `SMTP`), result mono right (`PASS · MX 2
-  RECORDS`, `NO ANSWER · CATCH-ALL`), row glyph 14px in verdict color.
-- **Code block:** `bench`, radius 8, mono 13, own `overflow-x:auto`, copy
-  button 44px top-right; language tabs as chips (active = `teal` text + 1px
-  teal border).
+  RECORDS`), row glyph 14px in verdict color.
+- **Code block:** `bench`, radius 8, mono 13, own `overflow-x:auto`, 44px copy
+  button top-right; language tabs as chips (active = teal text + 1px border).
 - **Distribution bars (dashboard):** four horizontal bars, 8px tall, radius 8,
-  labeled with chip + mono count (`DELIVERABLE 8,412` · `UNKNOWN 1,207`);
-  titanium bar full-height, never minimized.
+  chip + mono count labels (`DELIVERABLE 8,412` · `UNKNOWN 1,207`); the
+  titanium bar is full-height, never minimized.
 - **Bottom tab bar:** height 56 + safe-area, `bench` 94% + blur, hairline top:
-  flask / book / gauge / key at 22px + 10px labels; active = `text` + 2px
-  `teal` dot; inactive = `text-3`.
+  flask / book / gauge / key at 22px + 10px labels; active = `text` + 2px teal
+  dot; inactive = `text-3`.
 
 ## The signature — the confidence gauge + the ◌
 Each verdict resolves a 72px analog gauge inside the verdict card: a 270° arc
@@ -158,6 +157,5 @@ chip into the downloads tray. Targets ≥44px; key rotation is hold-to-confirm
 ## Reduced motion & fallback
 Gauge → needle set at value with a 120ms sweep; numeral printed immediately.
 ◌ draw → shown complete. Trace stagger, bar growth, counter stream → instant
-values + progress bar. Every animated verdict is also printed as text the
-moment it exists. All motion collapses to ≤100ms opacity; nothing is
-motion-only.
+values + a plain progress bar. Every animated verdict is also printed as text
+the moment it exists. All motion collapses to ≤100ms opacity.

@@ -131,11 +131,10 @@ is the entire brand animation.
   flares first: the EC2 card above, then "NAT Gateway — egress +$88/day".
   Empty state: "Connect your first AWS account — read-only, 5 minutes." over
   a `plug` glyph, primary "Add account".
-- **Anomaly detail:** zoomed chart window around the event with the full
-  signature; contributor strata as hairline rows (`i-09f3… g4dn.xlarge ·
-  +$212/DAY`); deploy metadata block in mono; live cost-since-start counter
-  (`$127 SINCE TUE 14:00`); action log rows (`ACKED BY DANA · 11:42`).
-  Thumb-zone: Ack primary, Investigate secondary.
+- **Anomaly detail:** zoomed chart window with the full signature; contributor
+  strata as hairline rows (`i-09f3… g4dn.xlarge · +$212/DAY`); deploy metadata
+  in mono; live counter (`$127 SINCE TUE 14:00`); action log rows (`ACKED BY
+  DANA · 11:42`). Thumb-zone: Ack primary, Investigate secondary.
 - **Waste report ("the roast"):** recoverable total in Display mono
   (`$1,847/MO RECOVERABLE`) that rolls down as items are actioned; then the
   dollar-ranked rows ("3 idle g4dn GPU instances — $438/mo", "Stale snapshots
@@ -145,10 +144,10 @@ is the entire brand animation.
 
 ## Responsive
 ≥768px: chart grows, anomaly rail docks right, gutters 32. ≥1024px: full
-terrain-grammar area chart with layered service strata, deploys as a strip
-beneath, budgets as altitude lines; max content 1200. Optional desktop
-enhancement: a WebGL "rising range" terrain on the marketing hero only (≤400KB,
-≤40k tris, lazy, poster fallback) — never in the app bundle, never on mobile.
+area chart with layered service strata, deploys as a strip beneath, budgets
+as altitude lines; max content 1200. Optional desktop enhancement: a WebGL
+"rising range" terrain on the marketing hero only (≤400KB, ≤40k tris, lazy,
+poster fallback) — never in the app bundle, never on mobile.
 
 ## Motion & touch
 Tokens from DESIGN_LANGUAGE.md. Chart draws left-to-right on load (800ms,

@@ -1,86 +1,162 @@
-# ParseFlow — Design Specification
+# ParseFlow — Design Specification (v3, redline level)
 
-## 1. Vision
-ParseFlow turns a messy PDF into clean, confidence-scored JSON — documented like
-Stripe, priced per page. The docs *are* the product, so typography and code
-presentation get fashion-brand attention: laboratory monochrome, paper white and
-carbon black, syntax color used like reagent dye — sparingly, meaningfully.
+## Vision
+ParseFlow turns a messy PDF into clean, confidence-scored JSON — documented
+like Stripe, priced per page. The docs *are* the product, so typography and
+code presentation get fashion-brand attention: a hard paper/carbon split,
+syntax color used like reagent dye — sparingly, meaningfully.
 
-## 2. Mobile layout (390×844)
-Developers integrate on a laptop, but they *evaluate on a phone* — reading the docs
-and quickstart on the couch, checking usage between things. Mobile leads with
-reading and confidence, not authoring.
+## Ground rules inherited
+Obeys DESIGN_LANGUAGE.md v2.1 fully: no emoji anywhere, no gradient/glow on
+controls, SVG icon set only, space-before-boxes, 4px spacing scale, hairlines,
+real content, fonts must load.
 
-- **Nav:** a top bar with a menu button opening a full-height nav **sheet** (Docs
-  sections, Playground, Dashboard). The primary action — **"Try in playground"**
-  or **"Copy curl"** — is a filled extraction-green button in the thumb zone.
-- **The split becomes a stack:** the desktop "paper left / carbon right" seam
-  collapses to a vertical order on mobile — document input on top, JSON output
-  below, a thin seam rule between. Wide JSON scrolls inside its own
-  `overflow-x:auto` well; the page never scrolls sideways.
-- **Playground (mobile):** drop/pick a document up top, schema picker as a chip
-  scroller, JSON result below with copy button and a mono "1.84s · 3 pages" reading.
-- **Docs:** single column, ~65ch measure, `Berkeley Mono` code blocks in recessed
-  wells with a copy button; every field carries its confidence underline.
-- Body ≥16px; code ≥15px mono; targets ≥44px.
+---
 
-## 3. Identity
-| Role | Name | Hex |
+## Color — exact values and usage ratios
+
+Two grounds, one seam. The document/input side is paper; the code/output
+side is carbon. The seam between them is a hard 1px rule, `#31353C`.
+
+| Token | Hex | Use |
 |---|---|---|
-| Base | Carbon | `#0C0D10` |
-| Paper | Document white | `#FAFAF8` |
-| Brand | Extraction green | `#10B981` |
-| Key syntax | Sky | `#7DD3FC` |
-| String / number | `#FDE68A` / `#F0ABFC` |
-| Confidence-low | Honest gray | `#9CA3AF` |
+| `paper` | `#FAFAF8` | Light ground: document input, docs prose, marketing left |
+| `paper-hairline` | `#E7E4DC` | 1px dividers on paper |
+| `ink` | `#17181C` | Text on paper; **primary button fill on paper** |
+| `ink-2` | `#6B6E76` | Secondary text on paper |
+| `carbon` | `#0C0D10` | Dark ground: JSON output, code wells, dashboard |
+| `carbon-hairline` | `#1F2228` | 1px dividers on carbon |
+| `text` | `#E8EAED` | Text on carbon |
+| `text-2` | `#8B919B` | Secondary text on carbon |
+| `paper-btn` | `#F2F3F0` | **Primary buttons on carbon** (ink text) |
+| `green` | `#10B981` | THE accent. ≤10%: brand mark, provenance boxes, confidence-high underlines, active states, links |
+| `amber` | `#C98A2E` | Semantic: confidence 0.70–0.89 only |
+| `gray-conf` | `#9CA3AF` | Semantic: confidence <0.70 — the honest unknown |
 
-- **Display:** `Söhne` (fallback `Instrument Sans`). **All code/JSON:** `Berkeley
-  Mono` (fallback `JetBrains Mono`) — the JSON is the brand's face: 1.7 line-height,
-  8%-opacity indentation guides.
-- **Logo:** `{ }` braces around a paper-corner fold — document-in-braces.
-- **Signature detail — provenance & confidence.** Every extracted field carries a
-  3px confidence underline (green ≥90, amber 70–89, gray "honest unknown" below) —
-  the honesty positioning rendered as design. **Tap (or hover) a JSON field and its
-  source region highlights on the document** with a green box that draws its stroke
-  (150ms); the reverse works too. Cheap SVG overlay, fully touch-native — this
-  interaction *is* the wow, not a crumpling-invoice 3D scene.
+Syntax dye, scoped to code/JSON blocks only, never UI: keys `#7DD3FC`,
+strings `#FDE68A`, numbers `#F0ABFC`. Hard rules: green never fills a button
+or a surface; ink-filled primaries on paper, `paper-btn` primaries on carbon;
+syntax colors never leak outside a code well.
 
-## 4. Responsive
-Mobile stacks input-over-output; **desktop restores the split seam** (paper input
-left, carbon output right, hard vertical seam) across marketing, playground, and
-docs. **Optional desktop-only enhancement (marketing hero):** "the dissolve" —
-values lift off a scanned document, arc across the seam, and dock into a growing
-JSON tree, one smudged total landing at `0.61` gray. 2.5D/canvas, lazy behind a
-static before/after poster, pointer-only, never in the mobile or app bundle. Mobile
-gets the static split with provenance taps, complete on its own.
+## Type — exact specimen
 
-## 5. Motion & touch
-- Shared tokens: field docking (desktop hero) `ease-out-quart` 90ms stagger;
-  schema-tree growth `spring-gentle`; presses `dur-micro`, 0.97 scale, no glow
-  (lab restraint).
-- **Playground parse:** a thin scan-beam passes down the document preview (500ms)
-  as the JSON assembles; parse time shown in mono as a lab reading.
-- **API key reveal:** un-redacts with a left→right character resolve (300ms), auto
-  re-redacts after 20s (countdown ring on the copy button).
-- **Usage meter:** a burette-style vertical gauge fills with the month's pages,
-  tier marks etched at thresholds.
-- **Touch:** ≥44px targets; tap-for-provenance (no hover dependency); copy buttons
-  on every code block and JSON well; swipe between playground sample docs (chips
-  are the equivalent).
+Faces: **Instrument Sans** (500/600) for display and UI · **JetBrains Mono**
+(400/500) for all code, JSON, and readings — the JSON is the brand's face.
+Both Google-Fonts-loadable, self-hosted/embedded (docs preload woff2).
 
-## 6. Key screens (mobile-first)
-1. **Marketing hero:** a curl command and three-line quickstart typeset large —
-   code as hero copy — then the honest-accuracy section showing a number we *lose*
-   on.
-2. **Playground (money screen):** stacked input/output on mobile, split on desktop;
-   schema picker chips; a "copy as code" flyout with the equivalent Python/Node call.
-3. **Docs:** paper theme, ~65ch, run-it-live cells wired to the playground, response
-   schemas in the reagent palette.
-4. **Dashboard:** carbon; API keys, burette usage gauge, per-doc-type accuracy
-   sparklines, webhook delivery log with signed-payload badges.
+| Role | Face/weight | Mobile size/lh | Tracking |
+|---|---|---|---|
+| Display (marketing) | IS 600 | `clamp(30px, 8.5vw, 52px)` / 1.1 | −0.02em |
+| H2 (docs section) | IS 600 | 22 / 1.25 | −0.01em |
+| Title (row/panel) | IS 600 | 16 / 1.3 | 0 |
+| Body (docs prose) | IS 400 | 16 / 1.6 | 0 |
+| Secondary | IS 400 | 13 / 1.45 | 0 |
+| Label | IS 600 | 11 / 1.2 | +0.08em, uppercase |
+| Code / JSON | JBM 400 | 14 / 1.7 | 0, tabular figures, 8%-opacity indent guides |
+| Reading (parse time, usage) | JBM 500 | 13 / 1.2 | 0, tabular figures |
+| Hero curl | JBM 500 | `clamp(15px, 4vw, 20px)` / 1.7 | 0 |
+| Button | IS 600 | 15 / 1 | 0 |
 
-## 7. Reduced-motion & fallback
-Desktop dissolve → static before/after split with provenance boxes pre-drawn.
-Playground docking/scan-beam → JSON fades in complete; provenance highlighting
-retained without stroke animation (instant box). Key reveal → plain show/hide.
-Errors are full JSON objects, typeset as carefully as success.
+## Spacing, radius, elevation
+- Scale: `4 · 8 · 12 · 16 · 20 · 24 · 32 · 40 · 56 · 80`. Screen gutter **20**;
+  docs measure ~65ch.
+- Radii: **8** (controls: buttons, inputs, chips) · **10** (code wells, JSON
+  wells) · **16** (sheets, the drop target). Nothing else.
+- Elevation: none. The split, the seam rule, and hairlines do all the depth
+  work. Code wells on paper recess via `#F1F0EB` fill, not shadow.
+
+## Iconography
+Single SVG set, 20×20 viewBox, stroke 1.75, round caps/joins, currentColor.
+Required glyphs: `braces` (brand: `{ }` + folded corner), `file-text`,
+`upload`, `scan`, `copy`, `check`, `key`, `bolt` (webhook), `book` (docs),
+`play` (run), `terminal`, `shield` (retention), `clock`, `chevron-down`,
+`chevron-left`, `menu`, `x`, `gauge` (usage). Nav renders at 20px, inline in
+prose at 16px. **No emoji, anywhere, ever** — status in the webhook log is a
+Label chip (`DELIVERED`, `RETRY 2`), not a colored dot emoji.
+
+## Component construction (exact)
+
+- **Primary button (paper side):** ink fill, `paper` text, radius 8,
+  height 48, IS 600 15. Press: scale 0.98 + fill `#26272D`. Disabled:
+  `#DDDBD3` fill, `ink-2` text.
+- **Primary on carbon:** `paper-btn` fill, ink text — same geometry.
+- **Secondary:** transparent, 1px hairline (side-appropriate), local text
+  color. Press: border one step brighter.
+- **Quiet action:** text-only green; press dims to 80%.
+- **Input:** local ground fill, hairline border, radius 8, height 48, 16px.
+  Focus: border green + 2px offset ring at 25% green.
+- **Schema chips:** height 36, radius 8, hairline; `invoice · receipt ·
+  bank_statement · id_card · resume · custom` in JBM 13. Active = green 1px
+  border + green text. Row scrolls horizontally, no scrollbar.
+- **Code well:** radius 10, JBM 14/1.7, padding 16, copy button top-right
+  (28px hit area inside a 44px target); on paper the well is `#F1F0EB` with
+  ink code; on carbon it is `#101216` with syntax dye.
+- **JSON field rows:** inside the output well, each extracted field carries
+  a **3px confidence underline** under its value: green ≥0.90, amber
+  0.70–0.89, `gray-conf` below. Underline, never background fill.
+- **Drop target (playground):** dashed 1px hairline, radius 16, `upload`
+  glyph 24px in `ink-2`, "Drop a PDF or image · 10 pages max" Secondary.
+- **API-key row:** hairline row, JBM `pf_live_••••••••3F9A`, reveal button;
+  revealed keys re-redact after 20s (a 1.5px green countdown ring on the
+  copy button).
+- **Usage meter (dashboard):** a vertical 4px track, 120px tall, hairline
+  with `text-2` fill; tier marks etched as 8px hairline ticks at 15k/100k;
+  JBM reading beside it: `9,412 / 15,000 PAGES`.
+
+## The signature — provenance & confidence
+Honesty rendered as design, exactly: tap (or hover) a JSON field and its
+source region on the document highlights with a 1.5px green box that draws
+its stroke in 150ms `ease-out-quart` (fill green at 8%); the field's row
+simultaneously gets a green left rule (2px). The reverse works — tap a
+document region, the JSON scrolls to and marks its field. Confidence
+underlines (3px, colors above) are always present, and fields below 0.70
+render their value in `gray-conf` with a `LOW CONFIDENCE — REVIEW` Label.
+Cheap SVG overlay, fully touch-native. This interaction *is* the wow.
+
+## Mobile layout (390×844 — primary spec)
+Developers integrate on a laptop but *evaluate* on a phone.
+
+- **The split becomes a stack:** paper input on top, carbon output below,
+  the 1px seam between. Wide JSON scrolls in its own `overflow-x:auto` well;
+  the page never scrolls sideways.
+- **Marketing hero:** the curl command as hero copy in a carbon well —
+  `curl -X POST https://api.parseflow.dev/v1/parse -F "file=@invoice.pdf"
+  -F "schema=invoice"` — with its real response beneath (`"vendor_name":
+  {"value": "Acme GmbH", "confidence": 0.98}`); primary **Try the
+  playground** in the thumb zone; then the honest-accuracy section showing a
+  field we *lose* on (`"total": 1249.00 · 0.61` in gray).
+- **Playground (money screen):** drop target up top; schema chips; parse
+  runs and the output well fills; reading beneath in JBM: `1.84s · 3 PAGES ·
+  $0.03`. Provenance taps work on the stacked layout. "Copy as code" flyout:
+  curl / Python / Node.
+- **Docs:** top bar + `menu` opening a full-height nav sheet (Quickstart,
+  Authentication, Parse, Batch & webhooks, Schemas, Errors). Prose at 65ch,
+  every response example carries confidence underlines.
+- **Dashboard:** carbon throughout — key rows, usage meter, webhook delivery
+  log rows (`inv_8231 · DELIVERED · 204 · 112ms`), spend cap input.
+
+## Responsive
+≥768px the seam turns vertical: paper left / carbon right, 50/50 in the
+playground, 60/40 in docs (prose/code). ≥1024px docs add a left nav rail;
+max width 1440 with the seam always full-height. **Optional desktop-only
+enhancement (marketing hero):** "the dissolve" — three field values lift off
+the scanned invoice, arc across the seam, and dock into the JSON tree, the
+smudged total landing at `0.61` gray. Canvas, lazy behind a static
+before/after poster, pointer-only, never in the mobile or app bundle.
+
+## Motion & touch
+Tokens from DESIGN_LANGUAGE.md. Playground parse: a 1px green scan-beam
+passes down the document preview (500ms, once) as JSON lines assemble
+top-to-bottom (40ms stagger, ≤10 lines then instant). Copy: glyph swaps to
+`check` in green for 1.2s. Key reveal: characters resolve left → right over
+300ms. Presses: `dur-micro`, scale 0.97, no glow — lab restraint. Targets
+≥44px; provenance is tap-first (no hover dependency); swipe between sample
+docs (invoice / receipt / statement) with chips as the equivalent.
+
+## Reduced motion & fallback
+Scan-beam and line assembly → the JSON fades in complete (100ms); provenance
+boxes appear instantly without stroke animation (the link itself is
+retained — it is function). Key resolve → plain show/hide with the 20s
+re-redact kept. Desktop dissolve → its static poster. Errors are full JSON
+objects (`{"error": {"code": "page_limit_exceeded", ...}}`) typeset as
+carefully as success.
