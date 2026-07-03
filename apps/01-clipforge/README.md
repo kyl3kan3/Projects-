@@ -90,3 +90,51 @@ The strategic bet: nobody owns "one upload → complete weekly content kit." Inc
 - **Model dependency**: clip-selection quality is the product. Whisper + Claude prompts need continuous eval; a regression is a churn event. Mitigation: golden-set eval suite in CI (see ARCHITECTURE.md).
 - **Creator churn is structural.** Podfade is real. Mitigation: annual plans, team-segment mix, and win-back flows; model the business at 7% monthly churn, not 3%.
 - **Platform/API shifts**: YouTube import ToS, X API pricing for future publishing features. Keep publishing out of MVP; export-first keeps ClipForge platform-independent.
+
+---
+
+## Running it locally (this is a working build, not a stub)
+
+This folder is a working Next.js 15 app plus a BullMQ worker. The web tier
+handles auth, uploads, billing and the dashboard; the worker runs the
+transcribe → select → render pipeline.
+
+### Prerequisites
+- Node 20+
+- Postgres (local or Neon), Redis (local or Upstash)
+- `ffmpeg` and `ffprobe` on your PATH (`brew install ffmpeg` / `apt install ffmpeg`)
+- API keys: OpenAI (Whisper), Anthropic (Claude), Cloudflare R2, Stripe (optional for billing)
+
+### Setup
+```bash
+cp .env.example .env          # fill in DATABASE_URL, REDIS_URL, AUTH_SECRET, R2_*, OPENAI_API_KEY, ANTHROPIC_API_KEY
+npm install
+npm run db:push               # create tables from the Drizzle schema (or: db:generate && db:migrate)
+```
+
+### Run (two processes)
+```bash
+npm run dev            # web app on http://localhost:3000
+npm run worker         # pipeline worker (separate terminal)
+```
+
+Then: sign up → upload a video/podcast → watch the project page live-update as
+it transcribes, selects clips, and renders. Clips download as MP4s; threads /
+LinkedIn posts / newsletter appear under **Written assets** with source quotes.
+
+### What's implemented
+- Email/password auth (scrypt + signed JWT cookie), route middleware, per-user trial workspace
+- Direct-to-R2 presigned uploads (browser → storage, no server proxying) + YouTube/RSS URL import path
+- Worker pipeline: ffmpeg audio extraction → Whisper word-timestamps → Claude clip selection + grounded copy (JSON tool-schema, zod-validated) → ffmpeg 9:16 cut + burned-in ASS captions + thumbnail → R2
+- Live dashboard + project polling, per-clip caption restyle with fast-lane re-render
+- Stripe checkout / customer portal / webhooks, upload-quota enforcement with $3 metered overage
+- Resend "kit ready" email (no-ops with a log line when `RESEND_API_KEY` is unset)
+
+### Not yet built (post-MVP, per ROADMAP.md)
+Time-chunked transcription for >25MB audio, active-speaker crop (MVP is center-crop),
+direct social publishing, team approval flows, and the public API.
+
+### Verify the build
+```bash
+npm run typecheck && npm run build
+```
