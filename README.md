@@ -1,8 +1,8 @@
 # Profitable App Scaffolds
 
-A curated portfolio of **30 buildable, high-profit-potential software products** — each researched, specified, and scaffolded so it can be lifted out of this repo and built as a standalone project.
+A curated portfolio of **50 buildable, high-profit-potential software products** — each researched, specified, and scaffolded so it can be lifted out of this repo and built as a standalone project.
 
-> **One is built, 29 are launchpads.** `apps/01-clipforge` is a complete working MVP; every other folder is a full product spec, market/profitability research, architecture, redline design spec, roadmap, and code scaffolding with stub files. Pick one, extract it, and start building.
+> **One is built, 49 are launchpads.** `apps/01-clipforge` is a complete working MVP; every other folder is a full product spec, market/profitability research, architecture, redline design spec, roadmap, and code scaffolding with stub files. Pick one, extract it, and start building.
 
 ## How to build one with an AI agent
 
@@ -68,8 +68,28 @@ Ranked by a blend of: **proven willingness to pay, margin profile, realistic sol
 | 28 | [ClientDock](apps/28-clientdock) | Web SaaS | White-label client portals for agencies (status, files, approvals, invoices) | $29–$149/mo flat | $10k–$60k MRR |
 | 29 | [MailProbe](apps/29-mailprobe) | API product | Email verification API with honest confidence scoring | Usage-based ~$0.006/check + plans | $5k–$50k MRR |
 | 30 | [CloudSpend](apps/30-cloudspend) | B2B SaaS | Cloud cost monitoring for startups: anomaly alerts + deploy correlation | $49–$199/mo flat | $10k–$70k MRR |
+| 31 | [QuoteFox](apps/31-quotefox) | B2B SaaS | AI quote builder for trades: walk the job, send the bid from the driveway | $49–$199/mo | $15k–$100k MRR |
+| 32 | [PermitPath](apps/32-permitpath) | B2B SaaS | Permit intelligence for contractors: requirements, tracking, expiry alerts | $99–$249/mo | $10k–$80k MRR |
+| 33 | [CrewClock](apps/33-crewclock) | B2B SaaS | GPS-verified crew time tracking + live job costing, bilingual EN/ES | $8/user, $49 floor | $10k–$80k MRR |
+| 34 | [MenuLift](apps/34-menulift) | B2B SaaS | QR menus, one-tap 86ing, menu-engineering analytics for restaurants | $29–$79/mo/location | $8k–$50k MRR |
+| 35 | [LedgerLens](apps/35-ledgerlens) | B2B SaaS | Receipt inbox → AI-categorized monthly close package for solo operators | $19–$79/mo | $8k–$60k MRR |
+| 36 | [BidBoard](apps/36-bidboard) | B2B SaaS | Subcontractor bid collection + leveling for small GCs | $149–$399/mo | $15k–$100k MRR |
+| 37 | [SafetyDeck](apps/37-safetydeck) | B2B SaaS | OSHA toolbox talks, sign-offs, incident logs, cert expiry for field crews | $59–$149/mo | $10k–$70k MRR |
+| 38 | [DuesDesk](apps/38-duesdesk) | B2B SaaS | Dues autopay, violations, and comms for small HOAs, clubs, leagues | $49–$199/mo | $8k–$60k MRR |
+| 39 | [GreenTally](apps/39-greentally) | B2B SaaS | Utility bills + spend CSV → supplier-ready carbon reports for SMBs | $99–$299/mo | $10k–$80k MRR |
+| 40 | [FormCoach](apps/40-formcoach) | Mobile app | On-device AI form check for squat/deadlift/bench with bar-path trace | Freemium $12.99/mo | $10k–$100k MRR |
+| 41 | [StudyReel](apps/41-studyreel) | Mobile app | Lectures → grounded notes, spaced-repetition decks, cited practice exams | $9.99/mo, $49/yr student | $10k–$100k MRR |
+| 42 | [SchemaSentry](apps/42-schemasentry) | Dev tool | API breaking-change watchdog: spec diffs in CI, contract tests, changelog | $49–$199/mo | $10k–$80k MRR |
+| 43 | [PaidWell](apps/43-paidwell) | B2B SaaS | A/R autopilot for agencies: polite escalation, payment portal, forecast | $79–$249/mo | $10k–$80k MRR |
+| 44 | [TenantFile](apps/44-tenantfile) | B2B SaaS | DIY-landlord toolkit: applications, screening, leases, rent ledger | $19–$59/mo | $10k–$80k MRR |
+| 45 | [RosterRally](apps/45-rosterrally) | B2B SaaS | Youth sports club ops: registration, payments, schedules, parent comms | $1.50/reg or $49/mo | $8k–$60k MRR |
+| 46 | [ClauseCompass](apps/46-clausecompass) | B2B SaaS | Contract risk flags + plain-English redlines for freelancers and SMBs | $29–$79/mo + per-doc | $8k–$60k MRR |
+| 47 | [ShelfSense](apps/47-shelfsense) | Shopify app | Inventory forecasting: reorder points, PO drafts, dead-stock alerts | $59–$199/mo | $10k–$80k MRR |
+| 48 | [FormForge](apps/48-formforge) | B2B SaaS | HIPAA-conscious intake forms + e-sign for therapists and small clinics | $49–$149/mo | $10k–$80k MRR |
+| 49 | [GrantGrid](apps/49-grantgrid) | B2B SaaS | Grant discovery with fit scoring + application workspace for nonprofits | $59–$199/mo | $8k–$60k MRR |
+| 50 | [WaiverWing](apps/50-waiverwing) | B2B SaaS | Digital waivers + kiosk check-in for gyms, tours, and rentals | $29–$99/mo | $8k–$50k MRR |
 
-## Why these 30
+## Why these 50
 
 Key findings from the research that drove selection and ranking:
 

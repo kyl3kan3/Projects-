@@ -58,6 +58,26 @@ forgettable; devices are not.
 | 28 ClientDock | The client who stopped emailing "any update?" |
 | 29 MailProbe | The honest ◌ (we measure, we don't guess) |
 | 30 CloudSpend | The ridge caught the night it started growing |
+| 31 QuoteFox | The bid sent from the driveway |
+| 32 PermitPath | The stamp, before you break ground |
+| 33 CrewClock | Labor cost vs bid, live |
+| 34 MenuLift | Your menu, quadranted: stars to dogs |
+| 35 LedgerLens | The shoebox, closed by the 3rd |
+| 36 BidBoard | Five bids, leveled on one screen |
+| 37 SafetyDeck | The signature that beats the citation |
+| 38 DuesDesk | 40 checks → zero chased |
+| 39 GreenTally | The questionnaire answered before lunch |
+| 40 FormCoach | The bar path you can finally see |
+| 41 StudyReel | Every answer flips to its source |
+| 42 SchemaSentry | The breaking change caught in CI, not prod |
+| 43 PaidWell | Day-74 money in by day 31 |
+| 44 TenantFile | Three units out of the text thread |
+| 45 RosterRally | Season opened, filled, and paid in a weekend |
+| 46 ClauseCompass | The clause drawn in redline ink |
+| 47 ShelfSense | The runway under every SKU |
+| 48 FormForge | The clipboard, retired — audit trail included |
+| 49 GrantGrid | The fit score that says apply / skip |
+| 50 WaiverWing | Signed, searchable, on file in seconds |
 
 ### 4. Copy is the design
 A senior copywriter outranks the designer on marketing surfaces. Rules:

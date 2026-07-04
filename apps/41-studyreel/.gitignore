@@ -1,0 +1,35 @@
+# Expo app
+node_modules/
+.expo/
+dist/
+web-build/
+ios/
+android/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Companion web (Next.js)
+web/node_modules/
+web/.next/
+web/out/
+web/next-env.d.ts
+
+# Environment files (keep .env.example)
+.env
+.env.*
+!.env.example
+
+# Drizzle
+drizzle/meta/
+
+# Testing
+coverage/
+
+# Logs / misc
+*.log
+*.tsbuildinfo
+.DS_Store
+.vercel

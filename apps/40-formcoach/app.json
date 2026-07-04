@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "FormCoach",
+    "slug": "formcoach",
+    "version": "0.1.0",
+    "scheme": "formcoach",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "ios": {
+      "bundleIdentifier": "app.formcoach.mobile",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "FormCoach records your sets to analyze lifting form on this device. Video never leaves your phone unless you share it."
+      }
+    },
+    "android": {
+      "package": "app.formcoach.mobile",
+      "permissions": ["android.permission.CAMERA"]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      [
+        "react-native-vision-camera",
+        {
+          "cameraPermissionText": "FormCoach records your sets to analyze lifting form on this device."
+        }
+      ]
+    ]
+  }
+}

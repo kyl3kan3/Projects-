@@ -1,0 +1,51 @@
+{
+  "name": "rosterrally",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Youth sports club operations: season registration with payments, rosters, conflict-checked schedules, parent comms with read receipts, volunteer signups",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
+    "worker": "tsx src/worker/index.ts"
+  },
+  "dependencies": {
+    "@react-email/components": "^0.0.36",
+    "bullmq": "^5.44.0",
+    "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
+    "drizzle-orm": "^0.41.0",
+    "ics": "^3.8.0",
+    "ioredis": "^5.6.0",
+    "jose": "^6.0.0",
+    "next": "^15.3.0",
+    "next-auth": "^5.0.0-beta.25",
+    "postgres": "^3.4.5",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "resend": "^4.2.0",
+    "stripe": "^18.0.0",
+    "twilio": "^5.5.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.0",
+    "@types/node": "^22.14.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "drizzle-kit": "^0.30.0",
+    "eslint": "^9.24.0",
+    "eslint-config-next": "^15.3.0",
+    "tailwindcss": "^4.1.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

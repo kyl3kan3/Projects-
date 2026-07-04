@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "StudyReel",
+    "slug": "studyreel",
+    "version": "0.1.0",
+    "scheme": "studyreel",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "bundleIdentifier": "app.studyreel.mobile",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "StudyReel records lectures you choose to capture so it can build cited notes and decks from them."
+      }
+    },
+    "android": {
+      "package": "app.studyreel.mobile",
+      "permissions": ["android.permission.RECORD_AUDIO"]
+    },
+    "plugins": ["expo-router", "expo-sqlite", "expo-notifications", "expo-av"]
+  }
+}

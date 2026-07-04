@@ -1,0 +1,20 @@
+/**
+ * src/db/index.ts
+ *
+ * Database client singleton. Wraps postgres.js + drizzle with the schema
+ * from ./schema. Imported by both the Next.js app and the worker process.
+ *
+ * TODO:
+ * - [ ] Create postgres.js client from DATABASE_URL (pooled URL in app,
+ *       direct URL for drizzle-kit migrations).
+ * - [ ] Export `db = drizzle(client, { schema })`.
+ * - [ ] Guard against multiple clients during Next.js dev hot-reload
+ *       (globalThis caching pattern).
+ * - [ ] Fail fast with a clear error when DATABASE_URL is unset.
+ * - [ ] Migration that revokes UPDATE/DELETE on audit_events from the
+ *       app role (append-only enforcement lives in the DB, not app code).
+ */
+
+export function getDb(): never {
+  throw new Error("Not implemented");
+}
