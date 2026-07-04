@@ -1,45 +1,68 @@
 /**
- * src/lib/stripe.ts
- *
- * Stripe client factory and Connect helpers. All Stripe API access goes
- * through this module so API version pinning, idempotency keys, and
- * audit logging live in one place.
- *
- * TODO:
- * - [ ] Platform Stripe client from STRIPE_SECRET_KEY with a pinned
- *       apiVersion (never "latest").
- * - [ ] forAccount(stripeAccountId): client scoped to a connected account
- *       via the Stripe-Account header.
- * - [ ] Connect OAuth: buildAuthorizeUrl(state), exchangeCodeForAccount(code).
- * - [ ] retryInvoice(accountId, invoiceId, idempotencyKey) -> invoices.pay;
- *       every call MUST pass an idempotency key derived from the
- *       recovery_attempts row id (double-charge protection).
- * - [ ] isStripeSmartRetryActive(invoice): suppression check so we never
- *       retry alongside Stripe's own Smart Retries.
- * - [ ] createCardUpdateSetupIntent(accountId, customerId).
- * - [ ] classifyDeclineCode(code): "hard" | "soft" -- hard declines
- *       short-circuit remaining retries.
- * - [ ] backfillAccount(accountId): page through last 90 days of invoices,
- *       customers, subscriptions, payment methods.
+ * Stripe clients. The platform client handles Connect OAuth + our own
+ * billing; connected-account calls pass `stripeAccount` per request.
+ * API version pinned — the whole product sits on this contract.
  */
 
-import type Stripe from "stripe";
+import Stripe from "stripe";
+import { env } from "@/lib/env";
 
-export type DeclineClass = "hard" | "soft";
+let _stripe: Stripe | null = null;
 
-export interface ConnectedAccountContext {
-  stripeAccountId: string;
-  livemode: boolean;
+export function stripe(): Stripe {
+  if (!_stripe) {
+    _stripe = new Stripe(env.stripeSecretKey, {
+      apiVersion: "2025-08-27.basil",
+      appInfo: { name: "Dunly", url: "https://dunly.app" },
+    });
+  }
+  return _stripe;
 }
 
-export function getPlatformStripe(): Stripe {
-  throw new Error("Not implemented");
+/** Run a call against a connected account. */
+export function onAccount(stripeAccountId: string): { stripeAccount: string } {
+  return { stripeAccount: stripeAccountId };
 }
 
-export function buildConnectAuthorizeUrl(_state: string): string {
-  throw new Error("Not implemented");
+export function connectAuthorizeUrl(state: string): string {
+  const params = new URLSearchParams({
+    response_type: "code",
+    client_id: env.stripeConnectClientId,
+    scope: "read_write",
+    redirect_uri: `${env.appUrl}/api/stripe/connect/callback`,
+    state,
+  });
+  return `https://connect.stripe.com/oauth/authorize?${params}`;
 }
 
-export function classifyDeclineCode(_code: string): DeclineClass {
-  throw new Error("Not implemented");
+/** MRR normalization: monthly-ize a subscription item price. */
+export function mrrCentsForSubscription(sub: Stripe.Subscription): number {
+  let total = 0;
+  for (const item of sub.items.data) {
+    const price = item.price;
+    if (!price?.unit_amount || price.recurring == null) continue;
+    const qty = item.quantity ?? 1;
+    const amount = price.unit_amount * qty;
+    const { interval, interval_count: n = 1 } = price.recurring;
+    if (interval === "month") total += amount / n;
+    else if (interval === "year") total += amount / (12 * n);
+    else if (interval === "week") total += (amount * 52) / 12 / n;
+    else if (interval === "day") total += (amount * 365) / 12 / n;
+  }
+  return Math.round(total);
+}
+
+/** Hard declines that make further retries pointless (and rude). */
+const HARD_DECLINES = new Set([
+  "stolen_card",
+  "lost_card",
+  "pickup_card",
+  "fraudulent",
+  "do_not_honor",
+  "revocation_of_all_authorizations",
+  "security_violation",
+]);
+
+export function isHardDecline(declineCode: string | null | undefined): boolean {
+  return !!declineCode && HARD_DECLINES.has(declineCode);
 }

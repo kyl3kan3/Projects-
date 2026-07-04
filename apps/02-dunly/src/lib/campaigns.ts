@@ -1,45 +1,59 @@
 /**
- * src/lib/campaigns.ts
- *
- * Campaign engine: turns an org's recovery_campaigns config into concrete
- * scheduled work (retry attempts + message sends) for a payment failure or
- * an expiring card. Pure planning logic -- execution happens in the worker.
- *
- * TODO:
- * - [ ] Default campaign templates: dunning (email +1h/+3d/+7d, SMS +5d on
- *       Growth+, retries +1d/+3d/+7d/+14d) and pre-dunning (T-21d/T-7d/T-1d).
- * - [ ] planRecovery(failure, campaign): returns retry + message schedule
- *       with absolute timestamps; nudge retries toward local morning and
- *       start-of-month/payday heuristics.
- * - [ ] planPreDunning(paymentMethod, subscription, campaign): schedule
- *       relative to first renewal on the expiring card.
- * - [ ] cancelPlan(failureId): remove outstanding BullMQ jobs when a
- *       failure resolves (recovered / subscription canceled).
- * - [ ] Plan gating: SMS steps only on growth|scale|performance.
- * - [ ] Validation (zod) for campaign step config edited from the dashboard.
+ * Sequence templates. Every org gets defaults on signup; steps are stored
+ * as jsonb and edited in the sequence editor. Offsets are hours from the
+ * failure (dunning) or from detection (pre-dunning, negative = before renewal).
  */
 
-import type { CampaignStep, RetryScheduleEntry } from "../db/schema";
+import { eq, and } from "drizzle-orm";
+import { db, schema } from "@/db";
+import type { CampaignStep } from "@/db/schema";
+import { DEFAULT_RETRY_SCHEDULE } from "@/lib/retries";
 
-export interface RecoveryPlan {
-  retries: Array<{ scheduledFor: Date; entry: RetryScheduleEntry }>;
-  messages: Array<{ scheduledFor: Date; step: CampaignStep }>;
+export const DEFAULT_DUNNING_STEPS: CampaignStep[] = [
+  { offsetHours: 1, channel: "email", templateKey: "dunning_1_heads_up" },
+  { offsetHours: 72, channel: "email", templateKey: "dunning_2_reminder" },
+  { offsetHours: 168, channel: "email", templateKey: "dunning_3_urgent" },
+  { offsetHours: 312, channel: "email", templateKey: "dunning_4_final" },
+];
+
+export const DEFAULT_PRE_DUNNING_STEPS: CampaignStep[] = [
+  { offsetHours: 0, channel: "email", templateKey: "predunning_1_expiring" },
+  { offsetHours: 336, channel: "email", templateKey: "predunning_2_last_call" },
+];
+
+export async function ensureDefaultCampaigns(organizationId: string): Promise<void> {
+  const existing = await db.query.recoveryCampaigns.findFirst({
+    where: eq(schema.recoveryCampaigns.organizationId, organizationId),
+  });
+  if (existing) return;
+  await db.insert(schema.recoveryCampaigns).values([
+    {
+      organizationId,
+      type: "dunning",
+      trigger: "payment_failed",
+      name: "Failed payment recovery",
+      steps: DEFAULT_DUNNING_STEPS,
+      retrySchedule: DEFAULT_RETRY_SCHEDULE,
+      active: true,
+    },
+    {
+      organizationId,
+      type: "pre_dunning",
+      trigger: "card_expiring",
+      name: "Card expiring soon",
+      steps: DEFAULT_PRE_DUNNING_STEPS,
+      retrySchedule: [],
+      active: true,
+    },
+  ]);
 }
 
-export function planRecovery(
-  _failureId: string,
-  _campaignId: string,
-): RecoveryPlan {
-  throw new Error("Not implemented");
-}
-
-export function planPreDunning(
-  _paymentMethodId: string,
-  _campaignId: string,
-): RecoveryPlan {
-  throw new Error("Not implemented");
-}
-
-export function cancelPlan(_failureId: string): Promise<void> {
-  throw new Error("Not implemented");
+export async function activeCampaign(organizationId: string, type: "dunning" | "pre_dunning") {
+  return db.query.recoveryCampaigns.findFirst({
+    where: and(
+      eq(schema.recoveryCampaigns.organizationId, organizationId),
+      eq(schema.recoveryCampaigns.type, type),
+      eq(schema.recoveryCampaigns.active, true),
+    ),
+  });
 }
