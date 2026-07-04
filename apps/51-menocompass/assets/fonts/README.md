@@ -1,5 +1,5 @@
-Self-hosted fonts required by DESIGN.md — download and place here before building:
-- SourceSerif4-Regular.ttf / SourceSerif4-SemiBold.ttf (Adobe Fonts / Google Fonts, OFL)
-- Inter-Regular.ttf / Inter-Medium.ttf / Inter-SemiBold.ttf (rsms.me/inter, OFL)
-- JetBrainsMono-Medium.ttf (jetbrains.com/mono, OFL)
+Self-hosted variable fonts required by DESIGN.md (committed):
+- SourceSerif4-Variable.ttf (Google Fonts, OFL) — committed
+- Inter-Variable.ttf (Google Fonts, OFL) — committed
+- JetBrainsMono-Variable.ttf (Google Fonts, OFL) — committed
 A silent system-font fallback is a failed build.

@@ -59,17 +59,16 @@ export const space = { xs: 4, s: 8, m: 12, l: 16, gutter: 20, xl: 24, xxl: 32, x
 
 export const radius = { control: 10, card: 14, sheet: 22 } as const;
 
+// Variable fonts (assets/fonts/*.ttf) registered under these family names in app/_layout.
 export const fonts = {
-  serif: 'SourceSerif4-Regular',
-  serifSemiBold: 'SourceSerif4-SemiBold',
-  ui: 'Inter-Regular',
-  uiMedium: 'Inter-Medium',
-  uiSemiBold: 'Inter-SemiBold',
-  mono: 'JetBrainsMono-Medium',
+  serif: 'SourceSerif4',
+  ui: 'Inter',
+  mono: 'JetBrainsMono',
 } as const;
 
 interface TypeRole {
   fontFamily: string;
+  fontWeight: '400' | '500' | '600';
   fontSize: number;
   lineHeight: number;
   letterSpacing?: number;
@@ -80,15 +79,15 @@ export const type: Record<
   'display' | 'h2' | 'title' | 'body' | 'secondary' | 'label' | 'data' | 'bigDatum' | 'button',
   TypeRole
 > = {
-  display: { fontFamily: fonts.serifSemiBold, fontSize: 28, lineHeight: 35 },
-  h2: { fontFamily: fonts.uiSemiBold, fontSize: 20, lineHeight: 25, letterSpacing: -0.2 },
-  title: { fontFamily: fonts.uiMedium, fontSize: 17, lineHeight: 22 },
-  body: { fontFamily: fonts.ui, fontSize: 16, lineHeight: 24 },
-  secondary: { fontFamily: fonts.ui, fontSize: 14, lineHeight: 20 },
-  label: { fontFamily: fonts.uiSemiBold, fontSize: 11, lineHeight: 13, letterSpacing: 0.88, textTransform: 'uppercase' },
-  data: { fontFamily: fonts.mono, fontSize: 14, lineHeight: 17 },
-  bigDatum: { fontFamily: fonts.mono, fontSize: 34, lineHeight: 34 },
-  button: { fontFamily: fonts.uiSemiBold, fontSize: 16, lineHeight: 16 },
+  display: { fontFamily: fonts.serif, fontWeight: '600', fontSize: 28, lineHeight: 35 },
+  h2: { fontFamily: fonts.ui, fontWeight: '600', fontSize: 20, lineHeight: 25, letterSpacing: -0.2 },
+  title: { fontFamily: fonts.ui, fontWeight: '500', fontSize: 17, lineHeight: 22 },
+  body: { fontFamily: fonts.ui, fontWeight: '400', fontSize: 16, lineHeight: 24 },
+  secondary: { fontFamily: fonts.ui, fontWeight: '400', fontSize: 14, lineHeight: 20 },
+  label: { fontFamily: fonts.ui, fontWeight: '600', fontSize: 11, lineHeight: 13, letterSpacing: 0.88, textTransform: 'uppercase' },
+  data: { fontFamily: fonts.mono, fontWeight: '500', fontSize: 14, lineHeight: 17 },
+  bigDatum: { fontFamily: fonts.mono, fontWeight: '500', fontSize: 34, lineHeight: 34 },
+  button: { fontFamily: fonts.ui, fontWeight: '600', fontSize: 16, lineHeight: 16 },
 };
 
 /** Motion durations (ms). The report render is the only choreographed sequence. */
