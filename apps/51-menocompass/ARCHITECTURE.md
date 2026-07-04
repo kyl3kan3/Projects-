@@ -1,0 +1,101 @@
+# MenoCompass — Architecture
+
+## Stack
+
+| Layer | Choice | Rationale |
+|---|---|---|
+| App framework | Expo SDK 52 (React Native 0.76, TypeScript, expo-router) | Repo default for mobile; single codebase iOS-first, Android later |
+| Local data | expo-sqlite (SQLite on device) | The product promise — all health data on device, queryable, fast |
+| State | zustand + a thin repository layer over SQLite | Simple, testable; screens subscribe to stores, stores call repositories |
+| Reminders | expo-notifications (local only) | Patch-change/dose schedules need no server; notification actions log adherence |
+| Purchases | react-native-purchases (RevenueCat) | Repo default; annual+trial offering, local entitlement cache |
+| Health import | @kingstinct/react-native-healthkit (iOS, read-only) | Sleep + cycle samples; optional Plus feature, app functions without it |
+| Charts | react-native-svg (hand-rolled marks) | Full control for redline design; no heavy chart lib |
+| PDF report | expo-print (HTML → PDF on device) + expo-sharing | Report renders locally; nothing uploaded anywhere |
+| Backup | Encrypted JSON export via expo-file-system + expo-sharing; key stored in expo-secure-store | User-controlled backup file; no cloud of ours |
+| Fonts | expo-font, self-hosted woff2/ttf in `assets/fonts` | Fonts must actually load (craft rule) |
+
+**There is no backend.** No accounts, no API, no analytics SDK, no crash-reporting SDK that exfiltrates content. The only network traffic is App Store/Play billing and RevenueCat receipt validation. This is a product feature (see README differentiation #4) and a cost feature (infrastructure ≈ $0).
+
+## System diagram
+
+```mermaid
+graph TD
+  UI[Expo app screens] --> ST[zustand stores]
+  ST --> RE[repositories]
+  RE --> DB[(SQLite on device)]
+  UI --> NO[expo-notifications local schedules]
+  NO -->|action: taken/skipped| RE
+  UI --> RC[RevenueCat SDK]
+  RC -->|receipt validation only| RCS[(RevenueCat)]
+  UI --> HK[HealthKit read-only] --> RE
+  RE --> RP[report builder HTML] --> PDF[expo-print → PDF → share sheet]
+  RE --> EX[CSV / encrypted backup export → share sheet]
+```
+
+## Data model (SQLite)
+
+```sql
+-- Curated + custom symptom definitions
+symptom (id TEXT PK, name TEXT, domain TEXT CHECK(domain IN
+  ('vasomotor','sleep','mood','cognitive','physical','cycle','other')),
+  is_custom INTEGER DEFAULT 0, is_active INTEGER DEFAULT 1, sort INTEGER);
+
+-- One row per symptom per day it was logged
+symptom_entry (id TEXT PK, symptom_id TEXT REFS symptom, date TEXT,   -- YYYY-MM-DD
+  severity INTEGER CHECK(severity BETWEEN 0 AND 3), note TEXT,
+  created_at TEXT, UNIQUE(symptom_id, date));
+
+-- Cycle events, irregularity-native (events, never predictions)
+cycle_event (id TEXT PK, date TEXT, kind TEXT CHECK(kind IN
+  ('period_start','period_end','spotting')), note TEXT);
+
+-- Medications & regimens
+medication (id TEXT PK, name TEXT, kind TEXT CHECK(kind IN
+  ('patch','gel','spray','tablet','vaginal','injection','supplement','other')),
+  is_hrt INTEGER, active INTEGER DEFAULT 1, created_at TEXT);
+
+regimen (id TEXT PK, medication_id TEXT REFS medication,
+  dose TEXT, schedule_json TEXT,     -- e.g. {"type":"twice_weekly","days":["Mon","Thu"],"time":"08:00"}
+  start_date TEXT, end_date TEXT);   -- a dose change closes one regimen row, opens the next
+
+dose_log (id TEXT PK, regimen_id TEXT REFS regimen, due_at TEXT,
+  status TEXT CHECK(status IN ('taken','skipped')), logged_at TEXT);
+
+-- Labs (log & display only)
+lab_result (id TEXT PK, date TEXT, panel TEXT, value REAL, unit TEXT, note TEXT);
+
+-- Imported health samples (read-only mirror)
+health_sample (id TEXT PK, date TEXT, kind TEXT CHECK(kind IN
+  ('sleep_hours','sleep_interruptions')), value REAL, source TEXT);
+
+settings (key TEXT PK, value TEXT);   -- reminder defaults, onboarding state, entitlement cache
+```
+
+Key derived views (computed in repositories, not stored): cycle-gap series (days between `period_start` events), per-symptom weekly frequency/severity aggregates, dose-change markers (regimen `start_date`s), correlation windows (aggregates for N weeks before/after each dose change).
+
+## Key flows
+
+1. **Daily check-in.** Home shows the user's active symptom set as large tap targets, prefilled from yesterday. Tap = severity cycle (0→1→2→3). One write per symptom per day (upsert on `(symptom_id, date)`). Under 30 seconds, fully offline.
+2. **Regimen scheduling.** Creating/editing a regimen computes the next 64 local notification triggers from `schedule_json` (iOS limit headroom) and re-registers on every app open and dose log. Notification actions "Taken"/"Skipped" write `dose_log` without opening the app.
+3. **Dose change.** Editing dose/schedule closes the current `regimen` row (`end_date = today`) and inserts a new one. Every chart queries regimen boundaries to draw change markers.
+4. **Insight generation (on device, deterministic).** For each (symptom × dose-change) pair with ≥21 days of data on both sides: compare mean severity/frequency in the windows; emit a card only when the delta clears a threshold and sample floor. Template: "*{symptom} averaged {pct}% {lower/higher} in the {n} weeks after your {date} {med} change.*" Pure arithmetic — no LLM, no network, no advice.
+5. **Doctor report.** Report builder assembles a one-page HTML document (90-day default): top-6 symptoms table with sparkline trends, cycle-gap summary, current regimen + change history, labs table, check-in adherence footnote. `expo-print` renders PDF → system share sheet. Typeset per DESIGN.md — this artifact is the brand.
+6. **Paywall.** RevenueCat offering fetched on onboarding completion and at gate touchpoints; entitlement cached in `settings` so lapses in connectivity (or a RevenueCat outage) never lock a paying user out.
+7. **Backup/restore.** Export: full DB serialized to JSON, AES-encrypted with a key from expo-secure-store (passphrase-wrapped), shared as a file. Import: reverse. Documented in Settings alongside delete-all-data.
+
+## Third-party services & running costs
+
+| Service | Purpose | Cost at 1k / 10k users |
+|---|---|---|
+| RevenueCat | Entitlements, paywall experiments | Free < $2.5k MTR, then ~1% |
+| Apple/Google developer accounts | Distribution | $99/yr + $25 once |
+| CDN or none | Education content ships bundled in-app | $0 |
+| **Total infra** | | **≈ $0/mo — no servers, no databases, no analytics** |
+
+## Non-goals (MVP)
+
+- Android ships after iOS (same codebase; Phase 3).
+- No cloud sync / multi-device (the backup file covers migration; sync would break the no-server promise — revisit only with E2E encryption and explicit demand).
+- No community/social features, no chat, no telehealth integration, no AI chat. The app is an instrument, not a feed.
+- No wearable *device* SDKs beyond HealthKit (Oura/Whoop arrive via HealthKit anyway).
