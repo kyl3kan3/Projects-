@@ -3,6 +3,15 @@ import type { ActivityEvent } from "@/lib/sample-data";
 import { Icon } from "./icons";
 
 export function ActivityFeed({ events }: { events: ActivityEvent[] }) {
+  if (events.length === 0) {
+    return (
+      <div className="panel p-4">
+        <p className="t-label">Activity</p>
+        <p className="t-secondary mt-2">Recovered invoices and baseline payments will appear here.</p>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="mb-2 flex items-center justify-between">

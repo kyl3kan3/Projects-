@@ -7,6 +7,7 @@ const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 const nextConfig: NextConfig = {
   outputFileTracingRoot: projectRoot,
   serverExternalPackages: ["bullmq", "ioredis", "postgres", "stripe", "twilio"],
+  devIndicators: false,
   eslint: { ignoreDuringBuilds: true },
 };
 

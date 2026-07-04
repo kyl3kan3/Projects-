@@ -1,9 +1,8 @@
 import type Stripe from "stripe";
 import { NextRequest, NextResponse } from "next/server";
-import { attributeRecovery } from "@/lib/analytics";
 import { serverEnv } from "@/lib/env";
-import { enqueueDunlyJob } from "@/lib/queue";
 import { getPlatformStripe } from "@/lib/stripe";
+import { ingestStripeWebhookEvent } from "@/lib/webhooks";
 
 export const runtime = "nodejs";
 
@@ -40,41 +39,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Invalid webhook" }, { status: 400 });
   }
 
-  const jobs = [
-    await enqueueDunlyJob("process-webhook", {
-      stripeEventId: event.id,
-      idempotencyKey: `webhook_${event.id}`,
-      payload: { type: event.type },
-    }),
-  ];
-
-  if (event.type === "invoice.payment_failed") {
-    jobs.push(
-      await enqueueDunlyJob("schedule-retry", {
-        stripeEventId: event.id,
-        paymentFailureId: `failure_${event.id}`,
-        idempotencyKey: `retry_${event.id}`,
-        payload: { type: event.type },
-      }),
-    );
-    jobs.push(
-      await enqueueDunlyJob("send-message", {
-        stripeEventId: event.id,
-        paymentFailureId: `failure_${event.id}`,
-        idempotencyKey: `message_${event.id}`,
-        payload: { type: event.type },
-      }),
-    );
-  }
-
-  if (event.type === "invoice.payment_succeeded") {
-    await attributeRecovery(event.id);
-  }
-
-  return NextResponse.json({
-    received: true,
-    eventId: event.id,
-    type: event.type,
-    jobs,
-  });
+  return NextResponse.json(await ingestStripeWebhookEvent(event));
 }

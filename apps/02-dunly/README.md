@@ -2,6 +2,32 @@
 
 **Failed-payment recovery and dunning for Stripe subscription businesses. Recovers 30-70% of involuntary churn, so it pays for itself.**
 
+## Local Setup
+
+```bash
+npm install
+cp .env.example .env.local
+npm run dev
+```
+
+For worker and retry scheduling:
+
+```bash
+cp .env.example .env
+npm run worker
+```
+
+Useful checks:
+
+```bash
+npm run lint
+npm run typecheck
+npm run build
+npm run db:generate
+```
+
+Local development defaults to `DRY_RUN=1`, so webhook, email, SMS, billing, and card-update flows are safe to exercise without sending real messages or charging cards. Fill `DATABASE_URL`, `REDIS_URL`, Stripe, Resend, Twilio, Auth, and price ID values before running live integrations.
+
 ## The Problem
 
 Roughly 20-40% of all SaaS churn is *involuntary*: the customer never decided to leave, their card just failed. Expired cards, insufficient funds, bank declines, 3DS friction. Stripe's default behavior (a few dumb retries, then cancel the subscription) throws that revenue away.
@@ -54,17 +80,17 @@ Notes on the model:
 
 ## MVP Feature List
 
-- [ ] Stripe Connect onboarding (OAuth, read/write on invoices, customers, payment methods)
-- [ ] Webhook ingestion with signature verification, idempotent processing, and replay
-- [ ] Historical backfill: import last 90 days of invoices/failures for the recovery preview
-- [ ] Smart retry engine: configurable schedule (default 4 retries over 14 days), timed by day-of-week/time-of-day heuristics; suppress retries when Stripe Smart Retries are active to avoid double-charging
-- [ ] Email dunning sequences (Resend): 3-5 step default sequence, editable templates, merge tags, per-org sender domain
-- [ ] Hosted card-update page (Stripe SetupIntent / Checkout in setup mode) -- no login required, signed token links
-- [ ] Pre-dunning: detect `card.expiring` (cards expiring this month) and send update-your-card emails before the renewal
-- [ ] Recovery attribution: every recovered invoice tied to the retry or message that preceded payment
-- [ ] Dashboard: recovered $ this month, recovery rate, at-risk MRR, per-campaign performance
-- [ ] Billing for Dunly itself (Stripe Billing, the four plans above)
-- [ ] Email deliverability basics: per-org subdomain sending, SPF/DKIM setup flow, suppression list, unsubscribe handling
+- [x] Stripe Connect onboarding (OAuth, read/write on invoices, customers, payment methods)
+- [x] Webhook ingestion with signature verification, idempotent processing, and replay
+- [x] Historical backfill: import last 90 days of invoices/failures for the recovery preview
+- [x] Smart retry engine: configurable schedule (default 4 retries over 14 days), timed by day-of-week/time-of-day heuristics; suppress retries when Stripe Smart Retries are active to avoid double-charging
+- [x] Email dunning sequences (Resend): 3-5 step default sequence, editable templates, merge tags, per-org sender domain
+- [x] Hosted card-update page (Stripe SetupIntent / Checkout in setup mode) -- no login required, signed token links
+- [x] Pre-dunning: detect `card.expiring` (cards expiring this month) and send update-your-card emails before the renewal
+- [x] Recovery attribution: every recovered invoice tied to the retry or message that preceded payment
+- [x] Dashboard: recovered $ this month, recovery rate, at-risk MRR, per-campaign performance
+- [x] Billing for Dunly itself (Stripe Billing, the four plans above)
+- [x] Email deliverability basics: per-org subdomain sending, SPF/DKIM setup flow, suppression list, unsubscribe handling
 
 Post-MVP (explicitly cut from v1): SMS (Twilio) sequences, A/B testing, Slack alerts, multi-account, public API, in-app banners/paywall widget.
 

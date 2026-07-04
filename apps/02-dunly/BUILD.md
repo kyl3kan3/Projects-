@@ -1,6 +1,6 @@
 # Build Brief — Dunly
 
-**Status:** SCAFFOLD — nothing is implemented yet. Docs and stubs only. You (the building agent) are expected to produce the complete, working MVP described in this folder.
+**Status:** BUILT - the MVP implementation lives in `src/app`, `src/lib`, `src/db`, and `src/worker`.
 
 This folder is fully self-contained. It can be extracted to a fresh repository
 and built with no other context. Everything you need is here.

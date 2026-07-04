@@ -48,6 +48,8 @@ export type CampaignType = "dunning" | "pre_dunning";
 export type CampaignTrigger = "payment_failed" | "card_expiring";
 export type RecoveryAttemptResult = "scheduled" | "succeeded" | "failed" | "skipped";
 export type AuditActor = "system" | "user";
+export type SenderDomainStatus = "pending" | "verified" | "failed";
+export type SuppressionReason = "unsubscribe" | "bounce" | "complaint";
 
 export interface OrganizationSettings {
   brandColor?: string;
@@ -83,6 +85,8 @@ export const messageStatusEnum = pgEnum("message_status", [
   "complained",
   "clicked",
 ]);
+export const senderDomainStatusEnum = pgEnum("sender_domain_status", ["pending", "verified", "failed"]);
+export const suppressionReasonEnum = pgEnum("suppression_reason", ["unsubscribe", "bounce", "complaint"]);
 export const attemptResultEnum = pgEnum("recovery_attempt_result", [
   "scheduled",
   "succeeded",
@@ -328,6 +332,48 @@ export const messages = pgTable(
   }),
 );
 
+export const senderDomains = pgTable(
+  "sender_domains",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+    domain: text("domain").notNull(),
+    status: senderDomainStatusEnum("status").notNull().default("pending"),
+    spfHost: text("spf_host").notNull(),
+    spfValue: text("spf_value").notNull(),
+    dkimHost: text("dkim_host").notNull(),
+    dkimValue: text("dkim_value").notNull(),
+    returnPathHost: text("return_path_host").notNull(),
+    returnPathValue: text("return_path_value").notNull(),
+    verifiedAt: timestamp("verified_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => ({
+    domainIdx: uniqueIndex("sender_domains_domain_idx").on(table.organizationId, table.domain),
+    orgIdx: index("sender_domains_org_idx").on(table.organizationId),
+  }),
+);
+
+export const emailSuppressions = pgTable(
+  "email_suppressions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+    customerId: uuid("customer_id").references(() => customers.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    reason: suppressionReasonEnum("reason").notNull(),
+    providerMessageId: text("provider_message_id"),
+    providerEventId: text("provider_event_id"),
+    suppressedAt: timestamp("suppressed_at", { withTimezone: true }).defaultNow().notNull(),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}),
+    ...timestamps,
+  },
+  (table) => ({
+    emailIdx: uniqueIndex("email_suppressions_email_idx").on(table.organizationId, table.email),
+    customerIdx: index("email_suppressions_customer_idx").on(table.customerId),
+  }),
+);
+
 export const webhookEvents = pgTable(
   "webhook_events",
   {
@@ -389,6 +435,8 @@ export const organizationRelations = relations(organizations, ({ many }) => ({
   stripeAccounts: many(stripeAccounts),
   failures: many(paymentFailures),
   campaigns: many(recoveryCampaigns),
+  senderDomains: many(senderDomains),
+  emailSuppressions: many(emailSuppressions),
 }));
 
 export const customerRelations = relations(customers, ({ many, one }) => ({
