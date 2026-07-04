@@ -316,6 +316,10 @@ textarea {
   z-index: 30;
 }
 
+.bottom-tab a {
+  touch-action: manipulation;
+}
+
 .timeline {
   display: grid;
   grid-auto-columns: 70px;
