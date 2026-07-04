@@ -61,7 +61,7 @@ export default async function LandingPage() {
             <p className="t-lead mt-5 max-w-[34ch] text-[var(--color-muted)]">
               Your episode already contains a week of content. ClipForge
               develops it — clips, thread, posts, newsletter — while your
-              coffee's still hot.
+              coffee&apos;s still hot.
             </p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <Link href={cta} className="btn btn-primary btn-block sm:w-auto">{CTA_LABEL}</Link>
@@ -111,9 +111,9 @@ export default async function LandingPage() {
             </h2>
             <p className="mt-4 max-w-[44ch] text-[#4A5160]">
               Scrub 62 minutes for the good moments, cut them vertical, caption
-              them, rewrite the ideas three ways. Done properly, that's an
-              afternoon. Done by an agency, it's a retainer. So it just…
-              doesn't happen — and the episode dies in 48 hours.
+              them, rewrite the ideas three ways. Done properly, that&apos;s an
+              afternoon. Done by an agency, it&apos;s a retainer. So it just…
+              doesn&apos;t happen — and the episode dies in 48 hours.
             </p>
           </div>
           <div className="self-center">
@@ -175,7 +175,7 @@ export default async function LandingPage() {
                   />
                   <div className="absolute inset-x-0 bottom-0 p-6 text-center">
                     <p className="font-display text-2xl uppercase leading-tight">
-                      You don't need
+                      You don&apos;t need
                       <br />
                       <span className="text-[var(--color-brand)]">more content.</span>
                     </p>
@@ -195,7 +195,7 @@ export default async function LandingPage() {
               <div className="well p-3 text-sm leading-relaxed">
                 <span className="mono mr-2 text-[var(--color-faint)]">1/6</span>
                 Most creators publish an episode and let 80% of its value die in
-                48 hours. Here's the system that fixes it.
+                48 hours. Here&apos;s the system that fixes it.
               </div>
               <p className="mt-3 text-xs text-[var(--color-muted)]">
                 <span className="mono text-[var(--color-brand)]">4:12</span>{" "}
@@ -207,7 +207,7 @@ export default async function LandingPage() {
             <div className="card p-4">
               <div className="t-label mb-3">Newsletter · 412 words</div>
               <p className="text-sm leading-relaxed">
-                <strong>The 80% you're leaving on the table.</strong> Every
+                <strong>The 80% you&apos;re leaving on the table.</strong> Every
                 episode has a handful of moments that stand on their own. Most
                 never get cut…
               </p>
@@ -231,11 +231,11 @@ export default async function LandingPage() {
         <div className="relative mx-auto max-w-2xl px-5 text-center">
           <p className="mono text-2xl tracking-wide text-[var(--color-brand)]">[31:02]</p>
           <p className="font-display mx-auto mt-4 max-w-[24ch] text-2xl leading-snug sm:text-3xl">
-            &ldquo;distribution isn't a second project — it's the same project, finished&rdquo;
+            &ldquo;distribution isn&apos;t a second project — it&apos;s the same project, finished&rdquo;
           </p>
           <p className="mx-auto mt-5 max-w-[52ch] text-sm text-[var(--color-muted)]">
             Every line ClipForge writes carries a citation — the verbatim quote
-            and its timestamp. If it wasn't said, it isn't written. Your voice,
+            and its timestamp. If it wasn&apos;t said, it isn&apos;t written. Your voice,
             your claims, receipts attached.
           </p>
         </div>

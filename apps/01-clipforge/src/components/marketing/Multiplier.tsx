@@ -48,7 +48,7 @@ export function Multiplier() {
       <p className="t-label mt-4">One episode · Fourteen assets</p>
       <p className="mx-auto mt-3 max-w-[38ch] text-sm text-[var(--color-muted)]">
         10 captioned clips (five moments, cut 9:16 and 1:1), a tweet thread,
-        two LinkedIn posts, and a newsletter section. That's the kit. Every time.
+        two LinkedIn posts, and a newsletter section. That&apos;s the kit. Every time.
       </p>
     </div>
   );

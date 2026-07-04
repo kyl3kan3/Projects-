@@ -193,7 +193,7 @@ export function UploadSheet({ overLimit }: { overLimit: boolean }) {
 
             {overLimit && (
               <p className="mt-3 text-center text-sm text-[var(--color-brand)]">
-                You've used all uploads this period. Upgrade to add more.
+                You&apos;ve used all uploads this period. Upgrade to add more.
               </p>
             )}
             {error && <p className="mt-3 text-center text-sm" style={{ color: "var(--color-danger)" }}>{error}</p>}
