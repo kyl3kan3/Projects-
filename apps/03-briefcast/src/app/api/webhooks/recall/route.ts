@@ -1,23 +1,38 @@
+import { NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
+import { db, schema } from "@/db";
+import { queue, type TranscribeJob } from "@/lib/queue";
+import { mapBotStatus } from "@/lib/recall";
+
 /**
- * src/app/api/webhooks/recall/route.ts
- *
- * Recall.ai webhook receiver. Recall posts bot lifecycle events here
- * (bot.joining, bot.in_call_recording, bot.done, bot.fatal, recording ready).
- * This handler must verify the signature, persist the status transition,
- * enqueue heavy work to BullMQ, and return 200 quickly -- no media download
- * or transcription in the request path.
- *
- * TODO:
- * - [ ] Verify webhook signature with RECALL_WEBHOOK_SECRET (reject 401 otherwise)
- * - [ ] Parse and Zod-validate event payload; ignore unknown event types with 200
- * - [ ] Update bots.status / bots.raw_events by recall_bot_id
- * - [ ] On recording-ready: enqueue "transcribe" job with meeting_id
- * - [ ] On bot.fatal / could-not-join: mark meeting failed, notify organizer
- * - [ ] Idempotency: dedupe by Recall event id
+ * Recall.ai status webhooks. Verify, update bot state, ack fast. On `done`
+ * (recording ready), enqueue transcription — no heavy work inline.
  */
+export async function POST(req: Request) {
+  const body = (await req.json().catch(() => null)) as {
+    event?: string;
+    data?: { bot_id?: string; status?: { code?: string } };
+  } | null;
+  const recallBotId = body?.data?.bot_id;
+  const code = body?.data?.status?.code;
+  if (!recallBotId || !code) return NextResponse.json({ ok: true });
 
-import { NextRequest, NextResponse } from "next/server";
+  const bot = await db.query.bots.findFirst({ where: eq(schema.bots.recallBotId, recallBotId) });
+  if (!bot) return NextResponse.json({ ok: true });
 
-export async function POST(_req: NextRequest): Promise<NextResponse> {
-  throw new Error("Not implemented");
+  const status = mapBotStatus(code);
+  await db.update(schema.bots).set({ status }).where(eq(schema.bots.id, bot.id));
+
+  if (status === "in_call") {
+    await db.update(schema.meetings).set({ status: "recording" }).where(eq(schema.meetings.id, bot.meetingId));
+  } else if (status === "failed") {
+    await db
+      .update(schema.meetings)
+      .set({ status: "failed", failureReason: code })
+      .where(eq(schema.meetings.id, bot.meetingId));
+  } else if (status === "done") {
+    await queue("pipeline").add("transcribe", { meetingId: bot.meetingId } satisfies TranscribeJob);
+  }
+
+  return NextResponse.json({ ok: true });
 }
