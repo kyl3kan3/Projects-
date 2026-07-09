@@ -16,7 +16,7 @@ export default function RootLayout() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
   const [fontsLoaded] = useFonts({
-    SourceSerif4: require('../assets/fonts/SourceSerif4-Variable.ttf'),
+    BricolageGrotesque: require('../assets/fonts/BricolageGrotesque-Variable.ttf'),
     Inter: require('../assets/fonts/Inter-Variable.ttf'),
     JetBrainsMono: require('../assets/fonts/JetBrainsMono-Variable.ttf'),
   });

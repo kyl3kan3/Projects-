@@ -5,74 +5,79 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MenoCompass — the page that gets you believed</title>
 <meta name="description" content="Track every perimenopause symptom and the HRT that treats them. One tap turns it into a doctor-ready report. Everything stays on your phone.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
-  :root{--paper:#F7F4EE;--card:#FFFDF9;--hair:#E3DDD2;--ink:#26221C;--ink2:#6E675C;--ink3:#A39B8D;--ember:#B4552D;--sage:#5E7A5A}
+  /* Twilight identity — mirrors src/theme/tokens.ts (dark) */
+  :root{--paper:#0E1618;--card:#16232A;--well:#1D2E33;--hair:#26383E;--ink:#E9F1EE;--ink2:#93A8A8;--ink3:#5C7176;--ember:#E8A552;--sage:#6FB79A}
   *{margin:0;box-sizing:border-box}
-  body{background:var(--paper);color:var(--ink);font-family:-apple-system,'Segoe UI',system-ui,sans-serif;line-height:1.5}
-  .serif{font-family:Georgia,'Times New Roman',serif}
-  .mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
-  .wrap{max-width:1040px;margin:0 auto;padding:0 24px}
-  header{padding:20px 0;border-bottom:1px solid var(--hair)}
+  body{background:var(--paper);color:var(--ink);font-family:'Inter',-apple-system,system-ui,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .disp{font-family:'Bricolage Grotesque','Inter',system-ui,sans-serif;font-weight:700;letter-spacing:-.02em}
+  .mono{font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 24px}
+  header{padding:22px 0;border-bottom:1px solid var(--hair)}
   header .wrap{display:flex;justify-content:space-between;align-items:center}
-  .brand{font-weight:600;letter-spacing:-.01em}
-  .brand b{color:var(--ember);font-weight:600}
+  .brand{font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:700;letter-spacing:-.02em;font-size:18px}
+  .brand b{color:var(--ember);font-weight:700}
   .cta{display:inline-block;background:var(--ink);color:var(--paper);border-radius:10px;padding:14px 22px;font-weight:600;font-size:16px;text-decoration:none}
-  .cta:hover{background:#3A3429}
+  .cta:hover{background:#CFDAD7}
   .cta.small{padding:10px 16px;font-size:14px}
 
-  /* HERO — the report assembles itself in the first 5 seconds */
-  .hero{padding:72px 0 56px}
+  /* HERO — the doctor report (a light document) assembles itself, glowing on the dark ground */
+  .hero{padding:76px 0 60px}
   .hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
-  h1{font-family:Georgia,serif;font-weight:600;font-size:clamp(32px,4.6vw,46px);line-height:1.15;text-wrap:balance}
-  .sub{color:var(--ink2);font-size:18px;margin:18px 0 26px;max-width:46ch}
-  .enemy{font-size:14px;color:var(--ink3);margin-top:14px}
-  .page{background:var(--card);border:1px solid var(--hair);border-radius:6px;box-shadow:0 24px 60px rgba(38,34,28,.12);padding:28px;max-width:430px;justify-self:end;width:100%}
-  .page h3{font-family:Georgia,serif;font-size:17px;margin-bottom:2px}
-  .page .ps{color:var(--ink2);font-size:11px;margin-bottom:14px}
-  .rowline{display:flex;justify-content:space-between;border-top:1px solid var(--hair);padding:7px 2px;font-size:12px;opacity:0;animation:rise .5s ease-out forwards}
-  .rowline .v{color:var(--ink2)}
-  .rowline svg{vertical-align:middle}
-  .sect{font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink2);margin:12px 0 4px;opacity:0;animation:rise .5s ease-out forwards}
-  .note{font-size:11.5px;color:var(--ink2);opacity:0;animation:rise .5s ease-out forwards}
-  .note em{color:var(--ember);font-style:normal}
+  h1{font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:700;font-size:clamp(33px,4.7vw,48px);line-height:1.12;letter-spacing:-.025em;text-wrap:balance}
+  .sub{color:var(--ink2);font-size:18px;margin:20px 0 28px;max-width:46ch}
+  .sub strong{color:var(--ink);font-weight:600}
+  .enemy{font-size:14px;color:var(--ink3);margin-top:16px;max-width:48ch}
+  .page{background:#FBF8F1;color:#1B2A28;border-radius:8px;box-shadow:0 30px 70px rgba(0,0,0,.45),0 0 0 1px rgba(233,241,238,.06);padding:28px;max-width:432px;justify-self:end;width:100%}
+  .page h3{font-family:'Bricolage Grotesque',serif;font-weight:600;font-size:17px;margin-bottom:2px}
+  .page .ps{color:#6E675C;font-size:11px;margin-bottom:14px}
+  .rowline{display:flex;justify-content:space-between;border-top:1px solid #E7E0D3;padding:7px 2px;font-size:12px;opacity:0;animation:rise .5s ease-out forwards}
+  .rowline .v{color:#6E675C}
+  .sect{font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:#8A8071;margin:12px 0 4px;opacity:0;animation:rise .5s ease-out forwards}
+  .note{font-size:11.5px;color:#4C463C;opacity:0;animation:rise .5s ease-out forwards}
+  .note em{color:#B26A12;font-style:normal;font-weight:600}
   .heat{display:grid;grid-template-columns:repeat(30,1fr);gap:2px;margin:4px 0 2px}
   .heat i{aspect-ratio:1;border-radius:1px;background:#EFEAE1;opacity:0;animation:pop .25s ease-out forwards}
-  .heat i.a{background:#E8C4B0}.heat i.b{background:#D28A64}.heat i.c{background:var(--ember)}
-  .stamp{margin-top:16px;font-size:10px;color:var(--ink3);border-top:1px solid var(--hair);padding-top:8px;opacity:0;animation:rise .5s 3.2s ease-out forwards}
+  .heat i.a{background:#EAD3AE}.heat i.b{background:#D9A85C}.heat i.c{background:#C6871E}
+  .stamp{margin-top:16px;font-size:10px;color:#9A9082;border-top:1px solid #E7E0D3;padding-top:8px;opacity:0;animation:rise .5s 3.2s ease-out forwards}
   @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
   @keyframes pop{to{opacity:1}}
   @media (prefers-reduced-motion:reduce){.rowline,.sect,.note,.heat i,.stamp{animation:none;opacity:1}}
 
-  section{padding:56px 0;border-top:1px solid var(--hair)}
-  h2{font-family:Georgia,serif;font-size:28px;font-weight:600;margin-bottom:8px;text-wrap:balance}
-  .lead{color:var(--ink2);max-width:62ch}
-  .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-top:32px}
+  section{padding:60px 0;border-top:1px solid var(--hair)}
+  h2{font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:29px;font-weight:700;letter-spacing:-.02em;margin-bottom:10px;text-wrap:balance}
+  .lead{color:var(--ink2);max-width:62ch;font-size:16px}
+  .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:34px}
+  .col{background:var(--card);border:1px solid var(--hair);border-radius:14px;padding:22px}
   .col h4{font-size:16px;margin-bottom:6px}
   .col p{color:var(--ink2);font-size:14.5px}
   .col .k{color:var(--ember);font-weight:600}
 
   .pricing{display:grid;grid-template-columns:repeat(2,minmax(0,340px));gap:20px;margin-top:28px}
   .plan{background:var(--card);border:1px solid var(--hair);border-radius:14px;padding:24px}
-  .plan.hero-plan{border-color:var(--ember)}
-  .plan .tag{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ember);font-weight:700}
+  .plan.hero-plan{border-color:var(--ember);box-shadow:0 0 40px -18px var(--ember)}
+  .plan .tag{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ember);font-weight:700}
   .plan h5{font-size:19px;margin:4px 0 2px}
   .plan p{color:var(--ink2);font-size:13.5px}
-  .fine{font-size:12.5px;color:var(--ink3);margin-top:14px;max-width:60ch}
+  .fine{font-size:12.5px;color:var(--ink3);margin-top:14px;max-width:62ch}
 
-  footer{border-top:1px solid var(--hair);padding:32px 0;color:var(--ink3);font-size:13px}
+  footer{border-top:1px solid var(--hair);padding:34px 0;color:var(--ink3);font-size:13px}
   @media(max-width:860px){.hero .wrap{grid-template-columns:1fr}.page{justify-self:start}.cols{grid-template-columns:1fr}.pricing{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <header><div class="wrap">
-  <span class="brand serif">Meno<b>Compass</b></span>
+  <span class="brand">Meno<b>Compass</b></span>
   <a class="cta small" href="#get">Start your record</a>
 </div></header>
 
 <!-- HOOK: the device, running -->
 <main class="hero"><div class="wrap">
   <div>
-    <h1 class="serif">Walk in with one page they can't wave away.</h1>
+    <h1>Walk in with one page they can't wave away.</h1>
     <p class="sub">MenoCompass tracks your perimenopause symptoms <strong>and the HRT that treats them</strong> — every patch change, every dose, every lab — then turns it into a doctor-ready report in one tap.</p>
     <a class="cta" href="#get">Start your record</a>
     <p class="enemy">The enemy isn't menopause. It's "that's probably just aging," said to a woman with four months of evidence in her head and no way to show it.</p>
@@ -91,14 +96,14 @@
     <div class="rowline" style="animation-delay:1.9s"><span>Brain fog</span><span class="v mono">38d · avg 1.2 ↓</span></div>
     <div class="sect" style="animation-delay:2.3s">Current regimen</div>
     <div class="note" style="animation-delay:2.5s">Estradot 50µg patch, twice weekly (changed from 37.5µg on <em>Feb 12</em>) · Utrogestan 100mg nightly · adherence 93%</div>
-    <div class="note" style="animation-delay:2.8s" >Night sweats averaged <em>40% lower</em> in the 6 weeks after the Feb 12 change.</div>
+    <div class="note" style="animation-delay:2.8s">Night sweats averaged <em>40% lower</em> in the 6 weeks after the Feb 12 change.</div>
     <div class="stamp">Patient-recorded · self-rated 0–3 · makes no diagnostic claims — it doesn't have to.</div>
   </div>
 </div></main>
 
 <!-- TENSION -->
 <section><div class="wrap">
-  <h2 class="serif">Your tracker thinks you're 26 and regular.</h2>
+  <h2>Your tracker thinks you're 26 and regular.</h2>
   <p class="lead">Mainstream cycle apps are built on 28-day math that collapses the moment cycles turn irregular — which is the defining feature of perimenopause. And the menopause apps that do exist track symptoms but not treatment, so "did the new dose help?" is answered by vibes. MenoCompass is built the other way up.</p>
   <div class="cols">
     <div class="col"><h4>Irregular is the design, not the bug</h4><p>No predicted periods, ever. Cycle <span class="k">gaps</span> are the unit — "day 47 since last period" is a data point here, not an error state.</p></div>
@@ -109,13 +114,13 @@
 
 <!-- PROOF -->
 <section><div class="wrap">
-  <h2 class="serif">Thirty seconds a day. One page when it counts.</h2>
+  <h2>Thirty seconds a day. One page when it counts.</h2>
   <p class="lead">The daily check-in is prefilled from yesterday — you tap what changed and put the phone down. Months later, the report compresses all of it into the one artifact a 12-minute appointment has room for: top symptoms with trends, cycle pattern, current regimen with its history, labs. Rendered on your phone as a PDF. Shared only by you.</p>
 </div></section>
 
 <!-- OFFER -->
 <section id="get"><div class="wrap">
-  <h2 class="serif">Start your record</h2>
+  <h2>Start your record</h2>
   <p class="lead">Free tracks your ten core symptoms with reminders. Plus is the complete instrument.</p>
   <div class="pricing">
     <div class="plan hero-plan">
