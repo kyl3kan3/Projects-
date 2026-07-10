@@ -47,18 +47,21 @@ export function buildReportHtml(rangeDays = 90): ReportData {
   }).join('');
 
   const html = `<!doctype html><html><head><meta charset="utf-8"><style>
+    /* The report is the deliberate palette exception (DESIGN.md): a light paper
+       document — cream ground, teal-ink text, ochre accents — whatever the app theme,
+       because a clinician reads it on paper. */
     @page { margin: 36px; }
-    body { font-family: -apple-system, 'Helvetica Neue', sans-serif; color: #26221C; font-size: 11px; line-height: 1.5; }
-    h1 { font-family: Georgia, serif; font-size: 20px; margin: 0 0 2px; }
-    .sub { color: #6E675C; font-size: 10px; margin-bottom: 14px; }
-    h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: #6E675C; margin: 16px 0 6px; }
+    body { font-family: -apple-system, 'Helvetica Neue', sans-serif; background: #FBF8F1; color: #1B2A28; font-size: 11px; line-height: 1.5; }
+    h1 { font-weight: 700; letter-spacing: -0.02em; font-size: 20px; margin: 0 0 2px; }
+    .sub { color: #566663; font-size: 10px; margin-bottom: 14px; }
+    h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: #566663; margin: 16px 0 6px; }
     table { width: 100%; border-collapse: collapse; }
-    td, th { border-top: 1px solid #E3DDD2; padding: 5px 4px; text-align: left; }
-    th { font-size: 9px; text-transform: uppercase; letter-spacing: .06em; color: #6E675C; }
+    td, th { border-top: 1px solid #DFDACD; padding: 5px 4px; text-align: left; }
+    th { font-size: 9px; text-transform: uppercase; letter-spacing: .06em; color: #566663; }
     .num { text-align: right; font-variant-numeric: tabular-nums; }
-    .ember { color: #B4552D; }
-    .muted { color: #6E675C; }
-    .foot { margin-top: 18px; font-size: 9px; color: #A39B8D; border-top: 1px solid #E3DDD2; padding-top: 8px; }
+    .ember { color: #B26A12; }
+    .muted { color: #566663; }
+    .foot { margin-top: 18px; font-size: 9px; color: #93998F; border-top: 1px solid #DFDACD; padding-top: 8px; }
   </style></head><body>
     <h1>Symptom &amp; treatment summary</h1>
     <div class="sub">${fmt(from)} – ${fmt(to)} · ${daysLogged} of ${rangeDays} days logged · prepared with MenoCompass</div>
