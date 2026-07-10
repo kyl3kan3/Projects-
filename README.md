@@ -2,7 +2,7 @@
 
 A curated portfolio of **50 buildable, high-profit-potential software products** — each researched, specified, and scaffolded so it can be lifted out of this repo and built as a standalone project.
 
-> **Three are built, 47 are launchpads.** `apps/01-clipforge`, `apps/02-dunly`, and `apps/03-briefcast` are complete working MVPs; every other folder is a full product spec, market/profitability research, architecture, redline design spec, roadmap, and code scaffolding with stub files. Pick one, extract it, and start building.
+> **Four are built, 46 are launchpads.** `apps/01-clipforge`, `apps/02-dunly`, `apps/03-briefcast`, and `apps/04-lenscrm` are complete working MVPs; every other folder is a full product spec, market/profitability research, architecture, redline design spec, roadmap, and code scaffolding with stub files. Pick one, extract it, and start building.
 
 ## How to build one with an AI agent
 

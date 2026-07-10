@@ -1,6 +1,6 @@
 # Build Brief — LensCRM
 
-**Status:** SCAFFOLD — nothing is implemented yet. Docs and stubs only. You (the building agent) are expected to produce the complete, working MVP described in this folder.
+**Status:** BUILT — the complete MVP already lives in this folder. Your job is to verify, run, and extend it (see ROADMAP.md for what comes next), not to rebuild it. `npm install && npm run typecheck && npm run build` must stay green after any change.
 
 This folder is fully self-contained. It can be extracted to a fresh repository
 and built with no other context. Everything you need is here.
