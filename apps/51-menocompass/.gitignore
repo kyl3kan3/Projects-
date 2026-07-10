@@ -13,3 +13,4 @@ android/
 *.key
 *.mobileprovision
 .DS_Store
+.expo-export/

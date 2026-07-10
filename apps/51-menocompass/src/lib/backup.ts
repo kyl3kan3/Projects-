@@ -1,12 +1,12 @@
 // Backup & export: full DB -> JSON file -> share sheet; CSV export of entries.
-// Restore reads a backup file back in. (AES passphrase encryption of the backup
-// file is Phase-1 week-8 polish — tracked in ROADMAP; export is user-initiated
-// and shared only through the OS share sheet, nothing leaves the device otherwise.)
+// v1 is a plaintext JSON export, user-initiated and shared only through the OS
+// share sheet. Restore-from-file and AES passphrase encryption are roadmapped
+// (ROADMAP Phase 2) — the docs make no stronger claim than the code delivers.
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-import { openDb } from '@/lib/db';
+import { closeDb, openDb } from '@/lib/db';
 
-const TABLES = ['symptom', 'symptom_entry', 'cycle_event', 'medication', 'regimen', 'dose_log', 'lab_result', 'settings'] as const;
+const TABLES = ['symptom', 'symptom_entry', 'cycle_event', 'medication', 'regimen', 'dose_log', 'lab_result', 'health_sample', 'settings'] as const;
 
 export async function exportBackup(): Promise<void> {
   const d = openDb();
@@ -33,6 +33,9 @@ export async function exportCsv(): Promise<void> {
 export function deleteAllData(): void {
   const d = openDb();
   for (const t of TABLES) d.runSync(`DELETE FROM ${t}`);
+  // Re-open so the symptom library reseeds immediately (openDb seeds when empty).
+  closeDb();
+  openDb();
 }
 
 function quote(x: string): string {

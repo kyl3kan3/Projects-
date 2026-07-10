@@ -8,7 +8,8 @@ import Purchases from 'react-native-purchases';
 import { Platform } from 'react-native';
 import { openDb } from '@/lib/db';
 import { settings } from '@/lib/repositories';
-import { handleNotificationResponse, registerDoseActions } from '@/lib/notifications';
+import { handleNotificationResponse, registerDoseActions, rescheduleAll } from '@/lib/notifications';
+import { refreshEntitlement } from '@/lib/paywall';
 import { useTheme } from '@/theme/useTheme';
 
 export default function RootLayout() {
@@ -29,6 +30,15 @@ export default function RootLayout() {
         ? process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY
         : process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY;
     if (apiKey) Purchases.configure({ apiKey });
+    // Refresh the Plus entitlement cache on every launch so a lapsed subscription
+    // expires on-device and a reinstalled payer is restored without hunting for a button.
+    if (apiKey) void refreshEntitlement();
+    void rescheduleAll();
+    // A Taken/Skip tap that launched the app from a killed state is not delivered to
+    // the listener below — fetch it explicitly so the dose log is never lost.
+    void Notifications.getLastNotificationResponseAsync().then((response) => {
+      if (response) handleNotificationResponse(response);
+    });
     const sub = Notifications.addNotificationResponseReceivedListener((response) => {
       const route = handleNotificationResponse(response);
       if (route) router.push(route);

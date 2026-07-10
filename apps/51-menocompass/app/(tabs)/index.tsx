@@ -1,13 +1,14 @@
 // TODAY — the daily check-in. <30s to complete, brain-fog-friendly.
 import React, { useCallback, useMemo, useState } from 'react';
-import { FlatList, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { CheckInTile } from '@/components/CheckInTile';
 import { Icon } from '@/components/icons';
 import { Card, Hairline, Screen, Txt } from '@/components/ui';
+import { isPlusCached } from '@/lib/paywall';
 import {
-  checkins, cycles, doseLog, meds, symptoms, todayIso,
+  checkins, cycles, dayNotes, doseLog, isoToLocalDay, meds, settings, symptoms, todayIso,
   type Medication, type Regimen, type SymptomEntry,
 } from '@/lib/repositories';
 import { space, type Severity } from '@/theme/tokens';
@@ -18,6 +19,7 @@ interface MedToday { med: Medication; regimen: Regimen; takenAt: string | null; 
 export default function Today() {
   const p = useTheme();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const date = todayIso();
   const [entries, setEntries] = useState<Map<string, SymptomEntry>>(new Map());
   const [medsToday, setMedsToday] = useState<MedToday[]>([]);
@@ -28,9 +30,11 @@ export default function Today() {
 
   const reload = useCallback(() => {
     let todays = checkins.forDate(date);
-    // Yesterday-prefill: on the first open of a new day, carry forward the last logged day
-    // so the user only taps what changed.
-    if (todays.length === 0) {
+    // Yesterday-prefill, at most once per calendar day: carry the last logged day
+    // forward so the user only taps what changed. The settings flag means clearing
+    // everything back to zero (an honest all-clear day) stays cleared.
+    if (todays.length === 0 && settings.get(`prefilled.${date}`) !== '1') {
+      settings.set(`prefilled.${date}`, '1');
       const prev = checkins.previousDay(date);
       if (prev && daysBetween(prev.date, date) <= 2) {
         for (const e of prev.entries) checkins.set(e.symptomId, date, e.severity);
@@ -39,11 +43,12 @@ export default function Today() {
       }
     }
     setEntries(new Map(todays.map((e) => [e.symptomId, e])));
+    setNote(dayNotes.get(date));
     setMedsToday(
       meds.active().flatMap((med) => {
         const regimen = meds.currentRegimen(med.id);
         if (!regimen) return [];
-        const logs = doseLog.forRegimen(regimen.id, 5).filter((l) => l.loggedAt.slice(0, 10) === date);
+        const logs = doseLog.forRegimen(regimen.id, 10).filter((l) => isoToLocalDay(l.loggedAt) === date);
         return [{
           med, regimen,
           takenAt: logs.find((l) => l.status === 'taken')?.loggedAt ?? null,
@@ -61,7 +66,20 @@ export default function Today() {
     if (s === 0) next.delete(symptomId);
     else next.set(symptomId, { id: '', symptomId, date, severity: s, note: null });
     setEntries(next);
+    // Value-first paywall (README onboarding spec): after the first real check-in
+    // has demonstrated the product, show the offer once — never before.
+    if (s > 0 && !isPlusCached() && settings.get('paywall.shown') !== '1' && next.size >= 3) {
+      settings.set('paywall.shown', '1');
+      router.push('/paywall');
+    }
   };
+
+  // Two-column grid without nesting a VirtualizedList in the ScrollView.
+  const rows = useMemo(() => {
+    const out: (typeof active)[] = [];
+    for (let i = 0; i < active.length; i += 2) out.push(active.slice(i, i + 2));
+    return out;
+  }, [active]);
 
   return (
     <Screen>
@@ -75,23 +93,22 @@ export default function Today() {
           )}
         </View>
 
-        <FlatList
-          data={active}
-          scrollEnabled={false}
-          numColumns={2}
-          columnWrapperStyle={{ gap: space.s + 2 }}
-          contentContainerStyle={{ gap: space.s + 2 }}
-          keyExtractor={(s) => s.id}
-          renderItem={({ item }) => (
-            <View style={{ flex: 1 }}>
-              <CheckInTile
-                symptom={item}
-                severity={(entries.get(item.id)?.severity ?? 0) as Severity}
-                onChange={(s) => setSeverity(item.id, s)}
-              />
+        <View style={{ gap: space.s + 2 }}>
+          {rows.map((row, i) => (
+            <View key={i} style={{ flexDirection: 'row', gap: space.s + 2 }}>
+              {row.map((item) => (
+                <View key={item.id} style={{ flex: 1 }}>
+                  <CheckInTile
+                    symptom={item}
+                    severity={(entries.get(item.id)?.severity ?? 0) as Severity}
+                    onChange={(s) => setSeverity(item.id, s)}
+                  />
+                </View>
+              ))}
+              {row.length === 1 && <View style={{ flex: 1 }} />}
             </View>
-          )}
-        />
+          ))}
+        </View>
 
         {medsToday.length > 0 && (
           <View style={{ gap: space.s }}>
@@ -118,7 +135,7 @@ export default function Today() {
         <TextInput
           value={note}
           onChangeText={setNote}
-          onEndEditing={() => { if (note.trim()) { const first = active[0]; if (first) checkins.set(first.id, date, (entries.get(first.id)?.severity ?? 1) as Severity, note.trim()); } }}
+          onEndEditing={() => dayNotes.set(date, note)}
           placeholder="Add a note about today"
           placeholderTextColor={p.ink3}
           style={{ color: p.ink, fontSize: 16, paddingVertical: space.s, textAlign: 'center' }}
@@ -144,7 +161,7 @@ function MedRow({ item, onLog }: { item: MedToday; onLog: (s: 'taken' | 'skipped
         <Txt role="secondary" color="ink2">{scheduleLine}</Txt>
       </View>
       {item.takenAt ? (
-        <Txt role="data" color="sage">✓ {item.takenAt.slice(11, 16)}</Txt>
+        <Txt role="data" color="sage">✓ {formatTime(item.takenAt)}</Txt>
       ) : item.skipped ? (
         <Txt role="data" color="claret">skipped</Txt>
       ) : (
@@ -159,14 +176,14 @@ function MedRow({ item, onLog }: { item: MedToday; onLog: (s: 'taken' | 'skipped
 
 function CycleQuickLog({ onLogged }: { onLogged: () => void }) {
   const gap = cycles.currentGapDays();
-  const [logged, setLogged] = useState(false);
+  const loggedToday = gap === 0;
   return (
     <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
       <Txt role="secondary" color="ink2">
-        {gap === null ? 'No period logged yet — that’s a valid state here.' : `Day ${gap} since last period start`}
+        {gap === null ? 'No period logged yet — that’s a valid state here.' : loggedToday ? 'Period start logged today.' : `Day ${gap} since last period start`}
       </Txt>
-      {!logged && (
-        <Pressable onPress={() => { cycles.add(todayIso(), 'period_start'); setLogged(true); onLogged(); }} hitSlop={8}>
+      {!loggedToday && (
+        <Pressable onPress={() => { cycles.add(todayIso(), 'period_start'); onLogged(); }} hitSlop={8}>
           <Txt role="secondary" color="ember" style={{ fontWeight: '600' }}>Period started</Txt>
         </Pressable>
       )}
@@ -180,4 +197,9 @@ function daysBetween(a: string, b: string): number {
 
 function formatToday(): string {
   return new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+}
+
+function formatTime(iso: string): string {
+  const d = new Date(iso);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }

@@ -6,13 +6,13 @@
 |---|---|---|
 | App framework | Expo SDK 52 (React Native 0.76, TypeScript, expo-router) | Repo default for mobile; single codebase iOS-first, Android later |
 | Local data | expo-sqlite (SQLite on device) | The product promise — all health data on device, queryable, fast |
-| State | zustand + a thin repository layer over SQLite | Simple, testable; screens subscribe to stores, stores call repositories |
+| State | React state + a thin repository layer over SQLite | Simple, testable; screens call repositories directly — no store library needed at this size |
 | Reminders | expo-notifications (local only) | Patch-change/dose schedules need no server; notification actions log adherence |
 | Purchases | react-native-purchases (RevenueCat) | Repo default; annual+trial offering, local entitlement cache |
-| Health import | @kingstinct/react-native-healthkit (iOS, read-only) | Sleep + cycle samples; optional Plus feature, app functions without it |
+| Health import | @kingstinct/react-native-healthkit (iOS, read-only) | Sleep samples charted in Trends; optional Plus feature, app functions without it |
 | Charts | react-native-svg (hand-rolled marks) | Full control for redline design; no heavy chart lib |
 | PDF report | expo-print (HTML → PDF on device) + expo-sharing | Report renders locally; nothing uploaded anywhere |
-| Backup | Encrypted JSON export via expo-file-system + expo-sharing; key stored in expo-secure-store | User-controlled backup file; no cloud of ours |
+| Backup | JSON export via expo-file-system + expo-sharing (v1 plaintext; restore + AES encryption are ROADMAP Phase 2) | User-controlled backup file; no cloud of ours |
 | Fonts | expo-font, self-hosted woff2/ttf in `assets/fonts` | Fonts must actually load (craft rule) |
 
 **There is no backend.** No accounts, no API, no analytics SDK, no crash-reporting SDK that exfiltrates content. The only network traffic is App Store/Play billing and RevenueCat receipt validation. This is a product feature (see README differentiation #4) and a cost feature (infrastructure ≈ $0).
@@ -21,8 +21,7 @@
 
 ```mermaid
 graph TD
-  UI[Expo app screens] --> ST[zustand stores]
-  ST --> RE[repositories]
+  UI[Expo app screens] --> RE[repositories]
   RE --> DB[(SQLite on device)]
   UI --> NO[expo-notifications local schedules]
   NO -->|action: taken/skipped| RE
@@ -30,7 +29,7 @@ graph TD
   RC -->|receipt validation only| RCS[(RevenueCat)]
   UI --> HK[HealthKit read-only] --> RE
   RE --> RP[report builder HTML] --> PDF[expo-print → PDF → share sheet]
-  RE --> EX[CSV / encrypted backup export → share sheet]
+  RE --> EX[CSV / JSON backup export → share sheet]
 ```
 
 ## Data model (SQLite)
@@ -39,7 +38,7 @@ graph TD
 -- Curated + custom symptom definitions
 symptom (id TEXT PK, name TEXT, domain TEXT CHECK(domain IN
   ('vasomotor','sleep','mood','cognitive','physical','cycle','other')),
-  is_custom INTEGER DEFAULT 0, is_active INTEGER DEFAULT 1, sort INTEGER);
+  is_custom INTEGER DEFAULT 0, is_active INTEGER DEFAULT 0, sort INTEGER);  -- seeding activates the 10 core symptoms
 
 -- One row per symptom per day it was logged
 symptom_entry (id TEXT PK, symptom_id TEXT REFS symptom, date TEXT,   -- YYYY-MM-DD
@@ -82,7 +81,7 @@ Key derived views (computed in repositories, not stored): cycle-gap series (days
 4. **Insight generation (on device, deterministic).** For each (symptom × dose-change) pair with ≥21 days of data on both sides: compare mean severity/frequency in the windows; emit a card only when the delta clears a threshold and sample floor. Template: "*{symptom} averaged {pct}% {lower/higher} in the {n} weeks after your {date} {med} change.*" Pure arithmetic — no LLM, no network, no advice.
 5. **Doctor report.** Report builder assembles a one-page HTML document (90-day default): top-6 symptoms table with sparkline trends, cycle-gap summary, current regimen + change history, labs table, check-in adherence footnote. `expo-print` renders PDF → system share sheet. Typeset per DESIGN.md — this artifact is the brand.
 6. **Paywall.** RevenueCat offering fetched on onboarding completion and at gate touchpoints; entitlement cached in `settings` so lapses in connectivity (or a RevenueCat outage) never lock a paying user out.
-7. **Backup/restore.** Export: full DB serialized to JSON, AES-encrypted with a key from expo-secure-store (passphrase-wrapped), shared as a file. Import: reverse. Documented in Settings alongside delete-all-data.
+7. **Backup.** Export: full DB serialized to JSON and shared as a file the user controls (v1 plaintext; restore-from-file and AES passphrase encryption land in ROADMAP Phase 2). Documented in Settings alongside delete-all-data.
 
 ## Third-party services & running costs
 

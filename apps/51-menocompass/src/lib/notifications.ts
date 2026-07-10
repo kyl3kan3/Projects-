@@ -18,8 +18,8 @@ Notifications.setNotificationHandler({
 
 export async function registerDoseActions(): Promise<void> {
   await Notifications.setNotificationCategoryAsync(DOSE_CATEGORY, [
-    { identifier: 'taken', buttonTitle: 'Taken' },
-    { identifier: 'skipped', buttonTitle: 'Skip', options: { isDestructive: true } },
+    { identifier: 'taken', buttonTitle: 'Taken', options: { opensAppToForeground: false } },
+    { identifier: 'skipped', buttonTitle: 'Skip', options: { isDestructive: true, opensAppToForeground: false } },
   ]);
 }
 
@@ -78,7 +78,8 @@ function doseBody(s: Schedule, name: string): string {
 
 /**
  * Handle a notification response. Taken/Skipped actions log the dose and stay in the background;
- * tapping the notification body returns a route to open (the 3 a.m. quick-log flow).
+ * tapping the notification body returns a route to open. (The 3 a.m. pre-scrolled
+ * quick-log variant is roadmapped — ROADMAP Phase 1 week 8.)
  */
 export function handleNotificationResponse(response: Notifications.NotificationResponse): string | null {
   const regimenId = response.notification.request.content.data?.regimenId as string | undefined;

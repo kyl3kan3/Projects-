@@ -32,11 +32,18 @@ export function CheckInTile({
         style={{
           backgroundColor: p.card,
           borderRadius: radius.control,
-          borderWidth: 1,
+          borderWidth: severity > 0 ? 1.5 : 1,
           borderColor: severity > 0 ? p.ember : p.hairline,
           padding: large ? 18 : space.m,
           minHeight: large ? 88 : 64,
           gap: space.s,
+          // The one sanctioned glow (DESIGN.md): a faint ember halo on a selected tile —
+          // on the dark ground this is the screen's focal warmth.
+          shadowColor: p.ember,
+          shadowOpacity: severity > 0 ? 0.3 : 0,
+          shadowRadius: 10,
+          shadowOffset: { width: 0, height: 0 },
+          elevation: severity > 0 ? 3 : 0,
         }}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.s }}>

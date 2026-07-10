@@ -45,7 +45,15 @@ export interface DoseLog { id: string; regimenId: string; dueAt: string; status:
 export interface LabResult { id: string; date: string; panel: string; value: number; unit: string; note: string | null }
 
 export function todayIso(d = new Date()): string {
-  return d.toISOString().slice(0, 10);
+  // Local calendar day — an entry logged at 9pm belongs to today, not UTC-tomorrow.
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${m}-${day}`;
+}
+
+/** Local calendar day of an ISO timestamp (for matching logs to a display day). */
+export function isoToLocalDay(iso: string): string {
+  return todayIso(new Date(iso));
 }
 
 // ---------- symptoms & check-ins ----------
@@ -119,9 +127,12 @@ export const checkins = {
 
 export const cycles = {
   add(date: string, kind: CycleKind, note?: string): void {
-    openDb().runSync('INSERT INTO cycle_event (id, date, kind, note) VALUES (?, ?, ?, ?)', [
-      newId(), date, kind, note ?? null,
-    ]);
+    openDb().runSync(
+      `INSERT INTO cycle_event (id, date, kind, note)
+       SELECT ?, ?, ?, ?
+       WHERE NOT EXISTS (SELECT 1 FROM cycle_event WHERE date = ? AND kind = ?)`,
+      [newId(), date, kind, note ?? null, date, kind],
+    );
   },
   remove(id: string): void {
     openDb().runSync('DELETE FROM cycle_event WHERE id = ?', [id]);
@@ -244,6 +255,31 @@ export const labs = {
     return openDb().getAllSync<any>('SELECT * FROM lab_result ORDER BY date DESC').map((r) => ({
       id: r.id, date: r.date, panel: r.panel, value: r.value, unit: r.unit, note: r.note,
     }));
+  },
+};
+
+// ---------- day notes ----------
+
+export const dayNotes = {
+  get(date: string): string {
+    return settings.get(`daynote.${date}`) ?? '';
+  },
+  /** Empty string clears the note. */
+  set(date: string, note: string): void {
+    settings.set(`daynote.${date}`, note.trim());
+  },
+};
+
+// ---------- health samples ----------
+
+export const healthSamples = {
+  sleepRange(from: string, to: string): { date: string; value: number }[] {
+    return openDb()
+      .getAllSync<any>(
+        "SELECT date, value FROM health_sample WHERE kind = 'sleep_hours' AND date >= ? AND date <= ? ORDER BY date",
+        [from, to],
+      )
+      .map((r) => ({ date: r.date, value: r.value }));
   },
 };
 

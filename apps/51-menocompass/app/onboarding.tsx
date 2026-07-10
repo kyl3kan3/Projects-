@@ -1,14 +1,14 @@
 // ONBOARDING — life stage -> symptom picker -> HRT status -> done (value first, paywall after).
 // Also reachable from Settings as "Manage symptoms tracked" (skips straight to the picker).
-import React, { useMemo, useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import React, { useState } from 'react';
+import { ScrollView, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Button, Card, Chip, Screen, Txt } from '@/components/ui';
-import { CORE_SYMPTOM_IDS } from '@/data/symptoms';
 import { settings, symptoms } from '@/lib/repositories';
 import { isPlusCached } from '@/lib/paywall';
 import { space } from '@/theme/tokens';
+import { useTheme } from '@/theme/useTheme';
 
 const STAGES = ['Perimenopausal', 'Menopausal', 'Post-menopausal', 'Not sure'] as const;
 const HRT = ['On HRT', 'Considering it', 'Not for me', 'Not sure'] as const;
@@ -21,27 +21,44 @@ export default function Onboarding() {
   const [step, setStep] = useState(already ? 1 : 0);
   const [stage, setStage] = useState<string | null>(null);
   const [hrt, setHrt] = useState<string | null>(null);
-  const all = useMemo(() => symptoms.all(), []);
+  const [all, setAll] = useState(() => symptoms.all());
   const [picked, setPicked] = useState<Set<string>>(new Set(symptoms.active().map((s) => s.id)));
+  const [customName, setCustomName] = useState('');
   const plus = isPlusCached();
+  const theme = useTheme();
 
   const toggle = (id: string) => {
+    if (!picked.has(id) && !plus && picked.size >= FREE_LIMIT) {
+      // The 11th symptom is a specified high-intent paywall moment — never a silent no-op.
+      router.push('/paywall');
+      return;
+    }
     setPicked((cur) => {
       const next = new Set(cur);
       if (next.has(id)) next.delete(id);
-      else if (plus || next.size < FREE_LIMIT || CORE_SYMPTOM_IDS.includes(id)) next.add(id);
+      else next.add(id);
       return next;
     });
+  };
+
+  const addCustom = () => {
+    const name = customName.trim();
+    if (!name) return;
+    if (!plus) { router.push('/paywall'); return; }
+    const created = symptoms.addCustom(name, 'other');
+    setAll(symptoms.all());
+    setPicked((cur) => new Set(cur).add(created.id));
+    setCustomName('');
   };
 
   const finish = () => {
     for (const s of all) symptoms.setActive(s.id, picked.has(s.id));
     if (stage) settings.set('lifeStage', stage);
     if (hrt) settings.set('hrtStatus', hrt);
-    const first = settings.get('onboarded') !== '1';
     settings.set('onboarded', '1');
-    if (first && !plus) router.replace('/paywall');
-    else router.replace('/(tabs)');
+    // Value first (README): the paywall appears after the first real check-in
+    // on the Today screen — never as the door out of onboarding.
+    router.replace('/(tabs)');
   };
 
   return (
@@ -72,6 +89,20 @@ export default function Onboarding() {
                 {all.map((s) => <Chip key={s.id} label={s.name} active={picked.has(s.id)} onPress={() => toggle(s.id)} />)}
               </View>
             </Card>
+            <View style={{ flexDirection: 'row', gap: space.s, alignItems: 'center' }}>
+              <TextInput
+                value={customName}
+                onChangeText={setCustomName}
+                placeholder={plus ? 'Add your own symptom' : 'Add your own (Plus)'}
+                placeholderTextColor={theme.ink3}
+                onSubmitEditing={addCustom}
+                style={{
+                  flex: 1, height: 44, borderWidth: 1, borderColor: theme.hairline, borderRadius: 10,
+                  paddingHorizontal: space.m, color: theme.ink, fontSize: 15, backgroundColor: theme.card,
+                }}
+              />
+              <Button kind="quiet" label="Add" onPress={addCustom} />
+            </View>
             <Txt role="data" color="ink2">{picked.size} selected</Txt>
             <Button label={already ? 'Save' : 'Start tracking'} onPress={finish} disabled={picked.size === 0} />
           </>

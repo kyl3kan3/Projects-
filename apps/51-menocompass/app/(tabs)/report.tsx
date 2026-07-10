@@ -1,6 +1,6 @@
 // REPORT — the hero feature. Doctor-ready one-pager, rendered on device, shared as PDF.
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Animated, ScrollView, View, useWindowDimensions } from 'react-native';
+import { AccessibilityInfo, Animated, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Button, Card, Chip, Screen, Txt } from '@/components/ui';
@@ -16,7 +16,6 @@ export default function Report() {
   const p = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { width } = useWindowDimensions();
   const [range, setRange] = useState<(typeof RANGES)[number]>(90);
   const [busy, setBusy] = useState(false);
   const gated = checkGate('report') !== null;

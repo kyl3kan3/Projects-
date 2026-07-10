@@ -6,7 +6,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { CycleGapChart, HeatStrip, TrendChart, type TrendPoint } from '@/components/charts';
 import { Button, Card, Chip, Screen, Txt } from '@/components/ui';
 import { computeInsights, type Insight } from '@/lib/insights';
-import { checkins, cycles, meds, symptoms, todayIso, type SymptomEntry } from '@/lib/repositories';
+import { checkins, cycles, healthSamples, meds, symptoms, todayIso, type SymptomEntry } from '@/lib/repositories';
 import { checkGate } from '@/lib/paywall';
 import { space, type Severity } from '@/theme/tokens';
 
@@ -75,13 +75,25 @@ export default function Trends() {
 
   const gaps = cycles.gapSeries().slice(-8).map((g) => g.days);
   const currentGap = cycles.currentGapDays();
+  const sleep = healthSamples.sleepRange(from, to);
 
   return (
     <Screen>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: insets.top + space.l, paddingBottom: space.xxl, gap: space.l }}>
         <Txt role="h2">Trends</Txt>
         <View style={{ flexDirection: 'row', gap: space.s }}>
-          {RANGES.map((r) => <Chip key={r} label={`${r}d`} active={range === r} onPress={() => setRange(r)} />)}
+          {RANGES.map((r) => (
+            <Chip
+              key={r}
+              label={`${r}d`}
+              active={range === r}
+              onPress={() => {
+                // Free tier keeps 30 days of history; the long view is Plus.
+                if (r > 30 && checkGate('history-31') !== null) { router.push('/paywall'); return; }
+                setRange(r);
+              }}
+            />
+          ))}
         </View>
 
         <View style={{ gap: space.s }}>
@@ -117,6 +129,23 @@ export default function Trends() {
           {gaps.length > 1 && <CycleGapChart gaps={gaps} width={chartW} />}
           <Txt role="label" color="ink3">Irregular is normal here</Txt>
         </Card>
+
+        {sleep.length >= 3 && (
+          <Card style={{ padding: space.l, gap: space.s }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}>
+              <Txt role="title">Sleep</Txt>
+              <Txt role="data" color="ink2">Apple Health · hrs/night</Txt>
+            </View>
+            <TrendChart
+              points={sleep.map((x) => ({ date: x.date, value: x.value }))}
+              markers={markers}
+              from={from}
+              to={to}
+              width={chartW}
+              maxValue={10}
+            />
+          </Card>
+        )}
 
         {insights.map((i) => (
           <Card key={i.id} style={{ padding: space.l, gap: space.xs }}>

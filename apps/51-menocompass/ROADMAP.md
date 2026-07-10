@@ -5,7 +5,7 @@
 - Expo project (TypeScript, expo-router) per `app.json`; EAS project; Apple Developer account; App Store Connect record with subscription group (annual + monthly SKUs).
 - RevenueCat project: products, `plus` entitlement, default offering (annual+7-day-trial hero, monthly fallback), sandbox testers.
 - Curate the bundled content: the 34-symptom library (names, domains, ordering) and the 20 education cards with citations (NAMS/NICE-grade sources).
-- Self-host fonts (Source Serif 4, Inter, JetBrains Mono) in `assets/fonts`.
+- Self-host fonts (Bricolage Grotesque, Inter, JetBrains Mono) in `assets/fonts`.
 
 **Acceptance criteria**
 - [ ] `npx expo start` runs the scaffold on a device with all three fonts loading (verified visually vs system fallback)
@@ -15,7 +15,7 @@
 ## Phase 1 — MVP (weeks 1–8)
 
 - **Week 1 (de-risk first):** notification spike — schedule twice-weekly patch reminders with Taken/Skipped actions writing to SQLite from the notification, app killed. *Go/no-go on notification-action logging; fall back to open-on-tap logging if actions prove unreliable.*
-- Week 2: SQLite schema + repositories + zustand stores; design tokens, global styles, icon set, core components (tiles, rows, buttons) straight from DESIGN.md — before any screen.
+- Week 2: SQLite schema + repositories; design tokens, global styles, icon set, core components (tiles, rows, buttons) straight from DESIGN.md — before any screen.
 - Week 3: Today screen — check-in grid, severity cycling, yesterday-prefill, notes; cycle logging with irregularity-native states.
 - Week 4: Meds — medication/regimen CRUD across all delivery methods, dose-change timeline events, reminder scheduling, adherence logging; labs log.
 - Week 5: Trends — heat strip, per-symptom charts with dose-change markers, cycle-gap chart.
@@ -32,6 +32,8 @@
 - [ ] Trial start, conversion, cancellation, restore verified in sandbox; typecheck, lint, production build green
 
 ## Phase 2 — Launch (weeks 9–12)
+
+- Backup restore-from-file + AES passphrase encryption of the backup export (v1 ships plaintext JSON export only).
 
 - App Store listing: screenshots led by the doctor report and the heat strip; privacy nutrition label "Data Not Collected"; keyword set per README GTM.
 - Companion content site: first 20 SEO articles targeting long-tail perimenopause/HRT problem searches, each funneling to the app.

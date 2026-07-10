@@ -8,7 +8,6 @@ export async function importSleep(daysBack = 90): Promise<number> {
   if (Platform.OS !== 'ios') return 0;
   try {
     // Lazy require keeps Android/dev builds working without the native module.
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const hk: any = require('@kingstinct/react-native-healthkit');
     const ok = await hk.requestAuthorization?.(['HKCategoryTypeIdentifierSleepAnalysis'], []);
     if (!ok) return 0;

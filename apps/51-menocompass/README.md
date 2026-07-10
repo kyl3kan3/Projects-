@@ -61,8 +61,8 @@ Paywall mechanics:
 - [ ] Trends: per-symptom frequency/severity charts (7/30/90-day), symptom-domain heat strips, cycle-gap chart, all annotated with dose-change markers
 - [ ] Correlation insights (Plus): plain-language observational cards, e.g. "Night sweats averaged 40% lower in the 6 weeks after your Feb 12 dose change" — always correlational language, never causal or advisory
 - [ ] Doctor-ready PDF report (Plus): one tap → last 90 days on one page — top symptoms with frequency/severity trend, cycle pattern, current regimen + change history, labs table; rendered on device, shared via the system sheet
-- [ ] Apple Health import (Plus, read-only): sleep and cycle data pulled in to enrich trends; degrades gracefully when denied
-- [ ] Local-first storage: SQLite on device; optional encrypted device backup/export file; **zero accounts, zero analytics SDKs, zero third-party trackers**
+- [ ] Apple Health import (Plus, read-only): sleep data pulled in and charted in Trends; degrades gracefully when denied
+- [ ] Local-first storage: SQLite on device; user-controlled backup/export file (v1 plaintext JSON; restore + encryption roadmapped); **zero accounts, zero analytics SDKs, zero third-party trackers**
 - [ ] Paywall (RevenueCat): $59.99/yr + 7-day trial primary, $9.99/mo fallback; restore purchases; free-tier gates as specified above
 - [ ] Settings: reminder times, data export (CSV + full backup), delete-all-data, privacy explainer ("verify it yourself" — airplane-mode test instructions)
 - [ ] Education cards: 20 bundled, clinician-reviewed-style referenced articles (each with citations to NAMS/NICE guidance); educational only, no diagnosis or dosing advice

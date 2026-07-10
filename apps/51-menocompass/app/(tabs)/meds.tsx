@@ -8,7 +8,7 @@ import { Button, Card, Chip, Hairline, Screen, Txt } from '@/components/ui';
 import { rescheduleAll } from '@/lib/notifications';
 import { checkGate } from '@/lib/paywall';
 import {
-  doseLog, labs, meds, todayIso,
+  doseLog, isoToLocalDay, labs, meds, todayIso,
   type LabResult, type MedKind, type Medication, type Regimen, type Schedule,
 } from '@/lib/repositories';
 import { radius, space } from '@/theme/tokens';
@@ -38,7 +38,7 @@ export default function Meds() {
         const week: ('t' | 's' | null)[] = [];
         for (let i = 6; i >= 0; i--) {
           const day = shift(todayIso(), -i);
-          const log = logs.find((l) => l.loggedAt.slice(0, 10) === day);
+          const log = logs.find((l) => isoToLocalDay(l.loggedAt) === day);
           week.push(log ? (log.status === 'taken' ? 't' : 's') : null);
         }
         return [{ med, regimen, week, changedFrom: prev ? `Changed from ${prev.dose} on ${regimen.startDate}` : null }];
@@ -136,22 +136,54 @@ function LabRow({ lab }: { lab: LabResult }) {
   );
 }
 
-/** One sheet for both add-medication and change-dose. Small by design: name/kind/dose/schedule. */
+const SCHEDULE_KINDS: { key: Schedule['type']; label: string }[] = [
+  { key: 'daily', label: 'daily' },
+  { key: 'twice_weekly', label: 'twice weekly' },
+  { key: 'weekly', label: 'weekly' },
+  { key: 'cyclical', label: 'days on / off' },
+];
+
+/** One sheet for both add-medication and change-dose. Editing a dose seeds every
+ *  field from the CURRENT regimen — a dose change must never silently move reminders. */
 function MedEditor({ state, onDone }: { state: { mode: 'add' } | { mode: 'change'; med: Medication }; onDone: () => void }) {
   const changing = state.mode === 'change';
+  const current = changing ? meds.currentRegimen(state.med.id) : null;
+  const cs = current?.schedule ?? null;
   const [name, setName] = useState(changing ? state.med.name : '');
   const [kind, setKind] = useState<MedKind>(changing ? state.med.kind : 'patch');
-  const [dose, setDose] = useState('');
-  const [days, setDays] = useState<string[]>(['Mon', 'Thu']);
-  const [time, setTime] = useState('08:00');
-  const scheduleKind: Schedule['type'] = kind === 'patch' ? 'twice_weekly' : 'daily';
+  const [dose, setDose] = useState(current?.dose ?? '');
+  const [scheduleKind, setScheduleKind] = useState<Schedule['type']>(cs?.type ?? 'twice_weekly');
+  const [days, setDays] = useState<string[]>(
+    cs?.type === 'twice_weekly' ? [...cs.days] : cs?.type === 'weekly' ? [cs.day] : ['Mon', 'Thu'],
+  );
+  const [time, setTime] = useState(cs && 'time' in cs ? cs.time : '08:00');
+  const [daysOn, setDaysOn] = useState(cs?.type === 'cyclical' ? String(cs.daysOn) : '14');
+  const [daysOff, setDaysOff] = useState(cs?.type === 'cyclical' ? String(cs.daysOff) : '14');
+
+  const toggleDay = (d: string) =>
+    setDays((cur) => (cur.includes(d) ? cur.filter((x) => x !== d) : [...cur, d]));
+
+  const buildSchedule = (): Schedule => {
+    const t = /^\d{1,2}:\d{2}$/.test(time.trim()) ? time.trim() : '08:00';
+    const picked = [...new Set(days)];
+    switch (scheduleKind) {
+      case 'twice_weekly':
+        return picked.length >= 2
+          ? { type: 'twice_weekly', days: [picked[0], picked[1]], time: t }
+          : { type: 'weekly', day: picked[0] ?? 'Mon', time: t };
+      case 'weekly':
+        return { type: 'weekly', day: picked[0] ?? 'Mon', time: t };
+      case 'cyclical':
+        return { type: 'cyclical', daysOn: clampInt(daysOn, 14), daysOff: clampInt(daysOff, 14), time: t };
+      default:
+        return { type: 'daily', time: t };
+    }
+  };
 
   const save = () => {
-    const schedule: Schedule = scheduleKind === 'twice_weekly'
-      ? { type: 'twice_weekly', days: [days[0] ?? 'Mon', days[1] ?? 'Thu'], time }
-      : { type: 'daily', time };
-    if (changing) meds.changeDose(state.med.id, dose || 'dose updated', schedule);
-    else if (name.trim()) meds.add(name.trim(), kind, true, dose || '—', schedule);
+    const schedule = buildSchedule();
+    if (changing) meds.changeDose(state.med.id, dose.trim() || current?.dose || 'dose updated', schedule);
+    else if (name.trim()) meds.add(name.trim(), kind, true, dose.trim() || '—', schedule);
     onDone();
   };
 
@@ -166,25 +198,42 @@ function MedEditor({ state, onDone }: { state: { mode: 'add' } | { mode: 'change
         </>
       )}
       <Field label={changing ? 'New dose' : 'Dose'} value={dose} onChange={setDose} placeholder="50µg" />
-      {scheduleKind === 'twice_weekly' && (
+      <View style={{ gap: space.xs }}>
+        <Txt role="label" color="ink2">Schedule</Txt>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.s }}>
-          {DAYS.map((d) => (
-            <Chip key={d} label={d} active={days.includes(d)}
-              onPress={() => setDays((cur) => (cur.includes(d) ? cur.filter((x) => x !== d) : [...cur.slice(-1), d]))} />
+          {SCHEDULE_KINDS.map((k) => (
+            <Chip key={k.key} label={k.label} active={scheduleKind === k.key} onPress={() => setScheduleKind(k.key)} />
           ))}
         </View>
+      </View>
+      {(scheduleKind === 'twice_weekly' || scheduleKind === 'weekly') && (
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.s }}>
+          {DAYS.map((d) => <Chip key={d} label={d} active={days.includes(d)} onPress={() => toggleDay(d)} />)}
+        </View>
       )}
-      <Field label="Reminder time" value={time} onChange={setTime} placeholder="08:00" />
-      {changing && <Txt role="secondary" color="ink2">This becomes a dated marker on every chart, so you can see what changed and when.</Txt>}
+      {scheduleKind === 'cyclical' && (
+        <View style={{ flexDirection: 'row', gap: space.s }}>
+          <View style={{ flex: 1 }}><Field label="Days on" value={daysOn} onChange={setDaysOn} placeholder="14" keyboard="decimal-pad" /></View>
+          <View style={{ flex: 1 }}><Field label="Days off" value={daysOff} onChange={setDaysOff} placeholder="14" keyboard="decimal-pad" /></View>
+        </View>
+      )}
+      <Field label="Reminder time (HH:MM)" value={time} onChange={setTime} placeholder="08:00" />
+      {changing && <Txt role="secondary" color="ink2">This becomes a dated marker on every chart, so you can see what changed and when. Your reminder days and time stay as they are unless you change them here.</Txt>}
       <Button label={changing ? 'Log dose change' : 'Add medication'} onPress={save} />
     </Sheet>
   );
+}
+
+function clampInt(v: string, fallback: number): number {
+  const n = parseInt(v, 10);
+  return Number.isFinite(n) && n > 0 && n <= 60 ? n : fallback;
 }
 
 function LabEditor({ onDone }: { onDone: () => void }) {
   const [panel, setPanel] = useState('Estradiol');
   const [value, setValue] = useState('');
   const [unit, setUnit] = useState('pmol/L');
+  const [date, setDate] = useState(todayIso());
   return (
     <Sheet title="Add a lab result" onClose={onDone}>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.s }}>
@@ -194,7 +243,13 @@ function LabEditor({ onDone }: { onDone: () => void }) {
       </View>
       <Field label="Value" value={value} onChange={setValue} placeholder="312" keyboard="decimal-pad" />
       <Field label="Unit" value={unit} onChange={setUnit} placeholder="pmol/L" />
-      <Button label="Save result" onPress={() => { const v = parseFloat(value); if (!Number.isNaN(v)) labs.add(todayIso(), panel, v, unit); onDone(); }} />
+      <Field label="Draw date (YYYY-MM-DD)" value={date} onChange={setDate} placeholder={todayIso()} />
+      <Button label="Save result" onPress={() => {
+        const v = parseFloat(value);
+        const d = /^\d{4}-\d{2}-\d{2}$/.test(date.trim()) ? date.trim() : todayIso();
+        if (!Number.isNaN(v)) labs.add(d, panel, v, unit);
+        onDone();
+      }} />
     </Sheet>
   );
 }

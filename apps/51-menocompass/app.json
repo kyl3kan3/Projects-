@@ -21,8 +21,8 @@
       "expo-router",
       "expo-sqlite",
       "expo-notifications",
-      "expo-secure-store",
-      "expo-font"
+      "expo-font",
+      "expo-asset"
     ]
   }
 }

@@ -61,7 +61,18 @@ export default function Paywall() {
         </View>
 
         <Pressable onPress={() => setChosen('annual')}>
-          <Card style={{ padding: space.l, borderColor: chosen === 'annual' ? p.ember : p.hairline, gap: 2 }}>
+          <Card
+            style={{
+              padding: space.l,
+              borderColor: p.ember,
+              gap: 2,
+              shadowColor: p.ember,
+              shadowOpacity: chosen === 'annual' ? 0.35 : 0,
+              shadowRadius: 12,
+              shadowOffset: { width: 0, height: 0 },
+              elevation: chosen === 'annual' ? 4 : 0,
+            }}
+          >
             <Txt role="label" color="ember">7 days free</Txt>
             <Txt role="title">Annual · {annual?.product.priceString ?? '$59.99'}/year</Txt>
             <Txt role="secondary" color="ink2">Equivalent to {annual ? monthlyEquivalent(annual) : '$5.00'}/month</Txt>
@@ -86,6 +97,11 @@ export default function Paywall() {
 }
 
 function monthlyEquivalent(pkg: PurchasesPackage): string {
-  const per = pkg.product.price / 12;
-  return `${pkg.product.currencyCode === 'USD' ? '$' : ''}${per.toFixed(2)}`;
+  try {
+    return new Intl.NumberFormat(undefined, { style: 'currency', currency: pkg.product.currencyCode }).format(
+      pkg.product.price / 12,
+    );
+  } catch {
+    return (pkg.product.price / 12).toFixed(2);
+  }
 }

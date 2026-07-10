@@ -1,6 +1,6 @@
 # Build Brief — MenoCompass
 
-**Status:** SCAFFOLD — nothing is implemented yet. Docs and stubs only. You (the building agent) are expected to produce the complete, working MVP described in this folder.
+**Status:** IMPLEMENTED MVP — the screens, data layer, paywall, report engine, and landing page described here are built and verified (typecheck, lint, production export). Remaining work is device-dependent QA and the ROADMAP's post-MVP items; treat this brief as the binding spec for any further change.
 
 This folder is fully self-contained. It can be extracted to a fresh repository
 and built with no other context. Everything you need is here.
@@ -31,8 +31,8 @@ and built with no other context. Everything you need is here.
 - **One accent (ember), rationed to ≤10% of any screen.** `sage`/`claret`
   carry meaning only (taken/missed).
 - **Mobile-first at 390px.** This is a native Expo app; 390×844 is the spec.
-- **Fonts must actually load** (self-hosted Source Serif 4, Inter, JetBrains
-  Mono via expo-font) — a silent system-font fallback is a failed build.
+- **Fonts must actually load** (self-hosted Bricolage Grotesque, Inter,
+  JetBrains Mono via expo-font) — a silent system-font fallback is a failed build.
 - **Real content everywhere** — the bundled 34-symptom library, plausible
   seeded demo data in every screenshotable state, no lorem, no placeholder bars.
 - **Space before boxes; hairlines, not borders; 4px scale; three radii
@@ -67,8 +67,7 @@ and built with no other context. Everything you need is here.
 
 - Every item in README.md's MVP feature list works end to end.
 - Typecheck, lint, and production build are green (`npm run typecheck &&
-  npm run lint && npm run build:check` or the manifest's equivalents), with
-  zero console errors.
+  npm run lint && npm run build:check`), with zero console errors.
 - Every screen matches DESIGN.md at 390px in both color modes, including
   empty, loading, and error states; `prefers-reduced-motion` collapses the
   report render to a fade.

@@ -38,7 +38,7 @@ export function buildReportHtml(rangeDays = 90): ReportData {
     const changed = prev ? ` (changed from ${escapeHtml(prev.dose)} on <span class="ember">${fmt(r.startDate)}</span>)` : '';
     const logs = doseLog.forRegimen(r.id, 200);
     const adherence = logs.length ? Math.round((logs.filter((l) => l.status === 'taken').length / logs.length) * 100) : null;
-    return `<div>${escapeHtml(med.name)} ${escapeHtml(r.dose)}, ${scheduleText(r.schedule)}${changed}${adherence !== null ? ` · adherence ${adherence}%` : ''}</div>`;
+    return `<div>${escapeHtml(med.name)} ${escapeHtml(r.dose)}, ${escapeHtml(scheduleText(r.schedule))}${changed}${adherence !== null ? ` · adherence ${adherence}%` : ''}</div>`;
   }).join('');
 
   const symptomRows = aggs.map((a) => {
