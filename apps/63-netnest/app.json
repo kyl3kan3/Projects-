@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "NetNest",
+    "slug": "netnest",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "netnest",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#101512",
+    "ios": {
+      "bundleIdentifier": "app.netnest.mobile",
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Unlock NetNest with Face ID."
+      }
+    },
+    "android": {
+      "package": "app.netnest.mobile",
+      "adaptiveIcon": {
+        "backgroundColor": "#101512"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-secure-store",
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "name": "netnest",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Privacy-first net-worth tracker: every account and asset on one line, with a monthly close ritual — Expo app + small server",
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start --dev-client",
+    "ios": "expo run:ios",
+    "android": "expo run:android",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "jest"
+  },
+  "dependencies": {
+    "expo": "~52.0.0",
+    "expo-router": "~4.0.0",
+    "expo-sqlite": "~15.0.0",
+    "expo-font": "~13.0.0",
+    "expo-haptics": "~14.0.0",
+    "expo-secure-store": "~14.0.0",
+    "react": "18.3.1",
+    "react-native": "0.76.5",
+    "@shopify/react-native-skia": "^1.9.0",
+    "react-native-purchases": "^8.5.0",
+    "react-native-plaid-link-sdk": "^12.0.0",
+    "react-native-safe-area-context": "^4.12.0",
+    "react-native-screens": "~4.4.0",
+    "react-native-reanimated": "~3.16.0",
+    "react-native-gesture-handler": "~2.20.0",
+    "date-fns": "^4.1.0",
+    "zustand": "^5.0.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "@types/react": "~18.3.0",
+    "eslint": "^9.0.0",
+    "jest": "^29.7.0",
+    "jest-expo": "~52.0.0"
+  }
+}
