@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "GigBag",
+    "slug": "gigbag",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "gigbag",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#161412",
+    "ios": {
+      "bundleIdentifier": "app.gigbag.mobile",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "app.gigbag.mobile",
+      "adaptiveIcon": {
+        "backgroundColor": "#161412"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-secure-store",
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

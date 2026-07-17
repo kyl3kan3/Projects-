@@ -1,0 +1,17 @@
+node_modules/
+.expo/
+dist/
+web-build/
+ios/
+android/
+.env
+.env.local
+*.log
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.tflite.tmp
+coverage/
+.DS_Store
