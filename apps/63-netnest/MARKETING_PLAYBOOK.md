@@ -78,6 +78,26 @@ forgettable; devices are not.
 | 48 FormForge | The clipboard, retired — audit trail included |
 | 49 GrantGrid | The fit score that says apply / skip |
 | 50 WaiverWing | Signed, searchable, on file in seconds |
+| 51 TurnoverKit | The turnover photographed clean before the next guest lands |
+| 52 FleetSnap | The pre-trip that takes 90 seconds, not a clipboard |
+| 53 PriceProbe | Your price position while you slept |
+| 54 RFPRadar | The tender you'd have missed, found at 6am |
+| 55 SessionScribe | The note finished before the next client sits down |
+| 56 RecallDesk | The hygiene chair that fills itself |
+| 57 MatPass | Every stripe earned, on the wall and on record |
+| 58 ChairFlow | The no-show that paid for itself |
+| 59 DispatchDeck | The load delivered, invoiced, and factored by dinner |
+| 60 RigRent | Double-booked never again |
+| 61 CoopClass | Registration night without the folding-table chaos |
+| 62 CertShield | Expired COIs caught before the claim |
+| 63 NetNest | Your whole net worth on one line, finally |
+| 64 TrainerBase | The program delivered before the gym opens |
+| 65 ListingLoop | Every deadline on the contract, on one line |
+| 66 SproutLog | The daily sheet parents actually read |
+| 67 WrenchView | The estimate they approve from the waiting room |
+| 68 TipTally | The tip pool no one argues about |
+| 69 UnitKeeper | The lien clock that runs itself |
+| 70 GigBag | Gig confirmed, deposit in, setlist shared |
 
 ### 4. Copy is the design
 A senior copywriter outranks the designer on marketing surfaces. Rules:

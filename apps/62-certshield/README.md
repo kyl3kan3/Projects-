@@ -77,8 +77,8 @@ admin can put on a card.
 ## Landing page
 
 - **Hero device:** "Expired COIs caught before the claim." — an ACORD
-  form drops in, parses into coverage rows (GL $1M ✓-style checks
-  rendered as text, not icons), one row flags deficient in the named
+  form drops in, parses into coverage rows (verdicts rendered as
+  plain text, not icons), one row flags deficient in the named
   sentence, the chasing sequence fires T-30 → T-14, and a compliant
   replacement lands as the badge flips. Four beats, hold on the
   compliant matrix.
