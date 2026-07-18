@@ -89,6 +89,8 @@ Ranked by a blend of: **proven willingness to pay, margin profile, realistic sol
 | 49 | [GrantGrid](apps/49-grantgrid) | B2B SaaS | Grant discovery with fit scoring + application workspace for nonprofits | $59–$199/mo | $8k–$60k MRR |
 | 50 | [WaiverWing](apps/50-waiverwing) | B2B SaaS | Digital waivers + kiosk check-in for gyms, tours, and rentals | $29–$99/mo | $8k–$50k MRR |
 | 51 | [MenoCompass](apps/51-menocompass) | Mobile app | Local-first perimenopause companion: symptoms + HRT management + doctor-ready reports (top pick from [WOMENS_NICHES_RESEARCH.md](./WOMENS_NICHES_RESEARCH.md)) | $59.99/yr w/ trial + $9.99/mo | $20k–$150k MRR |
+| 52 | [StimTrack](apps/52-stimtrack) | Mobile app | IVF + egg-freezing journey manager, loss-aware by design (research rank #2) | $9.99/mo or $79/yr | $10k–$80k MRR |
+| 53 | [SplitKit](apps/53-splitkit) | Mobile app | Single-player divorce ops for women: discovery checklists, vault, court-ready record (research rank #3) | $14.99/mo or $99/yr | $10k–$80k MRR |
 
 ## Why these 50
 

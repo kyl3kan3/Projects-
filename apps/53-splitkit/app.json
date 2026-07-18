@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "SplitKit",
+    "slug": "splitkit",
+    "version": "0.1.0",
+    "scheme": "splitkit",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "bundleIdentifier": "app.splitkit.mobile",
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "SplitKit locks your records behind Face ID so only you can open them.",
+        "NSCameraUsageDescription": "SplitKit uses the camera to photograph documents (statements, deeds) into your on-device vault. Photos never leave this phone.",
+        "NSPhotoLibraryUsageDescription": "SplitKit can import existing photos of documents into your on-device vault. Nothing is uploaded anywhere."
+      }
+    },
+    "android": {
+      "package": "app.splitkit.mobile"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-notifications",
+      "expo-font",
+      "expo-asset",
+      "expo-local-authentication",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "SplitKit can import existing photos of documents into your on-device vault. Nothing is uploaded anywhere.",
+          "cameraPermission": "SplitKit uses the camera to photograph documents into your on-device vault. Photos never leave this phone."
+        }
+      ]
+    ]
+  }
+}

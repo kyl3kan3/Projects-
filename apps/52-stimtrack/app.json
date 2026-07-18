@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "StimTrack",
+    "slug": "stimtrack",
+    "version": "0.1.0",
+    "scheme": "stimtrack",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "bundleIdentifier": "app.stimtrack.mobile",
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSUserNotificationsUsageDescription": "StimTrack uses local notifications for your medication reminders, the trigger-shot countdown ladder, and storage-fee renewals. All scheduling happens on this device."
+      }
+    },
+    "android": {
+      "package": "app.stimtrack.mobile"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-notifications",
+      "expo-font",
+      "expo-asset"
+    ]
+  }
+}
