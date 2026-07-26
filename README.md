@@ -1,8 +1,8 @@
 # Profitable App Scaffolds
 
-A curated portfolio of **70 buildable, high-profit-potential software products** — each researched, specified, and scaffolded so it can be lifted out of this repo and built as a standalone project.
+A curated portfolio of **50 buildable, high-profit-potential software products** — each researched, specified, and scaffolded so it can be lifted out of this repo and built as a standalone project.
 
-> **Four are built, 66 are launchpads.** `apps/01-clipforge`, `apps/02-dunly`, `apps/03-briefcast`, and `apps/04-lenscrm` are complete working MVPs; every other folder is a full product spec, market/profitability research, architecture, redline design spec, roadmap, and code scaffolding with stub files. Pick one, extract it, and start building.
+> **One is built, 49 are launchpads.** `apps/01-clipforge` is a complete working MVP; every other folder is a full product spec, market/profitability research, architecture, redline design spec, roadmap, and code scaffolding with stub files. Pick one, extract it, and start building.
 
 ## How to build one with an AI agent
 
@@ -88,32 +88,15 @@ Ranked by a blend of: **proven willingness to pay, margin profile, realistic sol
 | 48 | [FormForge](apps/48-formforge) | B2B SaaS | HIPAA-conscious intake forms + e-sign for therapists and small clinics | $49–$149/mo | $10k–$80k MRR |
 | 49 | [GrantGrid](apps/49-grantgrid) | B2B SaaS | Grant discovery with fit scoring + application workspace for nonprofits | $59–$199/mo | $8k–$60k MRR |
 | 50 | [WaiverWing](apps/50-waiverwing) | B2B SaaS | Digital waivers + kiosk check-in for gyms, tours, and rentals | $29–$99/mo | $8k–$50k MRR |
-| 51 | [TurnoverKit](apps/51-turnoverkit) | B2B SaaS | iCal-synced cleaner scheduling + photo-verified turnover checklists for STR hosts | $19–$59/mo | $8k–$50k MRR |
-| 52 | [FleetSnap](apps/52-fleetsnap) | B2B SaaS | Driver vehicle inspections + auto-opened maintenance tickets for small service fleets | $99–$299/mo | $10k–$80k MRR |
-| 53 | [PriceProbe](apps/53-priceprobe) | B2B SaaS | Competitor price monitoring with alerts + position dashboards for e-commerce brands | $49–$199/mo | $10k–$80k MRR |
-| 54 | [RFPRadar](apps/54-rfpradar) | B2B SaaS | RFP/tender discovery with scored matches + a snapshot-safe answer library | $99–$299/mo | $10k–$80k MRR |
-| 55 | [SessionScribe](apps/55-sessionscribe) | B2B SaaS | Clinician-reviewed AI SOAP/DAP notes for solo therapists and counselors | $39–$99/mo | $10k–$80k MRR |
-| 56 | [RecallDesk](apps/56-recalldesk) | B2B SaaS | Dental patient reactivation with conservatively attributed recovered production | $199–$499/mo | $15k–$100k MRR |
-| 57 | [MatPass](apps/57-matpass) | B2B SaaS | Belt progression, kiosk attendance, gradings, and family billing for martial-arts schools | $59–$149/mo | $10k–$60k MRR |
-| 58 | [ChairFlow](apps/58-chairflow) | B2B SaaS | Booking + card-on-file no-show protection for chair-renting stylists and barbers | $19–$49/mo | $8k–$60k MRR |
-| 59 | [DispatchDeck](apps/59-dispatchdeck) | B2B SaaS | Owner-operator trucking back office: rate-con parsing, invoice packets, factoring, IFTA | $49–$149/mo | $10k–$80k MRR |
-| 60 | [RigRent](apps/60-rigrent) | B2B SaaS | Availability-aware rental inventory with Stripe deposit holds + condition-photo evidence | $79–$199/mo | $10k–$70k MRR |
-| 61 | [CoopClass](apps/61-coopclass) | B2B SaaS | Registration, conflict-proof scheduling, and sibling-discount payments for homeschool co-ops | $29–$99/mo | $5k–$40k MRR |
-| 62 | [CertShield](apps/62-certshield) | B2B SaaS | COI parsing, a deterministic compliance engine, and renewal chasing for PMs and GCs | $99–$299/mo | $15k–$100k MRR |
-| 63 | [NetNest](apps/63-netnest) | Mobile app | Privacy-first net-worth line with a monthly close ritual (Plaid, balances only) | Freemium $9.99/mo | $5k–$50k MRR |
-| 64 | [TrainerBase](apps/64-trainerbase) | B2B SaaS | Program builder + offline-first client delivery + adherence flags for personal trainers | $29–$79/mo | $10k–$70k MRR |
-| 65 | [ListingLoop](apps/65-listingloop) | B2B SaaS | A critical-date engine with business-day/holiday rules for real-estate transaction coordinators | $39–$99/mo | $8k–$60k MRR |
-| 66 | [SproutLog](apps/66-sproutlog) | B2B SaaS | One-thumb daily logging → parent digests + CACFP-ready records for in-home daycares | $29–$79/mo | $8k–$50k MRR |
-| 67 | [WrenchView](apps/67-wrenchview) | B2B SaaS | Tablet vehicle inspections with per-line SMS estimate approvals for independent auto shops | $149–$349/mo | $15k–$100k MRR |
-| 68 | [TipTally](apps/68-tiptally) | B2B SaaS | Tip-pool rules engine with shown math, staff transparency pages, and payroll exports | $49–$129/mo | $10k–$60k MRR |
-| 69 | [UnitKeeper](apps/69-unitkeeper) | B2B SaaS | Unit map, rent autopay + late ladder, and a statutory lien timeline for small self-storage | $59–$149/mo | $10k–$60k MRR |
-| 70 | [GigBag](apps/70-gigbag) | Mobile app | Gig pipeline with contracts, deposits, setlists, stage plots, and payout splits for bands | Freemium $12/mo | $5k–$40k MRR |
+| 51 | [MenoCompass](apps/51-menocompass) | Mobile app | Local-first perimenopause companion: symptoms + HRT management + doctor-ready reports (top pick from [WOMENS_NICHES_RESEARCH.md](./WOMENS_NICHES_RESEARCH.md)) | $59.99/yr w/ trial + $9.99/mo | $20k–$150k MRR |
+| 52 | [StimTrack](apps/52-stimtrack) | Mobile app | IVF + egg-freezing journey manager, loss-aware by design (research rank #2) | $9.99/mo or $79/yr | $10k–$80k MRR |
+| 53 | [SplitKit](apps/53-splitkit) | Mobile app | Single-player divorce ops for women: discovery checklists, vault, court-ready record (research rank #3) | $14.99/mo or $99/yr | $10k–$80k MRR |
+| 54 | [KinDesk](apps/54-kindesk) | Mobile app | Family-care command center for the sandwich-generation daughter: shared tasks, split expenses, vault, weekly digest (research rank #4) | $9.99/mo family or $79.99/yr | $8k–$60k MRR |
 
-## Why these 70
+## Why these 50
 
 Key findings from the research that drove selection and ranking:
 
-- **Vertical operations software for owner-operated businesses** (rows 51–70) is the portfolio's third wave: turnover crews, small fleets, dental fronts, dojos, rental yards, co-ops, storage yards, and bands all run regulated, money-moving workflows on paper — and each vertical's compliance artifact (the COI, the lien notice, the CACFP claim, the DVIR) is the wedge a horizontal tool can't copy.
 - **Utilities and productivity apps have the highest per-user value** — utility-app trial users show ~$68.90 LTV over 12 months, and weekly-plan-plus-trial is the highest-LTV paywall configuration (→ SubSage, Streakly, ShotStash).
 - **Health & fitness is the only category where annual plans dominate** (~60%), giving up-front cash flow (→ DriftOff).
 - **B2B micro-SaaS tied to customer revenue** (payment recovery, monitoring, backups) has 70–90% margins and near-zero churn because it pays for itself (→ Dunly, PulseWatch, VaultBack).

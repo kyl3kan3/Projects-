@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "MenoCompass",
+    "slug": "menocompass",
+    "version": "0.1.0",
+    "scheme": "menocompass",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "bundleIdentifier": "app.menocompass.mobile",
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSHealthShareUsageDescription": "MenoCompass can read your sleep and cycle data from Apple Health to enrich your trends. Reading is optional and all data stays on this device."
+      }
+    },
+    "android": {
+      "package": "app.menocompass.mobile"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-notifications",
+      "expo-font",
+      "expo-asset"
+    ]
+  }
+}

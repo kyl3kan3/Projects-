@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "KinDesk",
+    "slug": "kindesk",
+    "version": "0.1.0",
+    "scheme": "kindesk",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "bundleIdentifier": "app.kindesk.mobile",
+      "supportsTablet": false
+    },
+    "android": {
+      "package": "app.kindesk.mobile"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-notifications",
+      "expo-font",
+      "expo-asset",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "KinDesk uses your photo library so you can attach receipt photos to expenses and add documents to the family vault.",
+          "cameraPermission": "KinDesk uses the camera so you can photograph receipts and documents directly into the vault."
+        }
+      ],
+      "expo-document-picker"
+    ]
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "name": "stimtrack",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local-first IVF & egg-freezing treatment manager: protocol calendar, med reminders, the trigger-shot countdown, labs, storage fees — loss-aware by design",
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "ios": "expo run:ios",
+    "android": "expo run:android",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "jest",
+    "build:check": "expo export --platform ios --output-dir .expo-export"
+  },
+  "dependencies": {
+    "date-fns": "^4.1.0",
+    "expo": "~52.0.0",
+    "expo-asset": "~11.0.5",
+    "expo-constants": "~17.0.8",
+    "expo-file-system": "~18.0.0",
+    "expo-font": "~13.0.0",
+    "expo-haptics": "~14.0.0",
+    "expo-notifications": "~0.29.0",
+    "expo-print": "~14.0.0",
+    "expo-router": "~4.0.0",
+    "expo-sharing": "~13.0.0",
+    "expo-sqlite": "~15.0.0",
+    "expo-status-bar": "~2.0.1",
+    "react": "18.3.1",
+    "react-native": "0.76.5",
+    "react-native-purchases": "^8.5.0",
+    "react-native-safe-area-context": "^4.12.0",
+    "react-native-screens": "~4.4.0",
+    "react-native-svg": "~15.8.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@types/react": "~18.3.0",
+    "eslint": "^9.0.0",
+    "jest": "^29.7.0",
+    "jest-expo": "~52.0.0",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.63.0"
+  }
+}

@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MenoCompass — the page that gets you believed</title>
+<meta name="description" content="Track every perimenopause symptom and the HRT that treats them. One tap turns it into a doctor-ready report. Everything stays on your phone.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  /* Twilight identity — mirrors src/theme/tokens.ts (dark) */
+  :root{--paper:#0E1618;--card:#16232A;--well:#1D2E33;--hair:#26383E;--ink:#E9F1EE;--ink2:#93A8A8;--ink3:#5C7176;--ember:#E8A552;--sage:#6FB79A}
+  *{margin:0;box-sizing:border-box}
+  body{background:var(--paper);color:var(--ink);font-family:'Inter',-apple-system,system-ui,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .disp{font-family:'Bricolage Grotesque','Inter',system-ui,sans-serif;font-weight:700;letter-spacing:-.02em}
+  .mono{font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 24px}
+  header{padding:22px 0;border-bottom:1px solid var(--hair)}
+  header .wrap{display:flex;justify-content:space-between;align-items:center}
+  .brand{font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:700;letter-spacing:-.02em;font-size:18px}
+  .brand b{color:var(--ember);font-weight:700}
+  .cta{display:inline-block;background:var(--ink);color:var(--paper);border-radius:10px;padding:14px 22px;font-weight:600;font-size:16px;text-decoration:none}
+  .cta:hover{background:#CFDAD7}
+  .cta.small{padding:10px 16px;font-size:14px}
+
+  /* HERO — the doctor report (a light document) assembles itself, glowing on the dark ground */
+  .hero{padding:76px 0 60px}
+  .hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
+  h1{font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:700;font-size:clamp(33px,4.7vw,48px);line-height:1.12;letter-spacing:-.025em;text-wrap:balance}
+  .sub{color:var(--ink2);font-size:18px;margin:20px 0 28px;max-width:46ch}
+  .sub strong{color:var(--ink);font-weight:600}
+  .enemy{font-size:14px;color:var(--ink3);margin-top:16px;max-width:48ch}
+  .page{background:#FBF8F1;color:#1B2A28;border-radius:8px;box-shadow:0 30px 70px rgba(0,0,0,.45),0 0 0 1px rgba(233,241,238,.06);padding:28px;max-width:432px;justify-self:end;width:100%}
+  .page h3{font-family:'Bricolage Grotesque',serif;font-weight:600;font-size:17px;margin-bottom:2px}
+  .page .ps{color:#566663;font-size:11px;margin-bottom:14px}
+  .rowline{display:flex;justify-content:space-between;border-top:1px solid #E7E0D3;padding:7px 2px;font-size:12px;opacity:0;animation:rise .5s ease-out forwards}
+  .rowline .v{color:#566663}
+  .sect{font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:#8A8071;margin:12px 0 4px;opacity:0;animation:rise .5s ease-out forwards}
+  .note{font-size:11.5px;color:#4C463C;opacity:0;animation:rise .5s ease-out forwards}
+  .note em{color:#B26A12;font-style:normal;font-weight:600}
+  .heat{display:grid;grid-template-columns:repeat(30,1fr);gap:2px;margin:4px 0 2px}
+  .heat i{aspect-ratio:1;border-radius:1px;background:#EFEAE1;opacity:0;animation:pop .25s ease-out forwards}
+  .heat i.a{background:#EAD3AE}.heat i.b{background:#D9A85C}.heat i.c{background:#C6871E}
+  .stamp{margin-top:16px;font-size:10px;color:#9A9082;border-top:1px solid #E7E0D3;padding-top:8px;opacity:0;animation:rise .5s 3.2s ease-out forwards}
+  @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @keyframes pop{to{opacity:1}}
+  @media (prefers-reduced-motion:reduce){.rowline,.sect,.note,.heat i,.stamp{animation:none;opacity:1}}
+
+  section{padding:60px 0;border-top:1px solid var(--hair)}
+  h2{font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:29px;font-weight:700;letter-spacing:-.02em;margin-bottom:10px;text-wrap:balance}
+  .lead{color:var(--ink2);max-width:62ch;font-size:16px}
+  .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:34px}
+  .col{background:var(--card);border:1px solid var(--hair);border-radius:14px;padding:22px}
+  .col h4{font-size:16px;margin-bottom:6px}
+  .col p{color:var(--ink2);font-size:14.5px}
+  .col .k{color:var(--ember);font-weight:600}
+
+  .pricing{display:grid;grid-template-columns:repeat(2,minmax(0,340px));gap:20px;margin-top:28px}
+  .plan{background:var(--card);border:1px solid var(--hair);border-radius:14px;padding:24px}
+  .plan.hero-plan{border-color:var(--ember);box-shadow:0 0 40px -18px var(--ember)}
+  .plan .tag{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ember);font-weight:700}
+  .plan h5{font-size:19px;margin:4px 0 2px}
+  .plan p{color:var(--ink2);font-size:13.5px}
+  .fine{font-size:12.5px;color:var(--ink3);margin-top:14px;max-width:62ch}
+
+  footer{border-top:1px solid var(--hair);padding:34px 0;color:var(--ink3);font-size:13px}
+  @media(max-width:860px){.hero .wrap{grid-template-columns:1fr}.page{justify-self:start}.cols{grid-template-columns:1fr}.pricing{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <span class="brand">Meno<b>Compass</b></span>
+  <a class="cta small" href="#get">Start your record</a>
+</div></header>
+
+<!-- HOOK: the device, running -->
+<main class="hero"><div class="wrap">
+  <div>
+    <h1>Walk in with one page they can't wave away.</h1>
+    <p class="sub">MenoCompass tracks your perimenopause symptoms <strong>and the HRT that treats them</strong> — every patch change, every dose, every lab — then turns it into a doctor-ready report in one tap.</p>
+    <a class="cta" href="#get">Start your record</a>
+    <p class="enemy">The enemy isn't menopause. It's "that's probably just aging," said to a woman with four months of evidence in her head and no way to show it.</p>
+  </div>
+
+  <!-- the report, assembling -->
+  <div class="page" aria-label="A doctor-ready report assembling itself">
+    <h3>Symptom &amp; treatment summary</h3>
+    <div class="ps">Dec 5 – Mar 4 · 84 of 90 days logged</div>
+    <div class="sect" style="animation-delay:.3s">Last 90 days</div>
+    <div class="heat" id="heat"></div>
+    <div class="sect" style="animation-delay:1.1s">Most significant symptoms</div>
+    <div class="rowline" style="animation-delay:1.3s"><span>Night sweats</span><span class="v mono">61d · avg 1.4 ↓</span></div>
+    <div class="rowline" style="animation-delay:1.5s"><span>Hot flashes</span><span class="v mono">55d · avg 1.6 ↓</span></div>
+    <div class="rowline" style="animation-delay:1.7s"><span>Trouble sleeping</span><span class="v mono">49d · avg 1.9</span></div>
+    <div class="rowline" style="animation-delay:1.9s"><span>Brain fog</span><span class="v mono">38d · avg 1.2 ↓</span></div>
+    <div class="sect" style="animation-delay:2.3s">Current regimen</div>
+    <div class="note" style="animation-delay:2.5s">Estradot 50µg patch, twice weekly (changed from 37.5µg on <em>Feb 12</em>) · Utrogestan 100mg nightly · adherence 93%</div>
+    <div class="note" style="animation-delay:2.8s">Night sweats averaged <em>40% lower</em> in the 6 weeks after the Feb 12 change.</div>
+    <div class="stamp">Patient-recorded · self-rated 0–3 · makes no diagnostic claims — it doesn't have to.</div>
+  </div>
+</div></main>
+
+<!-- TENSION -->
+<section><div class="wrap">
+  <h2>Your tracker thinks you're 26 and regular.</h2>
+  <p class="lead">Mainstream cycle apps are built on 28-day math that collapses the moment cycles turn irregular — which is the defining feature of perimenopause. And the menopause apps that do exist track symptoms but not treatment, so "did the new dose help?" is answered by vibes. MenoCompass is built the other way up.</p>
+  <div class="cols">
+    <div class="col"><h4>Irregular is the design, not the bug</h4><p>No predicted periods, ever. Cycle <span class="k">gaps</span> are the unit — "day 47 since last period" is a data point here, not an error state.</p></div>
+    <div class="col"><h4>Treatment is a first-class object</h4><p>Patches, gels, sprays, tablets, cyclical progesterone. Every <span class="k">dose change becomes a dated marker</span> on every chart: what changed, and what changed after.</p></div>
+    <div class="col"><h4>Nothing leaves your phone</h4><p>No account. No analytics. No servers of ours. <span class="k">Airplane mode is the proof</span> — the whole app keeps working, forever.</p></div>
+  </div>
+</div></section>
+
+<!-- PROOF -->
+<section><div class="wrap">
+  <h2>Thirty seconds a day. One page when it counts.</h2>
+  <p class="lead">The daily check-in is prefilled from yesterday — you tap what changed and put the phone down. Months later, the report compresses all of it into the one artifact a 12-minute appointment has room for: top symptoms with trends, cycle pattern, current regimen with its history, labs. Rendered on your phone as a PDF. Shared only by you.</p>
+</div></section>
+
+<!-- OFFER -->
+<section id="get"><div class="wrap">
+  <h2>Start your record</h2>
+  <p class="lead">Free tracks your ten core symptoms with reminders. Plus is the complete instrument.</p>
+  <div class="pricing">
+    <div class="plan hero-plan">
+      <div class="tag">7 days free</div>
+      <h5>Plus Annual — $59.99/year</h5>
+      <p>All 34+ symptoms and custom ones · full HRT engine · dose-change insights · the doctor-ready report · Apple Health import · CSV and backup export.</p>
+    </div>
+    <div class="plan">
+      <h5>Plus Monthly — $9.99/month</h5>
+      <p>Everything in Plus, month to month.</p>
+    </div>
+  </div>
+  <p style="margin-top:24px"><a class="cta" href="#get">Start your record</a></p>
+  <p class="fine">Because your data lives only on your phone, subscriptions are what keep MenoCompass independent — you're the customer, not the product. The app logs, reminds, and reports; it never diagnoses or recommends doses. Education content cites NICE and NAMS guidance.</p>
+</div></section>
+
+<footer><div class="wrap">MenoCompass · No account. No cloud. No purple.</div></footer>
+
+<script>
+  // Seed the heat strip: denser before the Feb 12 marker, lighter after (the honest shape of the demo data).
+  var heat = document.getElementById('heat');
+  for (var i = 0; i < 90; i++) {
+    var before = i < 50, r = Math.abs(Math.sin(i * 12.9898) * 43758.5453) % 1, base = before ? 0.6 : 0.32;
+    var cell = document.createElement('i');
+    if (r < base * 0.4) cell.className = 'c'; else if (r < base * 0.75) cell.className = 'b'; else if (r < base) cell.className = 'a';
+    cell.style.animationDelay = (0.3 + i * 0.008) + 's';
+    heat.appendChild(cell);
+  }
+</script>
+</body>
+</html>
