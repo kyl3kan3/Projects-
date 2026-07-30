@@ -1,0 +1,142 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { requireUser } from "@/lib/auth";
+import { getSubscription } from "@/lib/billing";
+import { countMonitors } from "@/lib/monitors";
+import { PAID_PLANS, PLANS, plan } from "@/lib/plans";
+import { has } from "@/lib/env";
+import { IconCheck } from "@/components/icons";
+import { portalAction, upgradeAction } from "../actions";
+
+export const metadata: Metadata = { title: "Plan and billing" };
+export const dynamic = "force-dynamic";
+
+export default async function BillingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ upgraded?: string }>;
+}) {
+  const { team } = await requireUser();
+  const { upgraded } = await searchParams;
+  const [subscription, used] = await Promise.all([
+    getSubscription(team.id),
+    countMonitors(team.id),
+  ]);
+  const current = plan(team.plan);
+  const configured = has("STRIPE_SECRET_KEY");
+
+  return (
+    <main className="screen">
+      <header className="pt-8 pb-6">
+        <Link href="/settings" className="btn-quiet no-underline">
+          Settings
+        </Link>
+        <h1 className="t-h2 mt-4">Plan and billing</h1>
+        <p className="t-secondary mt-1">
+          On {current.name} · {used} of {current.monitors} monitors
+        </p>
+      </header>
+
+      {upgraded ? (
+        <p className="panel mb-6 p-4 t-secondary" style={{ color: "var(--color-phosphor)" }} role="status">
+          Payment received. Your new limits are live.
+        </p>
+      ) : null}
+
+      <section className="mb-8 flex flex-col gap-4">
+        {(Object.values(PLANS)).map((p) => {
+          const isCurrent = p.id === team.plan;
+          return (
+            <article
+              key={p.id}
+              className="panel p-4"
+              style={{ borderColor: isCurrent ? "var(--color-phosphor)" : undefined }}
+            >
+              <div className="flex items-baseline justify-between gap-4">
+                <p className="t-title">{p.name}</p>
+                <p className="t-data">
+                  {p.priceMonthly === 0 ? "free" : `$${p.priceMonthly}/mo`}
+                </p>
+              </div>
+
+              <ul className="mt-3 flex flex-col gap-1.5">
+                <Feature>{p.monitors} monitors</Feature>
+                <Feature>
+                  {p.minIntervalSeconds / 60}-minute checks
+                  {p.regionsPerCheck > 1 ? ` from ${p.regionsPerCheck} regions` : ""}
+                </Feature>
+                <Feature>
+                  {p.statusPages} status page{p.statusPages === 1 ? "" : "s"}
+                  {p.customDomain ? " with custom domains" : ""}
+                </Feature>
+                <Feature>{p.retentionDays} days of history</Feature>
+                <Feature>{p.channels.join(", ")}</Feature>
+              </ul>
+
+              <div className="mt-4">
+                {isCurrent ? (
+                  <p className="t-label" style={{ color: "var(--color-phosphor)" }}>
+                    Current plan
+                  </p>
+                ) : PAID_PLANS.includes(p.id) && configured ? (
+                  <form action={upgradeAction}>
+                    <input type="hidden" name="plan" value={p.id} />
+                    <button className="btn btn-primary btn-full" type="submit">
+                      {current.priceMonthly < p.priceMonthly ? `Upgrade to ${p.name}` : `Switch to ${p.name}`}
+                    </button>
+                  </form>
+                ) : null}
+              </div>
+            </article>
+          );
+        })}
+      </section>
+
+      {subscription ? (
+        <section className="mb-8">
+          <p className="t-label mb-3">Subscription</p>
+          <dl className="panel p-4">
+            <Row label="Status" value={subscription.status} />
+            {subscription.currentPeriodEnd ? (
+              <Row
+                label={subscription.cancelAtPeriodEnd ? "Ends" : "Renews"}
+                value={subscription.currentPeriodEnd.toISOString().slice(0, 10)}
+              />
+            ) : null}
+          </dl>
+          <form action={portalAction} className="mt-4">
+            <button className="btn btn-secondary" type="submit">
+              Manage payment and invoices
+            </button>
+          </form>
+        </section>
+      ) : null}
+
+      <p className="t-secondary pb-8">
+        Downgrades never delete anything. If you drop below your monitor count we pause the newest
+        monitors and leave their configuration intact.
+        {!configured ? " Billing is not configured in this environment." : ""}
+      </p>
+    </main>
+  );
+}
+
+function Feature({ children }: { children: React.ReactNode }) {
+  return (
+    <li className="flex items-start gap-2">
+      <span style={{ color: "var(--color-phosphor)", marginTop: 2 }}>
+        <IconCheck size={16} />
+      </span>
+      <span className="t-secondary">{children}</span>
+    </li>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="hairline-b flex items-baseline justify-between gap-4 py-2.5 last:border-0">
+      <dt className="t-label">{label}</dt>
+      <dd className="t-data text-right">{value}</dd>
+    </div>
+  );
+}

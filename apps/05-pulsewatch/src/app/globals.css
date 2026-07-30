@@ -1,54 +1,56 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   PulseWatch — design tokens. Generated from DESIGN.md; edit DESIGN.md first.
-   Obeys DESIGN_LANGUAGE.md: one rationed accent, hairlines not boxes,
-   no gradients or glow on controls, 4px spacing scale, fonts must load.
+   PulseWatch design system — redline implementation of DESIGN.md v3.
+   Phosphor traces on black glass. The only motion is information: the trace
+   runs, or it flatlines. Obeys DESIGN_LANGUAGE.md v2.1 — no emoji, no
+   gradient/glow on controls, hairlines not borders, space before boxes,
+   4px spacing scale, at most three radii.
    ========================================================================== */
 
 @theme {
-  /* Palette — exact values from DESIGN.md */
-  --color-void: #070b0a; /* The ground. Every screen. */
-  --color-glass: #0e1513; /* Sheets, incident panels, status-page cards only */
+  /* Color — exact values from DESIGN.md. */
+  --color-void: #070b0a; /* the ground, every screen */
+  --color-glass: #0e1513; /* sheets, incident panels, status-page cards only */
   --color-hairline: #1a2420; /* 1px dividers & panel borders — never brighter */
-  --color-text: #dce7e2; /* Primary text */
-  --color-text-2: #7c8f87; /* Secondary text */
-  --color-text-3: #48564f; /* Faint (timestamps, placeholders) */
-  --color-paper: #f0f5f2; /* Primary buttons (void text on it) */
-  --color-phosphor: #48b784; /* THE accent. ≤10% of any screen: live traces, up-status dots, active tab, the 9 */
-  --color-trace-dim: #1e6b4a; /* Historical traces, filled uptime bars — phosphor's quiet past */
-  --color-red: #ff4d5e; /* Down / flatline only */
-  --color-amber: #ffc24d; /* Degraded / slow only */
+  --color-text: #dce7e2;
+  --color-text-2: #7c8f87;
+  --color-text-3: #48564f;
+  --color-paper: #f0f5f2; /* the only high-emphasis fill */
+  --color-phosphor: #48b784; /* THE accent, <=10% of any screen */
+  --color-trace-dim: #1e6b4a; /* historical traces, filled uptime bars */
+  --color-red: #ff4d5e; /* down / flatline only */
+  --color-amber: #ffc24d; /* degraded / slow only */
 
-  /* Semantic aliases, so components never hardcode a hue name */
-  --color-bg: #070b0a;
-  --color-surface: #0e1513;
-  --color-line: #1a2420;
-  --color-fg: #dce7e2;
-  --color-fg-2: #7c8f87;
-  --color-fg-3: #48564f;
-  --color-accent: #48b784;
-  --color-action: #f0f5f2;
-  --color-warn: #ffc24d;
-  --color-bad: #ff4d5e;
+  /* Press states, spelled out in DESIGN.md's component section. */
+  --color-paper-press: #dfe8e3;
+  --color-disabled-fill: #22302b;
+  --color-hairline-press: #27332e;
 
-  --font-display: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Radii: exactly three. Controls / panels / sheets. */
+  --radius-control: 8px;
+  --radius-panel: 12px;
+  --radius-sheet: 18px;
 
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring-snappy: cubic-bezier(0.2, 0.9, 0.2, 1.2);
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: dark; /* single visual world — no light theme */
+  --gutter: 20px;
   --tabbar-h: 56px;
 }
 
 html,
 body {
-  background: var(--color-bg);
-  color: var(--color-fg);
+  background: var(--color-void);
+  color: var(--color-text);
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.55;
@@ -56,46 +58,464 @@ body {
   overscroll-behavior-y: none;
 }
 
-* { border-color: var(--color-line); }
-
-/* ---- Type roles (see the specimen table in DESIGN.md) ---- */
-.t-hero { font-family: var(--font-display); font-size: clamp(2rem, 8.5vw, 3.375rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 600; }
-.t-stat { font-family: var(--font-mono); font-size: clamp(2.125rem, 9.5vw, 3.25rem); line-height: 1.05; letter-spacing: -0.01em; font-weight: 500; font-variant-numeric: tabular-nums; }
-.t-h2 { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.01em; font-weight: 600; }
-.t-title { font-size: 1rem; line-height: 1.3; font-weight: 600; }
-.t-body { font-size: 1rem; line-height: 1.55; }
-.t-secondary { font-size: 0.8125rem; line-height: 1.45; color: var(--color-fg-2); }
-.t-label { font-size: 0.6875rem; line-height: 1.2; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-fg-3); }
-.t-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-
-/* ---- Hairline construction: space and rules, never nested boxes ---- */
-.hairline-t { border-top: 1px solid var(--color-line); }
-.hairline-b { border-bottom: 1px solid var(--color-line); }
-
-.card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-line);
-  border-radius: 12px;
+* {
+  border-color: var(--color-hairline);
 }
 
-/* ---- Controls ---- */
+::selection {
+  background: var(--color-trace-dim);
+  color: var(--color-text);
+}
+
+/* ---- Type roles: the exact specimen table from DESIGN.md ---------------- */
+
+.t-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(32px, 8.5vw, 56px);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+}
+.t-stat {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: clamp(36px, 10vw, 60px);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.t-h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+.t-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.3;
+}
+.t-body {
+  font-size: 16px;
+  line-height: 1.55;
+}
+.t-secondary {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-text-2);
+}
+.t-label {
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-3);
+}
+/* Every latency, percentage and timestamp — no exceptions. */
+.t-data {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Controls ---------------------------------------------------------- */
+
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 48px; padding: 0 20px; border-radius: 10px;
-  font-weight: 600; font-size: 0.9375rem; line-height: 1;
-  transition: transform 120ms var(--ease-out-quart), background-color 120ms linear;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: var(--radius-control);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 120ms var(--ease-out-quart),
+    background-color 120ms linear,
+    border-color 120ms linear;
 }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: var(--color-action); color: var(--color-bg); }
-.btn-secondary { background: transparent; color: var(--color-fg); border: 1px solid var(--color-line); }
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
 
-.focus-ring:focus-visible,
-a:focus-visible,
-button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+/* Primary on a dark ground: off-white fill, void text. Never phosphor. */
+.btn-primary {
+  background: var(--color-paper);
+  color: var(--color-void);
+  border: none;
 }
+.btn-primary:active:not(:disabled) {
+  background: var(--color-paper-press);
+}
+.btn-primary:disabled {
+  background: var(--color-disabled-fill);
+  color: var(--color-text-3);
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-hairline);
+}
+.btn-secondary:active:not(:disabled) {
+  border-color: var(--color-hairline-press);
+}
+
+/* Quiet action: text only, phosphor, no underline. */
+.btn-quiet {
+  background: none;
+  border: none;
+  padding: 0;
+  height: auto;
+  color: var(--color-phosphor);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+}
+.btn-quiet:active {
+  opacity: 0.8;
+}
+
+.btn-full {
+  width: 100%;
+}
+
+.input {
+  width: 100%;
+  height: 48px;
+  padding: 0 12px;
+  background: var(--color-void);
+  color: var(--color-text);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  font-size: 16px;
+  font-family: inherit;
+}
+/* URL and cron fields read as data, so they render in mono. */
+.input-mono {
+  font-family: var(--font-mono);
+  font-size: 15px;
+}
+.input::placeholder {
+  color: var(--color-text-3);
+}
+.input:focus,
+.input:focus-visible {
+  outline: none;
+  border-color: var(--color-phosphor);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-phosphor) 25%, transparent);
+}
+textarea.input {
+  height: auto;
+  min-height: 96px;
+  padding: 12px;
+  line-height: 1.5;
+}
+select.input {
+  appearance: none;
+  padding-right: 32px;
+}
+
+/* Chips: check-type filters. Active = phosphor hairline + phosphor text. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-hairline);
+  background: transparent;
+  color: var(--color-text-2);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.chip[aria-pressed="true"],
+.chip[data-active="true"] {
+  border-color: var(--color-phosphor);
+  color: var(--color-phosphor);
+}
+
+/* Alert-channel toggle: 44x28 track, paper knob on trace-dim. Never phosphor. */
+.toggle {
+  position: relative;
+  width: 44px;
+  height: 28px;
+  border-radius: 14px; /* the documented pill exception */
+  border: 1px solid var(--color-hairline);
+  background: transparent;
+  cursor: pointer;
+  flex: none;
+  transition: background-color 160ms var(--ease-spring-snappy);
+}
+.toggle[aria-checked="true"] {
+  background: var(--color-trace-dim);
+  border-color: var(--color-trace-dim);
+}
+.toggle::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  background: var(--color-text-3);
+  transition:
+    transform 160ms var(--ease-spring-snappy),
+    background-color 160ms linear;
+}
+.toggle[aria-checked="true"]::after {
+  transform: translateX(16px);
+  background: var(--color-paper);
+}
+
+/* Focus ring: phosphor, 2px offset. */
+:where(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-phosphor);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---- Surfaces: depth is glass vs void plus hairlines. No elevation. ---- */
+
+.panel {
+  background: var(--color-glass);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-panel);
+}
+.sheet {
+  background: var(--color-glass);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-sheet);
+}
+.hairline-t {
+  border-top: 1px solid var(--color-hairline);
+}
+.hairline-b {
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+/* Monitor rows: NO boxes. Full-bleed hairline rows, >=64px, whole row tappable. */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-hairline);
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Incident cards: glass, hairline, radius 12, 2px red left rule. */
+.incident-card {
+  background: var(--color-glass);
+  border: 1px solid var(--color-hairline);
+  border-left: 2px solid var(--color-red);
+  border-radius: var(--radius-panel);
+  padding: 16px;
+}
+.incident-card[data-resolved="true"] {
+  border-left-color: var(--color-trace-dim);
+}
+.incident-card[data-kind="advisory"] {
+  border-left-color: var(--color-amber);
+}
+
+/* ---- Status dots: flat, no bloom, no glow ------------------------------ */
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+.dot-up {
+  background: var(--color-phosphor);
+}
+.dot-down {
+  background: var(--color-red);
+  animation: dot-pulse 1s var(--ease-in-out-soft) infinite;
+}
+.dot-degraded {
+  background: var(--color-amber);
+  animation: dot-breathe 3s var(--ease-in-out-soft) infinite;
+}
+.dot-paused {
+  background: var(--color-text-3);
+}
+.dot-pending {
+  background: var(--color-text-3);
+  animation: dot-breathe 3s var(--ease-in-out-soft) infinite;
+}
+
+@keyframes dot-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+@keyframes dot-breathe {
+  0%,
+  100% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Region dots beneath a row: 3 x 4px. */
+.region-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-trace-dim);
+}
+.region-dot[data-failing="true"] {
+  background: var(--color-red);
+}
+
+/* ---- Uptime bars: 90 cells of 3x24, radius 0, own scroll track --------- */
+
+.uptime-track {
+  display: flex;
+  gap: 1px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+.uptime-cell {
+  width: 3px;
+  height: 24px;
+  border-radius: 0;
+  flex: none;
+  background: var(--color-hairline); /* no data — an empty cell, not a lie */
+}
+.uptime-cell[data-state="ok"] {
+  background: var(--color-trace-dim);
+}
+.uptime-cell[data-state="incident"] {
+  background: var(--color-red);
+}
+.uptime-cell[data-state="today"] {
+  background: var(--color-phosphor);
+}
+
+/* ---- Bottom tab bar --------------------------------------------------- */
+
+.tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: color-mix(in srgb, var(--color-glass) 94%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-hairline);
+  z-index: 40;
+}
+.tabbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-3);
+  text-decoration: none;
+  position: relative;
+}
+.tabbar-item[data-active="true"] {
+  color: var(--color-text);
+}
+.tabbar-item[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  bottom: 6px;
+  width: 2px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--color-phosphor);
+}
+
+/* ---- Layout ----------------------------------------------------------- */
+
+.screen {
+  padding: 0 var(--gutter);
+  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 96px);
+  max-width: 1280px;
+  margin: 0 auto;
+}
+.thumb-cta {
+  position: fixed;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 16px);
+  z-index: 30;
+  max-width: calc(1280px - 2 * var(--gutter));
+  margin: 0 auto;
+}
+
+/* >=768px: two-column wall, wider gutters. >=1024px: three columns. */
+@media (min-width: 768px) {
+  :root {
+    --gutter: 32px;
+  }
+  .wall {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 32px;
+  }
+}
+@media (min-width: 1024px) {
+  .wall {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* The ambient trace behind the monitor-wall header, at 8% phosphor. */
+.ambient-trace {
+  position: absolute;
+  inset: 0;
+  opacity: 0.08;
+  pointer-events: none;
+}
+
+/* ---- Reduced motion: the flatline stays, it is information ------------- */
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  /* Breathing/pulsing dots become solid states. */
+  .dot-down,
+  .dot-degraded,
+  .dot-pending {
+    animation: none;
+    opacity: 1;
+  }
 }

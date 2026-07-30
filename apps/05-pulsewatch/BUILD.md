@@ -1,6 +1,9 @@
 # Build Brief — PulseWatch
 
-**Status:** SCAFFOLD — nothing is implemented yet. Docs and stubs only. You (the building agent) are expected to produce the complete, working MVP described in this folder.
+**Status:** MVP BUILT. Every item in README.md's feature list is implemented and
+verified end to end against real Postgres, Redis, and a running probe fleet.
+Typecheck, production build, and `npm test` are green. Use this brief as the
+standard for any further work; the ground rules below still bind.
 
 This folder is fully self-contained. It can be extracted to a fresh repository
 and built with no other context. Everything you need is here.

@@ -51,15 +51,15 @@ Annual billing at 2 months free. No per-seat pricing anywhere — seats are a Te
 
 ## MVP Feature List
 
-- [ ] HTTP(S) checks: status code, response time, keyword match, follow redirects, custom headers
-- [ ] Cron heartbeats: unique ping URL per job, grace periods, expected schedule/interval, missed-ping alerting
-- [ ] SSL certificate expiry monitoring (alert at 30/14/7/1 days)
-- [ ] Domain (WHOIS) expiry monitoring
-- [ ] Public status pages: uptime bars (90 days), incident history, manual incident posting, subdomain per account
-- [ ] Alerting: email, Slack webhook, Discord webhook, generic webhook (JSON POST)
-- [ ] Incident lifecycle: open after N consecutive failures, auto-resolve on recovery, alert on both edges
-- [ ] Stripe billing with the three tiers above
-- [ ] Team accounts (single owner at MVP; invites can slip to Phase 3)
+- [x] HTTP(S) checks: status code, response time, keyword match, follow redirects, custom headers
+- [x] Cron heartbeats: unique ping URL per job, grace periods, expected schedule/interval, missed-ping alerting
+- [x] SSL certificate expiry monitoring (alert at 30/14/7/1 days)
+- [x] Domain (WHOIS) expiry monitoring
+- [x] Public status pages: uptime bars (90 days), incident history, manual incident posting, subdomain per account
+- [x] Alerting: email, Slack webhook, Discord webhook, generic webhook (JSON POST)
+- [x] Incident lifecycle: open after N consecutive failures, auto-resolve on recovery, alert on both edges
+- [x] Stripe billing with the three tiers above
+- [x] Team accounts (single owner at MVP; invites can slip to Phase 3)
 
 Post-MVP (explicitly not in MVP): SMS alerts (Twilio), multi-region check confirmation, TCP/port and ICMP ping checks, public API, status badges, maintenance windows.
 
@@ -102,6 +102,44 @@ Specific channels, in priority order:
 - **Winner-take-most on trust — the monitor must not go down.** One false "your site is down at 3am" page, or worse, one missed real outage, and the customer leaves forever. This is the existential risk. It dictates architecture: multi-region confirmation before alerting, an independent watchdog monitoring PulseWatch itself (eat elsewhere's dogfood: use a competitor to watch PulseWatch), status page hosted on separate infrastructure from the dashboard, and boring, redundant infra choices throughout.
 - **Solo-founder bus factor on an always-on product.** Paging yourself forever is the real cost of running a monitoring company. Keep the system self-healing (queue retries, region failover) so a bad day doesn't require heroics.
 
+## Setup
+
+You need Postgres, Redis, and Node 20+. Nothing else is required to run the
+whole thing locally — Stripe and Resend keys are optional in development.
+
+```bash
+npm install
+cp .env.example .env.local        # fill in DATABASE_URL, REDIS_URL, AUTH_SECRET
+npm run db:migrate                # creates the 17 tables
+
+# Four processes. The web app alone is enough to sign up and click around;
+# the other three are what actually watch things.
+npm run dev                       # dashboard, status pages, ping ingest
+npm run worker:scheduler          # dispatches due checks, runs the incident engine
+npm run worker:probe              # executes checks; PROBE_REGION picks the queue
+npm run worker:alerts             # delivers email/Slack/Discord/webhook alerts
+```
+
+Then open `http://localhost:3000`, sign up, and add a monitor. Signup seeds your
+own email address as the first alert channel, so a new account is never silently
+unmonitored.
+
+Without a `RESEND_API_KEY` alert emails are logged to the console instead of
+sent; webhook, Slack and Discord channels work with no keys at all. Without
+`STRIPE_SECRET_KEY` the billing screen shows the plan ladder but hides the
+upgrade buttons.
+
+For Stripe webhooks in development:
+`stripe listen --forward-to localhost:3000/api/webhooks/stripe`.
+
+### Checks and tests
+
+```bash
+npm run typecheck    # tsc --noEmit
+npm run build        # production build
+npm test             # unit tests (node:test via tsx, no extra dependencies)
+```
+
 ## Repository Layout
 
 Single-package monorepo-style layout: the Next.js dashboard, the probe worker, and the scheduler share one `package.json` and one `src/` tree. See `ARCHITECTURE.md` for rationale, data model, and cost model; `ROADMAP.md` for the build plan.
@@ -110,9 +148,25 @@ Single-package monorepo-style layout: the Next.js dashboard, the probe worker, a
 src/
   app/         Next.js App Router (dashboard, status pages, API routes)
   db/          Drizzle schema + migrations
-  lib/         Shared domain logic (monitors, incidents, alerts)
-  probe/       Probe worker entrypoint + check implementations
-  scheduler/   Check scheduler (enqueues due work onto Redis)
+  lib/         Shared domain logic (monitors, incidents, alerts, billing)
+  probe/       Probe worker entrypoint + check implementations (http, tls, whois)
+  scheduler/   Check scheduler, result consumer, heartbeat sweep, retention prune
+  alerts/      Alert dispatcher worker
+  components/  UI, including the canvas sparkline that is the brand animation
 ```
 
-Status: scaffold only. No implemented business logic yet.
+Status: MVP implemented. Every item in the feature list above is built, and all
+of it except the WHOIS lookup has been verified end to end against real
+Postgres, Redis, and a running probe fleet.
+
+Two things need a real network to confirm, because they cannot be exercised from
+a sandbox that proxies TLS and blocks outbound port 43:
+
+- **WHOIS domain expiry.** The response parsing is unit-tested against the real
+  formats registries emit, but a live `whois.iana.org` lookup has not been run.
+- **TLS certificate reading against a third party.** The handshake and the
+  30/14/7/1-day alert ladder are tested; reading a *specific* origin's real
+  certificate needs a network that isn't intercepting it.
+
+Deliberately out of MVP scope: SMS alerts, TCP/ICMP checks, a public API,
+status-page custom domains, and team invites — see `ROADMAP.md` Phase 3.
