@@ -22,5 +22,5 @@
  */
 
 export default function DashboardPage() {
-  throw new Error("Not implemented");
+  return null; // TODO: implement
 }

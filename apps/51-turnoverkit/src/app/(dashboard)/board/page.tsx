@@ -24,5 +24,5 @@
  */
 
 export default async function BoardPage() {
-  throw new Error("Not implemented");
+  return null; // TODO: implement
 }

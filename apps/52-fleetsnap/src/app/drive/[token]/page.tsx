@@ -28,5 +28,5 @@
 export default async function DriverInspectionPage(_props: {
   params: Promise<{ token: string }>;
 }) {
-  throw new Error("Not implemented");
+  return null; // TODO: implement
 }

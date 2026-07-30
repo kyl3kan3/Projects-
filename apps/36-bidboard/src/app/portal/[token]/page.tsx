@@ -25,5 +25,5 @@
  */
 
 export default function PortalPage() {
-  throw new Error("Not implemented");
+  return null; // TODO: implement
 }

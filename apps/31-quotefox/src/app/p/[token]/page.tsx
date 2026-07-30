@@ -22,6 +22,6 @@
 
 export default function ProposalPage(_props: {
   params: Promise<{ token: string }>;
-}): never {
-  throw new Error("Not implemented");
+}) {
+  return null; // TODO: implement
 }

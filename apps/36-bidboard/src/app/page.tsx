@@ -28,5 +28,5 @@
  */
 
 export default function LandingPage() {
-  throw new Error("Not implemented");
+  return null; // TODO: implement
 }

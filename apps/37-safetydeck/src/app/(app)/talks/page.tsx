@@ -19,5 +19,5 @@
  */
 
 export default function TalksPage() {
-  throw new Error("Not implemented");
+  return null; // TODO: implement
 }

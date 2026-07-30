@@ -26,5 +26,5 @@
 export default async function CleanerJobPage(_props: {
   params: Promise<{ token: string }>;
 }) {
-  throw new Error("Not implemented");
+  return null; // TODO: implement
 }

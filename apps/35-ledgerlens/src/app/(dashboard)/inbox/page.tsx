@@ -20,5 +20,5 @@
  */
 
 export default function InboxPage() {
-  throw new Error("Not implemented");
+  return null; // TODO: implement
 }

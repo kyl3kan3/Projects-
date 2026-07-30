@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   AnswerDesk — design tokens. Generated from DESIGN.md; edit DESIGN.md first.
+   Obeys DESIGN_LANGUAGE.md: one rationed accent, hairlines not boxes,
+   no gradients or glow on controls, 4px spacing scale, fonts must load.
+   ========================================================================== */
+
+@theme {
+  /* Palette — exact values from DESIGN.md */
+  --color-sea: #0b2530; /* The ground. Widget body, dashboard, marketing. */
+  --color-panel: #123240; /* Bot bubbles, sheets, grouped stat panels only */
+  --color-hairline: #1e4152; /* 1px dividers & borders — never brighter */
+  --color-text: #eaf4f2; /* Primary text */
+  --color-text-2: #7fa39e; /* Secondary text */
+  --color-text-3: #4e6e69; /* Faint (timestamps, placeholders) */
+  --color-paper: #f2f4f3; /* Primary buttons (sea text on it), user bubbles, key numerals */
+  --color-teal: #379e96; /* THE accent. ≤10% of any screen: status dot, citation chips, links, active tab, */
+  --color-linen: #e8e3d8; /* Uncertain-state material only (the dot, the "not certain" capsule) */
+  --color-amber: #f5b15c; /* Handoff/human semantic only — dot, handoff card rule, Slack event rows */
+  --color-green: #3ecf8e; /* Resolved/success only */
+
+  /* Semantic aliases, so components never hardcode a hue name */
+  --color-bg: #0b2530;
+  --color-surface: #123240;
+  --color-line: #1e4152;
+  --color-fg: #eaf4f2;
+  --color-fg-2: #7fa39e;
+  --color-fg-3: #4e6e69;
+  --color-accent: #379e96;
+  --color-action: #f2f4f3;
+  --color-ok: #3ecf8e;
+  --color-warn: #f5b15c;
+
+  --font-display: "Gambetta", ui-serif, Georgia, serif;
+  --font-sans: "Gambetta", ui-serif, Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+:root {
+  color-scheme: dark;
+  --tabbar-h: 56px;
+}
+
+html,
+body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+* { border-color: var(--color-line); }
+
+/* ---- Type roles (see the specimen table in DESIGN.md) ---- */
+.t-hero { font-family: var(--font-display); font-size: clamp(2rem, 8.5vw, 3.375rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 600; }
+.t-stat { font-family: var(--font-mono); font-size: clamp(2.125rem, 9.5vw, 3.25rem); line-height: 1.05; letter-spacing: -0.01em; font-weight: 500; font-variant-numeric: tabular-nums; }
+.t-h2 { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.01em; font-weight: 600; }
+.t-title { font-size: 1rem; line-height: 1.3; font-weight: 600; }
+.t-body { font-size: 1rem; line-height: 1.55; }
+.t-secondary { font-size: 0.8125rem; line-height: 1.45; color: var(--color-fg-2); }
+.t-label { font-size: 0.6875rem; line-height: 1.2; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-fg-3); }
+.t-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* ---- Hairline construction: space and rules, never nested boxes ---- */
+.hairline-t { border-top: 1px solid var(--color-line); }
+.hairline-b { border-bottom: 1px solid var(--color-line); }
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 12px;
+}
+
+/* ---- Controls ---- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 48px; padding: 0 20px; border-radius: 10px;
+  font-weight: 600; font-size: 0.9375rem; line-height: 1;
+  transition: transform 120ms var(--ease-out-quart), background-color 120ms linear;
+}
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: var(--color-action); color: var(--color-bg); }
+.btn-secondary { background: transparent; color: var(--color-fg); border: 1px solid var(--color-line); }
+
+.focus-ring:focus-visible,
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

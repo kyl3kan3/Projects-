@@ -21,5 +21,5 @@
  */
 
 export default function ParticipantsPage() {
-  throw new Error("Not implemented");
+  return null; // TODO: implement
 }

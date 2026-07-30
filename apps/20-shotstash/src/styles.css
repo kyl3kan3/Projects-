@@ -1,0 +1,76 @@
+/* ==========================================================================
+   ShotStash design tokens — see DESIGN.md. Desktop app, so faces are the
+   platform's own (native faithfulness beats brand vanity) with JetBrains Mono
+   bundled for queries, OCR text and hotkeys.
+   ========================================================================== */
+
+:root {
+  color-scheme: dark;
+
+  --color-charcoal: #1b1d21; /* window ground */
+  --color-panel: #26292f; /* rail, inspector, palette */
+  --color-hairline: #33373f; /* 1px dividers, thumbnail borders */
+  --color-text: #eceef2;
+  --color-paper: #f2f4f6; /* primary buttons, key counts */
+  --color-steel: #4ba3c7; /* THE accent — ≤10% of any window */
+  --color-match: #ffd84d; /* match highlight, semantic only */
+  --color-green: #3ecf8e; /* indexed/success only */
+  --color-red: #f26d6d; /* failure only */
+
+  --font-ui: -apple-system, "Segoe UI Variable", "Segoe UI", Ubuntu, Inter,
+    system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+* {
+  box-sizing: border-box;
+  border-color: var(--color-hairline);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--color-charcoal);
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  /* Desktop chrome: never rubber-band, never select chrome text. */
+  overscroll-behavior: none;
+  user-select: none;
+}
+
+.mono,
+kbd {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Match highlight is semantic — the one place --color-match may appear. */
+mark {
+  background: var(--color-match);
+  color: var(--color-charcoal);
+  border-radius: 2px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-steel);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -8,6 +8,28 @@ Every app folder under `apps/` follows the same conventions so that any of them 
 2. **Own ignore file.** Each folder ships its own `.gitignore` appropriate to its stack.
 3. **Own env contract.** `.env.example` lists every environment variable the finished app will need, with comments explaining where to obtain each value.
 4. **Valid manifests.** `package.json` / `requirements.txt` / `Cargo.toml` are syntactically valid and list the real dependencies the architecture calls for — so `npm install` (etc.) works on day one of the build.
+5. **It compiles.** Every folder carries the build config its stack needs and passes its build gate — a full `next build` for web apps, a strict typecheck for the Expo apps. `tools/build-all.sh` checks all of them; see [BUILDING.md](./BUILDING.md). A scaffold that does not compile is not finished.
+
+## Buildable stubs
+
+Stub files implement nothing, but they must not break the build. Two idioms look
+harmless and do:
+
+- `export default function Page(): never { throw new Error("Not implemented"); }`
+  — Next prerenders routes during `next build`, so this fails the build.
+- `export {};` in a `page.tsx` — no default export, so Next rejects the file as
+  not matching the Page type.
+
+Use the form the rest of the portfolio uses:
+
+```tsx
+export default function LandingPage() {
+  return null; // TODO: implement
+}
+```
+
+Metadata routes (`manifest.ts`, `sitemap.ts`, `robots.ts`) are prerendered too,
+so they return a real minimal value rather than a stub.
 
 ## Documentation set (every app)
 

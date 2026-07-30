@@ -29,5 +29,5 @@
  */
 
 export default function CrewClockPage() {
-  throw new Error("Not implemented");
+  return null; // TODO: implement
 }

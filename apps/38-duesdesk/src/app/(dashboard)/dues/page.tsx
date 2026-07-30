@@ -22,5 +22,5 @@
  */
 
 export default function DuesPage() {
-  throw new Error("Not implemented");
+  return null; // TODO: implement
 }

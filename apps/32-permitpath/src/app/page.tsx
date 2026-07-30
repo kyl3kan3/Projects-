@@ -11,4 +11,7 @@
  * - [ ] Pricing anchored against one fine/stop-work order
  * - [ ] StickyCTA on mobile; reduced-motion path
  */
-export {};
+
+export default function LandingPage() {
+  return null; // TODO: implement
+}

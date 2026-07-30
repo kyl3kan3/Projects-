@@ -11,4 +11,7 @@
  * - [ ] Pricing anchored against one month of reprints
  * - [ ] One CTA phrase repeated; reduced-motion path
  */
-export {};
+
+export default function LandingPage() {
+  return null; // TODO: implement
+}

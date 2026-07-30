@@ -24,5 +24,5 @@
  */
 
 export default function SignPage() {
-  throw new Error("Not implemented");
+  return null; // TODO: implement
 }

@@ -23,5 +23,5 @@
  */
 
 export default function CrewPage() {
-  throw new Error("Not implemented");
+  return null; // TODO: implement
 }

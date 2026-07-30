@@ -1,10 +1,9 @@
-//! Tauri entrypoint: window/tray setup, plugin registration, command handlers.
-//!
-//! TODO:
-//! - [ ] register global-shortcut plugin + default hotkeys
-//! - [ ] tray icon with quick-search popover window
-//! - [ ] invoke_handler: capture, search, tag, import, license commands
-//! - [ ] background OCR worker pool startup
+//! Desktop binary. All setup lives in the library crate (see lib.rs) so the
+//! window/tray/command wiring is shared with any future mobile entrypoint.
+
+// A release build on Windows must not also open a console window.
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 fn main() {
-    // TODO: implement tauri::Builder setup
+    shotstash_lib::run();
 }

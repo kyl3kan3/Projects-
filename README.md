@@ -4,6 +4,23 @@ A curated portfolio of **50 buildable, high-profit-potential software products**
 
 > **One is built, 49 are launchpads.** `apps/01-clipforge` is a complete working MVP; every other folder is a full product spec, market/profitability research, architecture, redline design spec, roadmap, and code scaffolding with stub files. Pick one, extract it, and start building.
 
+## How to build every app at once
+
+Every app in the portfolio compiles. `tools/build-all.sh` builds all of them and
+prints a pass/fail table:
+
+```bash
+tools/setup-buildkit.sh     # one-time: install the shared toolchains
+tools/build-all.sh          # build everything
+tools/build-all.sh 31 57    # just the units matching 31 or 57
+```
+
+The apps stay self-contained, so building one on its own still works the usual
+way — `cd apps/03-briefcast && npm install && npm run build`. See
+[BUILDING.md](./BUILDING.md) for what "builds" means per stack (a full
+`next build` for web, a typecheck for the Expo apps, and so on), why there is a
+shared toolchain, and the known limitations.
+
 ## How to build one with an AI agent
 
 Every app folder is designed to be handed directly to a coding agent (Claude Opus,
@@ -124,8 +141,16 @@ apps/NN-name/
 ├── .gitignore
 ├── .env.example       # Every secret/config the app will need
 ├── package.json       # (or requirements.txt / src-tauri config, per platform)
+├── tsconfig.json      # Plus the build config its stack needs (next.config.ts, postcss…)
 └── src/               # Full folder structure with stub files — headers + TODOs, no implementation
+    └── app/
+        ├── layout.tsx    # Root layout: metadata, viewport theme colour, font loading
+        └── globals.css   # The app's own palette and type roles, from its DESIGN.md
 ```
+
+The build config, root layout and `globals.css` are real and working — they are
+what makes each scaffold compile from day one. Everything else under `src/` is
+still a stub: headers and TODO lists, no business logic.
 
 All 30 design specs share one motion-and-craft constitution — easing tokens, 3D
 budgets, performance and reduced-motion rules — defined in

@@ -23,5 +23,5 @@
  */
 
 export default function JobsPage() {
-  throw new Error("Not implemented");
+  return null; // TODO: implement
 }

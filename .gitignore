@@ -1,0 +1,20 @@
+# Shared build toolchain, per-app node_modules assembled by tools/build-all.sh,
+# and its logs. See tools/link-deps.mjs for what lives in here and why.
+.buildkit/
+
+# Each app folder ships its own .gitignore (SCAFFOLD_GUIDE.md rule 2); these
+# catch build output across all of them, including the nested web/server
+# projects that three of the mobile apps carry.
+node_modules/
+.next/
+.expo/
+apps/**/out/
+apps/**/dist/
+apps/**/next-env.d.ts
+apps/**/tsconfig.tsbuildinfo
+apps/**/src-tauri/target/
+__pycache__/
+*.py[cod]
+
+.DS_Store
+*.log

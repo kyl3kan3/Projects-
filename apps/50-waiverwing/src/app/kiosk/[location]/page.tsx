@@ -24,5 +24,5 @@
  */
 
 export default function KioskPage() {
-  throw new Error("Not implemented");
+  return null; // TODO: implement
 }

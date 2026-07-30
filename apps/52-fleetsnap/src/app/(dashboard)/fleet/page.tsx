@@ -23,5 +23,5 @@
  */
 
 export default async function FleetBoardPage() {
-  throw new Error("Not implemented");
+  return null; // TODO: implement
 }

@@ -22,6 +22,6 @@
  *       / sticky mobile bar; four-beat motion budget, reduced-motion fades.
  */
 
-export default function LandingPage(): never {
-  throw new Error("Not implemented");
+export default function LandingPage() {
+  return null; // TODO: implement
 }
