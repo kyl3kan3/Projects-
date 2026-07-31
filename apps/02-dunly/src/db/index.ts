@@ -7,7 +7,12 @@ const globalForDb = globalThis as unknown as { pgClient?: ReturnType<typeof post
 const client =
   globalForDb.pgClient ??
   postgres(process.env.DATABASE_URL ?? "postgresql://localhost:5432/dunly", {
-    max: 10,
+    // On Vercel each warm function instance keeps its own pool, so a generous
+    // max multiplies into Neon's connection ceiling.
+    max: process.env.VERCEL ? 1 : 10,
+    idle_timeout: process.env.VERCEL ? 20 : undefined,
+    connect_timeout: 10,
+    // Required by Neon's pooled endpoint (PgBouncer transaction mode).
     prepare: false,
   });
 

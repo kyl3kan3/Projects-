@@ -24,6 +24,7 @@ import {
   type Monitor,
 } from "@/db/schema";
 import { alertsQueue, type CheckResultJob } from "@/lib/queue";
+import { hasQueue } from "@/lib/runtime";
 import { duration } from "@/lib/format";
 
 /** Thresholds (days) at which an expiry warning fires, each exactly once. */
@@ -454,6 +455,19 @@ export async function clearExpiryIncidentIfRenewed(
 /* ------------------------------------------------------------- internals --- */
 
 async function enqueueAlert(incidentId: string, edge: string): Promise<void> {
+  // Without Redis there is no dispatcher process to hand this to, so send it
+  // here and now. Dedupe lives in the notifications unique index either way, so
+  // the two paths cannot double-page even if both somehow ran.
+  if (!hasQueue()) {
+    try {
+      const { dispatchAlert } = await import("@/lib/alerts");
+      await dispatchAlert(incidentId, edge);
+    } catch (err) {
+      console.error(`[incidents] inline alert ${edge} for ${incidentId} failed`, err);
+    }
+    return;
+  }
+
   try {
     await alertsQueue().add("dispatch", { incidentId, edge });
   } catch (err) {

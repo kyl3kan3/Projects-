@@ -21,6 +21,13 @@ way — `cd apps/03-briefcast && npm install && npm run build`. See
 `next build` for web, a typecheck for the Expo apps, and so on), why there is a
 shared toolchain, and the known limitations.
 
+## Where these deploy
+
+Vercel for hosting, Neon for Postgres. [DEPLOYING.md](./DEPLOYING.md) covers the
+Neon pooling settings every app uses, the Vercel cron and duration limits that
+decide how background work has to be structured, and which apps need a host
+beyond Vercel because they assume an always-on worker.
+
 ## How to build one with an AI agent
 
 Every app folder is designed to be handed directly to a coding agent (Claude Opus,

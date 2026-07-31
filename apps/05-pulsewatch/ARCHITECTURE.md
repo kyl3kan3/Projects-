@@ -13,6 +13,24 @@
 | Email | Resend | Cheap transactional email, good DX |
 | SMS (post-MVP) | Twilio | Boring and reliable; SMS is a paid-tier feature so cost passes through |
 
+### Two deployment shapes
+
+The design below — a scheduler, a regional probe fleet, and an alert dispatcher
+talking over Redis — is the one that can confirm an outage from more than one
+network, which is what makes the alerting trustworthy and what the paid plans
+sell. It needs four always-on processes.
+
+There is a second, smaller shape for a Vercel + Neon deployment with no Redis: a
+single cron-triggered function runs the due checks inline, sweeps heartbeats, and
+sends the alerts itself. Same schema, same incident engine, same guarantees about
+confirmation and alert dedupe — but one region, so confirmation falls back to N
+consecutive failures rather than N concurrent regions.
+
+Nothing selects between them at build time. `REDIS_URL` decides: present means
+queued, absent means inline (`src/lib/runtime.ts`). The two paths share the check
+executor (`src/lib/check-runner.ts`) so they cannot drift. `DEPLOYING.md` covers
+both, including the pricing-table consequence of shipping single-region.
+
 ### Why a single package, not a full monorepo split
 
 The dashboard, scheduler, and probe worker share the majority of their code: the Drizzle schema, check-result types, incident logic, and alert dispatch. A pnpm-workspace/Turborepo split (`apps/web`, `apps/probe`, `packages/db`, ...) buys dependency isolation and independent versioning — neither matters for a solo/2-person team deploying everything from one repo on every merge. The costs of the split are real: workspace config, cross-package build orchestration, publish/link friction, and "which package does this live in" decisions on every file.

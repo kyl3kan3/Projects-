@@ -3,11 +3,19 @@
  *
  * The connection is created on first use so importing this module during
  * `next build` (no DATABASE_URL) doesn't open a socket or throw.
+ *
+ * Serverless note: on Vercel every warm function instance keeps its own pool, so
+ * a generous `max` multiplies into Neon's connection ceiling fast. In that
+ * environment the pool is kept at one connection and the idle timeout short;
+ * long-lived workers get a real pool. `prepare: false` is required either way —
+ * Neon's pooled endpoint runs PgBouncer in transaction mode, which cannot carry
+ * prepared statements across connections.
  */
 
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { env } from "@/lib/env";
+import { isServerless } from "@/lib/runtime";
 import * as schema from "./schema";
 
 type Db = ReturnType<typeof drizzle<typeof schema>>;
@@ -17,7 +25,12 @@ let _db: Db | null = null;
 
 export function getDb(): Db {
   if (!_db) {
-    _client = postgres(env.databaseUrl, { max: 10, prepare: false });
+    _client = postgres(env.databaseUrl, {
+      max: isServerless() ? 1 : 10,
+      idle_timeout: isServerless() ? 20 : undefined,
+      connect_timeout: 10,
+      prepare: false,
+    });
     _db = drizzle(_client, { schema, casing: "snake_case" });
   }
   return _db;

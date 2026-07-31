@@ -109,12 +109,25 @@ whole thing locally — Stripe and Resend keys are optional in development.
 
 ```bash
 npm install
-cp .env.example .env.local        # fill in DATABASE_URL, REDIS_URL, AUTH_SECRET
+cp .env.example .env.local        # fill in DATABASE_URL, AUTH_SECRET, CRON_SECRET
 npm run db:migrate                # creates the 17 tables
-
-# Four processes. The web app alone is enough to sign up and click around;
-# the other three are what actually watch things.
 npm run dev                       # dashboard, status pages, ping ingest
+```
+
+That is enough to sign up and add monitors. To make checks actually run, pick a
+shape — see [DEPLOYING.md](./DEPLOYING.md) for the full picture:
+
+**Serverless (Vercel + Neon, no Redis).** One cron-triggered function runs due
+checks, sweeps heartbeats and sends alerts. Locally, drive it by hand:
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" localhost:3000/api/cron/tick
+```
+
+**Queued (adds Redis + always-on workers).** Set `REDIS_URL` and run three more
+processes; this is the shape that can confirm an outage from several regions:
+
+```bash
 npm run worker:scheduler          # dispatches due checks, runs the incident engine
 npm run worker:probe              # executes checks; PROBE_REGION picks the queue
 npm run worker:alerts             # delivers email/Slack/Discord/webhook alerts
