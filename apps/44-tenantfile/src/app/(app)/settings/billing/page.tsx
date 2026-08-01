@@ -115,7 +115,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
 function Feature({ children }: { children: React.ReactNode }) {
   return (
     <li className="flex items-start gap-2">
-      <span style={{ color: "var(--color-rent-green)" }} className="mt-0.5">
+      <span style={{ color: "var(--color-rent-green)" }} className="mt-1">
         <IconCheck size={16} />
       </span>
       <span className="t-secondary">{children}</span>

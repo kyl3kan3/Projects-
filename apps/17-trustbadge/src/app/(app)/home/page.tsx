@@ -32,7 +32,8 @@ export default async function HomePage({
   await widgetPayloadFresh({ store, tier: merchant.tier });
   const originMs = Date.now() - originStart;
 
-  const [funnel, aggregate, byStatus, latest, metering, scheduled, impressions, build] =
+  const build = widgetBuildInfo();
+  const [funnel, aggregate, byStatus, latest, metering, scheduled, impressions] =
     await Promise.all([
       funnelFor(store.id),
       aggregateFor(store.id),
@@ -41,7 +42,6 @@ export default async function HomePage({
       meteringFor(merchant.id, merchant.tier),
       countScheduled(store.id),
       impressionsFor(store.id, 30),
-      widgetBuildInfo(),
     ]);
 
   const limits = plan(merchant.tier);

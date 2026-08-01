@@ -13,14 +13,13 @@
  *    line, stored on the row so it cannot drift later.
  */
 
-import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
   discountCodes,
   reviewMedia,
   reviewRequests,
   reviews,
-  stores,
   type Review,
   type ReviewMediaRow,
   type ReviewStatus,
@@ -37,12 +36,6 @@ export interface Aggregate {
   count: number;
   distribution: [number, number, number, number, number];
 }
-
-export const EMPTY_AGGREGATE: Aggregate = {
-  rating: 0,
-  count: 0,
-  distribution: [0, 0, 0, 0, 0],
-};
 
 /**
  * Does this rating publish immediately, or wait for the merchant?
@@ -379,26 +372,4 @@ export async function reviewedProducts(
       Boolean(r.externalId),
     )
     .map((r) => ({ externalId: r.externalId, title: r.title, n: Number(r.n) }));
-}
-
-/** Reviews still waiting on the merchant, across every store they own. */
-export async function pendingForMerchant(merchantId: string): Promise<number> {
-  const db = getDb();
-  const [row] = await db
-    .select({ n: sql<number>`count(*)::int` })
-    .from(reviews)
-    .innerJoin(stores, eq(stores.id, reviews.storeId))
-    .where(and(eq(stores.merchantId, merchantId), eq(reviews.status, "pending")));
-  return Number(row?.n ?? 0);
-}
-
-/** Reviews with no photo yet — used by the dashboard's incentive nudge. */
-export async function countWithoutMedia(storeId: string): Promise<number> {
-  const db = getDb();
-  const [row] = await db
-    .select({ n: sql<number>`count(*)::int` })
-    .from(reviews)
-    .leftJoin(reviewMedia, eq(reviewMedia.reviewId, reviews.id))
-    .where(and(eq(reviews.storeId, storeId), isNull(reviewMedia.id)));
-  return Number(row?.n ?? 0);
 }

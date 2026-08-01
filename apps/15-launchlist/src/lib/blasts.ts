@@ -22,7 +22,7 @@ import {
 import { renderBody, type SegmentSpec } from "@/lib/blast-content";
 import { sendEmail } from "@/lib/email";
 import { pageUrl } from "@/lib/lists";
-import { unsubscribeUrlFor } from "@/lib/signups";
+import { queueSize, unsubscribeUrlFor } from "@/lib/signups";
 
 // Re-exported so server callers have one import for everything about a blast.
 export { MERGE_FIELDS, renderBody, segmentLabel, type SegmentSpec } from "@/lib/blast-content";
@@ -139,6 +139,11 @@ export async function runBlast(
       .where(eq(blasts.id, blast.id));
   }
 
+  // Resolved once per run, not per recipient: `{{total}}` means "how many
+  // people are in line", which is the queue size — not `last_join_rank`, which
+  // also counts addresses that never confirmed and ones that were rejected.
+  const queueTotal = await queueSize(list.id);
+
   let cursor = blast.cursorRank;
   let sent = 0;
   let failed = 0;
@@ -152,7 +157,7 @@ export async function runBlast(
     if (!batch.length) break;
 
     for (const person of batch) {
-      const result = await sendOne(blast, list, person);
+      const result = await sendOne(blast, list, person, queueTotal);
       if (result) sent++;
       else failed++;
       cursor = Math.max(cursor, person.joinRank);
@@ -213,7 +218,12 @@ export async function runBlast(
   };
 }
 
-async function sendOne(blast: Blast, list: List, person: Signup): Promise<boolean> {
+async function sendOne(
+  blast: Blast,
+  list: List,
+  person: Signup,
+  queueTotal: number,
+): Promise<boolean> {
   const db = getDb();
   const [credited] = await db
     .select({ n: countRows() })
@@ -223,7 +233,7 @@ async function sendOne(blast: Blast, list: List, person: Signup): Promise<boolea
   const page = pageUrl(list);
   const text = renderBody(blast.body, {
     position: person.position,
-    total: list.lastJoinRank,
+    total: queueTotal,
     referrals: Number(credited?.n ?? 0),
     shareUrl: `${page}?ref=${person.referralCode}`,
     pageUrl: page,

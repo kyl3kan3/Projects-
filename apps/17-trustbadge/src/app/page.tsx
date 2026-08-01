@@ -101,7 +101,7 @@ const DEMO: WidgetPayload = {
 };
 
 export default async function LandingPage() {
-  const build = await widgetBuildInfo();
+  const build = widgetBuildInfo();
   const [free, starter, growth, pro] = TIER_ORDER.map((tier) => PLANS[tier]);
 
   // The hero widget's stylesheet, scoped to a wrapper instead of a shadow root.

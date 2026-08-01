@@ -28,8 +28,6 @@ import { sendReviewRequestEmail } from "@/lib/email";
 import { featureAllowed } from "@/lib/plans";
 import { meteringFor } from "@/lib/metering";
 
-export type ScheduleReason = IngestScheduleResult["reason"];
-
 export interface IngestScheduleResult {
   requestId: string | null;
   reason:

@@ -35,14 +35,14 @@ Priced per *business*, not per internal seat — the anti-Copilot move agencies 
 
 ## MVP Features
 
-- [ ] Portal builder: modules per client (status/timeline, files, approvals, messages, invoices, links to Figma/docs) toggled on/off
-- [ ] Branding: logo, colors, custom domain, from-your-domain email notifications — client never sees ClientDock (Agency+)
-- [ ] Magic-link client access (clients never create passwords — adoption lives or dies here)
-- [ ] Status/timeline module: phases with progress, "last updated" freshness stamp
-- [ ] File sharing with versioning + approval requests ("Approve v3?" with one-click approve/request-changes + audit trail)
-- [ ] Messages module (email-notified threads, so clients can just reply to email)
-- [ ] Stripe invoice embed (connect their Stripe; pay inside the portal)
-- [ ] Client-view-as preview; portal duplication from templates
+- [x] Portal builder: modules per client (status/timeline, files, approvals, messages, invoices, links to Figma/docs) toggled on/off
+- [x] Branding: logo, colors, custom domain, from-your-domain email notifications — client never sees ClientDock (Agency+)
+- [x] Magic-link client access (clients never create passwords — adoption lives or dies here)
+- [x] Status/timeline module: phases with progress, "last updated" freshness stamp
+- [x] File sharing with versioning + approval requests ("Approve v3?" with one-click approve/request-changes + audit trail)
+- [x] Messages module (email-notified threads, so clients can just reply to email)
+- [x] Stripe invoice embed (connect their Stripe; pay inside the portal)
+- [x] Client-view-as preview; portal duplication from templates
 
 ## Differentiation
 
@@ -72,3 +72,77 @@ Priced per *business*, not per internal seat — the anti-Copilot move agencies 
 - **Feature-breadth pressure:** every agency asks for one more module (time tracking! contracts!); hold the line at portal-surface modules and integrate outward instead.
 - **Copilot's momentum:** they're well-funded and good; win the segment they price out and the white-label purists.
 - **Custom-domain/email deliverability plumbing:** DKIM/SPF setup per agency domain must be wizard-smooth or support drowns.
+
+---
+
+## Setup
+
+Node 20+ and a Postgres database are the only requirements.
+
+```bash
+cp .env.example .env.local     # then fill in the values described below
+npm install
+npm run db:migrate             # applies drizzle/ against DATABASE_URL
+npm run dev                    # http://localhost:3028
+```
+
+Sign up, and the app puts you straight into building the first portal. Add a
+client contact, press **Send the link** — with no `RESEND_API_KEY` configured the
+invitation is logged to the console *and* shown to you on the page, so you can
+open the portal as your own client without wiring up email first.
+
+### What each variable is for
+
+| Variable | Needed for | Without it |
+|---|---|---|
+| `DATABASE_URL` | everything | nothing runs |
+| `AUTH_SECRET` | signing the agency session and the scoped portal sessions | nothing runs (`openssl rand -hex 32`) |
+| `NEXT_PUBLIC_APP_URL` | magic links and email bodies | defaults to `http://localhost:3028` |
+| `STORAGE_DRIVER` | file uploads: `db` (Postgres) or `local` (disk) | defaults to `db`, which is the only driver that works on Vercel |
+| `RESEND_API_KEY` | actually sending notifications | every notification is logged in full and recorded as `logged`, never silently dropped |
+| `EMAIL_FROM` | the fallback sender | defaults to a ClientDock address |
+| `INBOUND_EMAIL_DOMAIN` / `INBOUND_WEBHOOK_SECRET` | clients replying to notification emails | `POST /api/inbound/email` returns 503 rather than accepting unauthenticated writes |
+| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_*` | our subscription billing and agencies' Connect invoicing | checkout refuses cleanly; invoices can still be recorded with a payment link pasted in |
+| `CRON_SECRET` | the freshness-nudge tick | `/api/cron/tick` returns 503 rather than running unprotected |
+
+### Scripts
+
+```bash
+npm run typecheck    # tsc --noEmit
+npm test             # node:test via tsx
+npm run build        # production build
+npm run db:generate  # new migration from src/db/schema.ts
+npm run worker       # the freshness-nudge tick on a loop, for self-hosting
+```
+
+### Deploying
+
+Vercel + Neon, per the repo's `DEPLOYING.md`. Three app-specific notes:
+
+- **Storage.** Keep `STORAGE_DRIVER=db` on Vercel — its filesystem is read-only.
+  `src/lib/storage.ts` is one interface with two drivers; an S3/R2 driver drops in
+  behind it without touching a caller. Uploads are capped at `MAX_UPLOAD_BYTES`
+  (10MB default) because Postgres is not a CDN.
+- **Scheduled work.** `vercel.json` registers `/api/cron/tick` daily, which is all
+  Hobby allows and all this app needs — the freshness nudge is bucketed by ISO
+  week, so the cadence of the check doesn't change the behaviour.
+- **Custom domains.** Point the agency's `CNAME` at the deployment and add the
+  hostname to the Vercel project. A hostname only ever serves portals after its
+  CNAME has actually been observed (`Check the DNS now` in Settings).
+
+### The security property this app is built around
+
+A client portal must never leak another client's data. Two rules make that true,
+and both are enforced in one place each:
+
+1. **`src/lib/portal-access.ts`** resolves a viewer only from a signed source — a
+   per-portal session cookie whose `portalId` claim matches, or an agency session
+   whose workspace owns the portal (the view-as preview, which is read-only).
+   Every read then uses `viewer.portalId`, a value that came out of a signature
+   check rather than out of the URL.
+2. Every id inside a portal is resolved as an `(id, portalId)` pair. Pasting
+   another portal's file, approval, invoice or thread id returns *not found*,
+   which is the same answer as for an id that never existed.
+
+The agency side mirrors it: `requireOwnedPortal(workspaceId, portalId)` in
+`src/lib/portals.ts` is the only way agency code resolves a portal.

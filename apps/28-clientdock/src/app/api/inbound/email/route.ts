@@ -8,7 +8,7 @@ import {
 } from "@/lib/inbound-email";
 
 /**
- * Inbound email → portal thread (ARCHITECTURE.md flow 3).
+ * Inbound email becomes a portal thread message (ARCHITECTURE.md flow 3).
  *
  * Point your provider's inbound webhook at this route with the shared secret in
  * `Authorization: Bearer …`. With no secret configured the route refuses to run

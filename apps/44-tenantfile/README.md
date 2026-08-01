@@ -4,6 +4,79 @@
 
 ---
 
+---
+
+## Setup
+
+Node 20+ and a Postgres database are all you need. Nothing else is required to run
+the whole product — every third-party integration is optional and the app tells
+you on screen when one is off.
+
+```bash
+npm install
+cp .env.example .env.local && cp .env.local .env   # the app reads .env.local, the worker reads .env
+```
+
+Fill in four values in `.env.local`:
+
+| Variable | What to put |
+|---|---|
+| `DATABASE_URL` | `postgres://user@localhost:5432/tenantfile`, or a Neon connection string |
+| `AUTH_SECRET` | `openssl rand -base64 32` |
+| `LINK_TOKEN_SECRET` | `openssl rand -base64 32` |
+| `CRON_SECRET` | `openssl rand -hex 32` |
+
+Then:
+
+```bash
+npm run db:migrate     # creates the schema
+npm run dev            # http://localhost:3000
+```
+
+Sign up, add a unit, and you have a listing link, an application form, a rent
+ledger and a file. With no email provider configured, `DRY_RUN` defaults to on and
+reminders are written to the log instead of being sent — the ledger and the file
+work exactly the same.
+
+### The scheduled work
+
+Monthly charge generation, late fees and reminder sends all live in one function
+(`src/lib/tick.ts`) with two drivers. Use whichever suits your host:
+
+```bash
+# A long-lived process (Railway, Fly, a VM):
+npm run worker
+
+# Or a cron-triggered route (Vercel; see vercel.json):
+curl -H "authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron/tick
+```
+
+The route refuses to run when `CRON_SECRET` is unset rather than defaulting to
+open.
+
+### Turning integrations on
+
+- **Email reminders** — set `RESEND_API_KEY` and `EMAIL_FROM`, then set `DRY_RUN=0`.
+- **SMS reminders** — set the three `TWILIO_*` vars. Called over Twilio's REST API,
+  so there is no SDK to install.
+- **Our own billing** — set `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` and the
+  three `STRIPE_PRICE_*` ids. Without them, plan limits still apply and checkout
+  simply says it is not configured.
+- **Rent collection** — a landlord connects their own Stripe account; rent never
+  touches TenantFile's balance. Without a connected account the tenant page tells
+  the tenant to pay however they already do, and "mark paid" keeps the ledger true.
+- **Object storage** — `STORAGE_DRIVER=local` writes under `LOCAL_STORAGE_DIR`.
+  Storage is behind an interface (`src/lib/storage.ts`); an S3/R2 adapter drops in
+  there without touching anything else.
+
+### Checks
+
+```bash
+npm run typecheck
+npm test          # node:test via tsx — ledger arithmetic, dates, plans, copy, PDF
+npm run build
+```
+
 ## The Problem
 
 The landlord with three units runs a real business out of a text thread and a shoebox. The application is a PDF someone prints. Screening means calling a previous landlord who may be the applicant's cousin. The lease is a Word doc signed at a kitchen table. Rent is "did the Zelle come through?" scrolled for in a banking app. Maintenance history is photos buried in Messages. When a dispute, a security-deposit claim, or an eviction hearing arrives, the "records" are archaeology.

@@ -114,6 +114,41 @@ when done, keeping anything valuable as a unit test.
 
 Fix what you find. Expect to find something.
 
+### A real browser is available — use it
+
+**Chromium is pre-installed** at `/opt/pw-browsers` with `PLAYWRIGHT_BROWSERS_PATH`
+already set, and `playwright` links like any other package. Do **not** run
+`playwright install` — the browser is already there.
+
+```bash
+node tools/link-deps.mjs apps/<your-app> --kit web   # links playwright
+```
+
+This matters because server actions cannot be driven from `curl`: Next 15
+encrypts the action payload, so a curl POST reaches the action and then dies in
+RSC argument decoding. Without a browser you can only test the functions *behind*
+your actions, which leaves the entire client round trip — the thing a user
+actually touches — unverified.
+
+Drive the real forms in Chromium at 390×844. It also lets you check what nothing
+else can: layout at the spec's width, contrast, focus order, whether
+`prefers-reduced-motion` really collapses the animation, and console errors.
+Screenshots are worth taking; a rendered screen catches things reading CSS never
+will.
+
+### Do not kill processes by pattern
+
+Several agents work in this checkout at once. `pkill -f "next dev"`,
+`pkill -f next-server`, and `pkill -o` have all killed *other* agents' servers in
+past runs. Kill only your own process:
+
+```bash
+next start -p <your-port> & echo $! > .server.pid   # then kill $(cat .server.pid)
+```
+
+If you must hunt a PID, confirm it is yours first — `readlink /proc/<pid>/cwd`
+must be your app folder.
+
 ## When you finish
 
 Leave the working tree clean of scratch files (`.env.local`, throwaway scripts).

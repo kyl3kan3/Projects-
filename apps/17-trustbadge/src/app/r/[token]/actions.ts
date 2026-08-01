@@ -3,7 +3,6 @@
 import { requireRequest } from "@/lib/submission";
 import { ValidationError } from "@/lib/errors";
 import { submitReview } from "@/lib/reviews";
-import { featureAllowed } from "@/lib/plans";
 import { revalidateStoreReviews } from "@/lib/widget-data";
 import { MAX_PHOTO_BYTES } from "@/lib/media";
 
@@ -91,9 +90,4 @@ export async function submitReviewAction(
     console.error("[submission] failed", err);
     return { error: "Something went wrong saving that. Your words are still in the form." };
   }
-}
-
-/** Whether this store can accept a photo at all — the form hides the step if not. */
-export async function photoStepAvailable(tier: Parameters<typeof featureAllowed>[0]): Promise<boolean> {
-  return featureAllowed(tier, "photoReviews");
 }

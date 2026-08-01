@@ -46,9 +46,16 @@ const ALWAYS = {
   node: ["typescript", "@types/node"],
 };
 
-/* Packages we refuse to install: huge, or they download a browser at postinstall. */
-const HEAVY = new Set(["puppeteer", "playwright", "playwright-core", "@shopify/cli",
-  "electron", "tesseract.js", "@react-pdf/renderer", "canvas"]);
+/**
+ * Packages we refuse to install: huge, or they download a browser at postinstall.
+ *
+ * `playwright` is deliberately NOT here. Chromium is pre-installed at
+ * PLAYWRIGHT_BROWSERS_PATH and PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD is set, so the
+ * package installs without fetching anything — and it is the only way to drive a
+ * Next server action, whose payload is encrypted and cannot be posted by curl.
+ */
+const HEAVY = new Set(["puppeteer", "@shopify/cli", "electron", "tesseract.js",
+  "@react-pdf/renderer", "canvas"]);
 
 const readJson = (p) => { try { return JSON.parse(fs.readFileSync(p, "utf8")); } catch { return null; } };
 

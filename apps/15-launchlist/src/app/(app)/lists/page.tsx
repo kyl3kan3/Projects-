@@ -32,7 +32,8 @@ export default async function ListsPage() {
         </h1>
         <p className="t-secondary" style={{ marginTop: 4 }}>
           {live.length} of {limitLabel(limits.lists)} on {limits.name} ·{" "}
-          <Link href="/settings/billing">Plan and billing</Link>
+          <Link href="/settings/billing">Plan and billing</Link> ·{" "}
+          <Link href="/settings">Account</Link>
         </p>
       </header>
 

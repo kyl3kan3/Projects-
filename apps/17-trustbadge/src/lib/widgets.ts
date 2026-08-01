@@ -24,7 +24,7 @@ import {
 } from "@/db/schema";
 import { env } from "@/lib/env";
 import { NotFoundError, PlanLimitError, ValidationError } from "@/lib/errors";
-import { plan, resolveBranding, tierUnlockingWidget, widgetTypeAllowed } from "@/lib/plans";
+import { plan, tierUnlockingWidget, widgetTypeAllowed } from "@/lib/plans";
 import { reservedHeight } from "@/widget/render";
 
 export const WIDGET_TYPES: WidgetType[] = ["wall", "carousel", "badge", "stars"];
@@ -159,19 +159,6 @@ export async function deleteWidget(id: string, storeId: string): Promise<void> {
   await db.delete(widgets).where(and(eq(widgets.id, id), eq(widgets.storeId, storeId)));
 }
 
-/** Pause nothing, delete nothing: a downgrade only stops the disallowed types rendering. */
-export async function widgetTypesBlockedByPlan(
-  storeId: string,
-  tier: Tier,
-): Promise<WidgetType[]> {
-  const rows = await listWidgets(storeId);
-  const blocked = new Set<WidgetType>();
-  for (const row of rows) {
-    if (!widgetTypeAllowed(tier, row.widget.type)) blocked.add(row.widget.type);
-  }
-  return [...blocked];
-}
-
 /* -------------------------------------------------------------- impressions --- */
 
 /** UTC midnight for a timestamp — the rollup's bucket key. */
@@ -283,9 +270,4 @@ function escapeAttribute(value: string): string {
   return value.replace(/[&<>"']/g, (c) =>
     c === "&" ? "&amp;" : c === "<" ? "&lt;" : c === ">" ? "&gt;" : c === '"' ? "&quot;" : "&#39;",
   );
-}
-
-/** Whether this widget's branding link renders, after the plan has its say. */
-export function brandingFor(tier: Tier, settings: WidgetSettingsRow): boolean {
-  return resolveBranding(tier, settings.showBranding);
 }

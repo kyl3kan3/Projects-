@@ -3,9 +3,14 @@
  *
  * The 15KB gzipped claim is marketed (README differentiation 1), so it is a
  * build gate rather than an aspiration: exceeding it fails the build, exactly
- * like a failing test. The measured size is written to
- * public/widget/manifest.json, and the dashboard reads it from there — the
- * "speed receipts" line on Home is a real measurement or it is not shown.
+ * like a failing test.
+ *
+ * The measured size is written twice. `public/widget/manifest.json` is for
+ * anyone inspecting the CDN. `src/widget/build-info.json` is what the app
+ * imports, because `public/` is not part of a serverless function's filesystem
+ * on Vercel — reading it at request time works locally and silently returns
+ * nothing in production, which is exactly how a marketed number quietly
+ * disappears. An imported module is bundled and always there.
  */
 
 import { build } from "esbuild";
@@ -42,7 +47,9 @@ async function main(): Promise<void> {
     budgetBytes: BUDGET_BYTES,
     builtAt: new Date().toISOString(),
   };
-  await writeFile(path.join(OUT_DIR, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
+  const json = `${JSON.stringify(manifest, null, 2)}\n`;
+  await writeFile(path.join(OUT_DIR, "manifest.json"), json);
+  await writeFile(path.resolve(process.cwd(), "src/widget/build-info.json"), json);
 
   const kb = (n: number) => `${(n / 1024).toFixed(2)} KB`;
   console.log(`widget: ${kb(raw.byteLength)} raw, ${kb(gzipped.byteLength)} gzipped`);

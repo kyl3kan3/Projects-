@@ -55,7 +55,7 @@ export function SideRail({ portfolioName }: { portfolioName: string }) {
           <Link
             key={href}
             href={href}
-            className="flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-[15px] font-semibold no-underline"
+            className="flex items-center gap-3 rounded-[10px] px-3 py-3 text-[15px] font-semibold no-underline"
             style={{
               color: active ? "var(--color-ink)" : "var(--color-text-3)",
               background: active ? "var(--color-card)" : "transparent",
@@ -69,7 +69,7 @@ export function SideRail({ portfolioName }: { portfolioName: string }) {
       })}
       <Link
         href="/settings"
-        className="mt-2 flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-[15px] font-semibold no-underline"
+        className="mt-2 flex items-center gap-3 rounded-[10px] px-3 py-3 text-[15px] font-semibold no-underline"
         style={{
           color: isActive(pathname, "/settings") ? "var(--color-ink)" : "var(--color-text-3)",
           background: isActive(pathname, "/settings") ? "var(--color-card)" : "transparent",

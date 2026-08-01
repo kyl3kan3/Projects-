@@ -153,7 +153,7 @@ export default async function SettingsPage() {
                 <p className="t-label mb-2">Add this record</p>
                 <div className="scroll-x">
                   <p className="t-data whitespace-nowrap">
-                    CNAME &nbsp; {cname.host} &nbsp; → &nbsp; {cname.value}
+                    CNAME &nbsp;·&nbsp; {cname.host} &nbsp;·&nbsp; points at {cname.value}
                   </p>
                 </div>
                 <ActionForm
@@ -232,7 +232,7 @@ export default async function SettingsPage() {
                     </div>
                     <div className="scroll-x mt-1">
                       <p className="t-data whitespace-nowrap" style={{ color: "var(--color-ink-2)" }}>
-                        {record.kind} &nbsp; {record.name} &nbsp; → &nbsp; {record.value}
+                        {record.kind} &nbsp;·&nbsp; {record.name} &nbsp;·&nbsp; {record.value}
                       </p>
                     </div>
                   </div>
