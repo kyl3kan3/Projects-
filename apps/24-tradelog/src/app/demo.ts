@@ -14,7 +14,7 @@
 
 import { thinkorswim } from "@/lib/parsers/thinkorswim";
 import { buildTrades, type ExecutionSource } from "@/lib/pipeline";
-import { detectLeaks, type Finding } from "@/lib/leaks";
+import { detectLeaks, impactPerMonth, type Finding } from "@/lib/leaks";
 import { byCloseTime, summarize, type ClosedTrade, type Summary } from "@/lib/analytics";
 import { displaySymbol } from "@/lib/instruments";
 import { formatCents, formatPrice, formatQty } from "@/lib/money";
@@ -152,6 +152,7 @@ function demoHistory(): ClosedTrade[] {
 export interface HeroDemo {
   summary: Summary;
   finding: Finding;
+  monthlyLabel: string | null;
   actual: number[];
   without: number[];
   actualLabel: string;
@@ -177,9 +178,12 @@ export const HERO_DEMO: HeroDemo = (() => {
     without.push(Number(runningWithout));
   }
 
+  const monthly = impactPerMonth(finding, history);
+
   return {
     summary,
     finding,
+    monthlyLabel: monthly === null ? null : formatCents(monthly),
     actual,
     without,
     actualLabel: formatCents(BigInt(Math.round(actual[actual.length - 1])), { signed: true }),

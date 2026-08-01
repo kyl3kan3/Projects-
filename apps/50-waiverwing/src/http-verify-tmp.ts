@@ -26,15 +26,17 @@ async function main() {
   assert.match(homeHtml, /Signed, searchable, on file in seconds/);
   assert.match(homeHtml, /Take your first signature/);
   assert.ok(!/lorem ipsum/i.test(homeHtml));
-  assert.match(homeHtml, /Barlow/, "the self-hosted font must be referenced");
-  pass("landing page renders the claim, the CTA and the loaded font");
+  const preloads = homeHtml.match(/rel="preload"[^>]*as="font"[^>]*woff2/g) ?? [];
+  assert.ok(preloads.length >= 2, `expected preloaded woff2 faces, found ${preloads.length}`);
+  assert.ok(!/fonts\.googleapis\.com/.test(homeHtml), "fonts must be self-hosted, not a CDN link");
+  pass(`landing page renders the claim, the CTA and ${preloads.length} preloaded self-hosted woff2 faces`);
 
   const signPage = await fetch(`${BASE}/sign/${location.qrToken}`);
   const signHtml = await signPage.text();
   assert.equal(signPage.status, 200);
   assert.match(signHtml, /Acknowledgement of risk/, "waiver text must be server-rendered");
   assert.match(signHtml, /A parent or guardian is signing/);
-  assert.match(signHtml, /under 18 must be signed for/);
+  assert.match(signHtml, /must be signed for by a parent or legal guardian/);
   pass("sign page is server-rendered with the full waiver text and both paths");
 
   const dead = await fetch(`${BASE}/sign/definitely-not-a-token`);

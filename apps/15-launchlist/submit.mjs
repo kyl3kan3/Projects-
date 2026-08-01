@@ -24,9 +24,8 @@ const res = await fetch(base + page, {
   headers: { cookie: `launchlist_session=${session}`, origin: base },
   body: fd,
   redirect: "manual",
-  signal: AbortSignal.timeout(15000),
-});
+  signal: AbortSignal.timeout(20000),
+}).catch((e) => ({ status: `no-response (${e.name})`, headers: new Headers() }));
+// The no-JS action response is a streamed RSC re-render; we only care that the
+// action ran, which the database state confirms.
 console.log("status", res.status, res.headers.get("location") ?? "");
-const text = await res.text();
-const msgs = [...text.matchAll(/role="(alert|status)"[^>]*>([^<]{3,160})/g)].map((m) => m[2]);
-if (msgs.length) console.log("message:", msgs.join(" | "));

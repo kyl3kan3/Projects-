@@ -18,7 +18,8 @@ export const metadata: Metadata = {
 const CTA = "See your leaks free";
 
 export default function LandingPage() {
-  const { summary, finding, actual, without, actualLabel, withoutLabel, gapLabel } = HERO_DEMO;
+  const { summary, finding, monthlyLabel, actual, without, actualLabel, withoutLabel, gapLabel } =
+    HERO_DEMO;
 
   return (
     <>
@@ -228,11 +229,9 @@ export default function LandingPage() {
           </h2>
           <div className="stat-grid mt-6">
             <div className="stat">
-              <p className="t-label">Demo leak, per month</p>
+              <p className="t-label">{monthlyLabel ? "Demo leak, per month" : "Demo leak, measured"}</p>
               <p className="t-stat mt-2" style={{ color: "var(--color-leak)" }}>
-                {finding.monthlyImpactCents !== null
-                  ? formatCents(finding.monthlyImpactCents)
-                  : gapLabel}
+                {monthlyLabel ?? gapLabel}
               </p>
             </div>
             <div className="stat">
