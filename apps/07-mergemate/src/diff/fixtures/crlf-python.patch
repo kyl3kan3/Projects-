@@ -1,0 +1,12 @@
+@@ -1,6 +1,9 @@
+ from django.db import connection
+ 
+ def lookup(email, tags=[]):
+-    return User.objects.filter(email=email)
++    cur = connection.cursor()
++    cur.execute("select * from users where email = %s" % email)
++    requests.get("https://example.internal/audit")
++    return cur.fetchall()
+ 
+ def other():
+     pass

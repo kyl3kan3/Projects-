@@ -1,0 +1,13 @@
+@@ -1,9 +1,11 @@
+ import { z } from "zod";
+ 
+-export const schema = z.object({ amount: z.number() });
++export const schema = z.object({ amountCents: z.number().int() });
+ 
+ export function total(items) {
+-  return items.reduce((n, i) => n + i.amount, 0);
++  const totalPrice = parseFloat(items[0].price);
++  return items.reduce((n, i) => n + i.amountCents, 0) + totalPrice;
+ }
++
++export const VERSION = 2;

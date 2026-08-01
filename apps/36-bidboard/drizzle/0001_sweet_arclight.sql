@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "bids_one_draft_per_invitation" ON "bids" USING btree ("invitation_id") WHERE "bids"."is_draft";

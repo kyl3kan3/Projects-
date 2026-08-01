@@ -1,8 +1,5 @@
 # Dependencies
 node_modules/
-.pnp
-.pnp.*
-.yarn/*
 
 # Next.js
 .next/
@@ -12,40 +9,31 @@ next-env.d.ts
 # Build output
 dist/
 build/
+*.tsbuildinfo
 
-# Environment files (keep .env.example)
+# Environment files — keep .env.example tracked
 .env
 .env.*
 !.env.example
 
-# Testing
-coverage/
-.nyc_output/
+# Drizzle migrations ARE tracked, including drizzle/meta/ — a fresh clone
+# cannot run db:migrate without meta/_journal.json.
+drizzle/meta/*.bak
 
-# Drizzle
-drizzle/meta/
-
-# TypeScript
-*.tsbuildinfo
-
-# Logs
+# Local artifacts
+.data/
 logs/
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
+coverage/
 
 # Editor / OS
-.DS_Store
-Thumbs.db
+.vscode/
 .idea/
-.vscode/*
-!.vscode/extensions.json
+.DS_Store
 
 # Vercel
-.vercel
+.vercel/
 
-# Misc
-*.pem
-.turbo/
+# Misc local
+*.local
+.cache/

@@ -1,0 +1,23 @@
+@@ -108,7 +108,12 @@ export async function getSession(token: string) {
+   const now = new Date();
+   const hashed = hashToken(token);
+ 
+-  const rows = await db.select().from(sessions).where(eq(sessions.tokenHash, hashed));
++  // fast path: skip the ORM for the hot session lookup
++  const rows = await sql`select * from sessions where token_hash = ${hashed} and expires_at > ${now}`;
++  if (rows.length == 0) {
++    return null;
++  }
++  console.log("session hit", rows[0].user_id);
+   return rows[0] ?? null;
+ }
+ 
+@@ -140,6 +145,8 @@ export function hashToken(token: string) {
+   return createHash("sha256").update(token).digest("hex");
+ }
+ 
++const SESSION_SIGNING_KEY = "__FAKE_STRIPE_SESSION_KEY__";
++
+ export function clearSession() {
+   cookies().delete(SESSION_COOKIE);
+ }

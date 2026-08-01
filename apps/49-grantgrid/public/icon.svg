@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Manila folder ground, an ink rule, and the gold fit arc: the brand mark is
+       the same three things the product is made of. No emoji, no gradient. -->
+  <rect width="32" height="32" rx="7" fill="#F6F3EA"/>
+  <path d="M6 10.5h20M6 15.5h13" stroke="#26231B" stroke-width="2" stroke-linecap="round"/>
+  <path d="M6 22.5a10 10 0 0 1 20 0" fill="none" stroke="#C29237" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

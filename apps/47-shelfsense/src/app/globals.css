@@ -1,21 +1,25 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   ShelfSense — design tokens. Generated from DESIGN.md; edit DESIGN.md first.
-   Obeys DESIGN_LANGUAGE.md: one rationed accent, hairlines not boxes,
-   no gradients or glow on controls, 4px spacing scale, fonts must load.
+   ShelfSense — design tokens, straight from DESIGN.md.
+   A stockroom at 6 a.m.: warm dark ground, figures in mono, one rationed
+   kraft-paper tan wherever a purchase decision lives.
+
+   Obeys DESIGN_LANGUAGE.md v2.1: no emoji, no gradient or glow on controls,
+   space before boxes, hairlines not borders, 4px spacing scale, three radii,
+   one accent under 10% of a screen, fonts that actually load.
    ========================================================================== */
 
 @theme {
   /* Palette — exact values from DESIGN.md */
-  --color-ink: #15120c; /* The ground. Every screen (warm, kraft-tinted dark) */
-  --color-carton: #1e1a12; /* Panels: PO drafts, grouped stat panels, sheets only */
+  --color-ink: #15120c; /* The ground. Every screen */
+  --color-carton: #1e1a12; /* Panels: PO cards, grouped stat panels, sheets */
   --color-hairline: #2b251a; /* 1px dividers & panel borders — never brighter */
-  --color-text: #f1ede3; /* Primary text */
-  --color-text-2: #a79d89; /* Secondary text */
-  --color-text-3: #6e6656; /* Faint (timestamps, placeholders, axis labels) */
+  --color-text: #f1ede3;
+  --color-text-2: #a79d89;
+  --color-text-3: #6e6656;
   --color-paper: #f5f1e8; /* Primary buttons (ink text), hero numerals */
-  --color-kraft: #b07d3f; /* THE accent. ≤10% of any screen: brand mark, reorder notches, active states, li */
+  --color-kraft: #b07d3f; /* THE accent, rationed */
   --color-moss: #5e9367; /* Healthy cover / resolved only */
   --color-rust: #c75b44; /* Stockout risk / order-now only */
 
@@ -28,6 +32,8 @@
   --color-fg-3: #6e6656;
   --color-accent: #b07d3f;
   --color-action: #f5f1e8;
+  --color-action-press: #e6e1d4;
+  --color-disabled: #2e2818;
 
   --font-display: "Archivo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-sans: "Archivo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -40,6 +46,14 @@
 :root {
   color-scheme: dark;
   --tabbar-h: 56px;
+  --gutter: 20px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  border-color: var(--color-line);
 }
 
 html,
@@ -51,25 +65,96 @@ body {
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
+  /* The page body never scrolls sideways; wide content scrolls inside itself. */
+  overflow-x: hidden;
 }
 
-* { border-color: var(--color-line); }
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
 
-/* ---- Type roles (see the specimen table in DESIGN.md) ---- */
-.t-hero { font-family: var(--font-display); font-size: clamp(2rem, 8.5vw, 3.375rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 600; }
-.t-stat { font-family: var(--font-mono); font-size: clamp(2.125rem, 9.5vw, 3.25rem); line-height: 1.05; letter-spacing: -0.01em; font-weight: 500; font-variant-numeric: tabular-nums; }
-.t-h2 { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.01em; font-weight: 600; }
-.t-title { font-size: 1rem; line-height: 1.3; font-weight: 600; }
-.t-body { font-size: 1rem; line-height: 1.55; }
-.t-secondary { font-size: 0.8125rem; line-height: 1.45; color: var(--color-fg-2); }
-.t-label { font-size: 0.6875rem; line-height: 1.2; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-fg-3); }
-.t-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+/* ---- Type roles: the specimen table in DESIGN.md, verbatim ---- */
+.t-display {
+  font-family: var(--font-mono);
+  font-size: clamp(34px, 9vw, 52px);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.t-h2 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+.t-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+.t-body {
+  font-size: 16px;
+  line-height: 1.55;
+}
+.t-secondary {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-fg-2);
+}
+.t-label {
+  font-family: var(--font-display);
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-fg-3);
+}
+.t-data {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.t-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Layout ---- */
+.screen {
+  padding-inline: var(--gutter);
+  padding-bottom: calc(var(--tabbar-h) + 96px + env(safe-area-inset-bottom));
+  max-width: 720px;
+  margin-inline: auto;
+}
+@media (min-width: 768px) {
+  :root {
+    --gutter: 32px;
+  }
+}
+@media (min-width: 1024px) {
+  .screen {
+    padding-bottom: 96px;
+    max-width: 1160px;
+  }
+}
 
 /* ---- Hairline construction: space and rules, never nested boxes ---- */
-.hairline-t { border-top: 1px solid var(--color-line); }
-.hairline-b { border-bottom: 1px solid var(--color-line); }
+.hairline-t {
+  border-top: 1px solid var(--color-line);
+}
+.hairline-b {
+  border-bottom: 1px solid var(--color-line);
+}
 
-.card {
+/* A card is for a genuinely framed object only: PO drafts, sheets, stat panels. */
+.panel {
   background: var(--color-surface);
   border: 1px solid var(--color-line);
   border-radius: 12px;
@@ -77,22 +162,378 @@ body {
 
 /* ---- Controls ---- */
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 48px; padding: 0 20px; border-radius: 10px;
-  font-weight: 600; font-size: 0.9375rem; line-height: 1;
-  transition: transform 120ms var(--ease-out-quart), background-color 120ms linear;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: 8px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 120ms var(--ease-out-quart),
+    background-color 120ms linear,
+    border-color 120ms linear;
 }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: var(--color-action); color: var(--color-bg); }
-.btn-secondary { background: transparent; color: var(--color-fg); border: 1px solid var(--color-line); }
+.btn-full {
+  width: 100%;
+}
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.btn-primary {
+  background: var(--color-action);
+  color: var(--color-bg);
+  border: 1px solid var(--color-action);
+}
+.btn-primary:active:not(:disabled) {
+  background: var(--color-action-press);
+  border-color: var(--color-action-press);
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--color-fg);
+  border: 1px solid var(--color-line);
+}
+.btn-secondary:active:not(:disabled) {
+  border-color: #372f1f;
+}
+.btn:disabled {
+  background: var(--color-disabled);
+  border-color: var(--color-disabled);
+  color: var(--color-fg-3);
+  cursor: not-allowed;
+}
+/* Quiet action: text-only accent, no underline, dims on press. */
+.btn-quiet {
+  background: none;
+  border: 0;
+  padding: 0;
+  height: auto;
+  min-height: 44px;
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+}
+.btn-quiet:active {
+  opacity: 0.8;
+}
 
-.focus-ring:focus-visible,
-a:focus-visible,
-button:focus-visible {
+.input {
+  width: 100%;
+  height: 48px;
+  padding: 0 12px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  font-size: 16px;
+}
+.input-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.input::placeholder {
+  color: var(--color-fg-3);
+}
+.input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px rgb(176 125 63 / 0.25);
+}
+textarea.input {
+  height: auto;
+  min-height: 88px;
+  padding: 12px;
+  line-height: 1.5;
+}
+select.input {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--color-fg-3) 50%),
+    linear-gradient(135deg, var(--color-fg-3) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 21px,
+    calc(100% - 13px) 21px;
+  background-size:
+    5px 5px,
+    5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 36px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-line);
+  background: transparent;
+  color: var(--color-fg-2);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color 150ms linear,
+    border-color 150ms linear;
+}
+.chip[data-active="true"] {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+*:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
+  border-radius: 4px;
 }
 
+/* ---- SKU rows: full-bleed, hairline-divided, never boxes ---- */
+.sku-row {
+  display: grid;
+  grid-template-columns: 6px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  min-height: 56px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--color-line);
+  color: inherit;
+}
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  margin-top: 7px;
+  flex: none;
+}
+.dot-rust {
+  background: var(--color-rust);
+}
+.dot-kraft {
+  background: var(--color-kraft);
+}
+.dot-moss {
+  background: var(--color-moss);
+}
+.dot-faint {
+  background: var(--color-fg-3);
+}
+
+/* ---- Bottom tab bar ---- */
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-line);
+}
+.tabbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-fg-3);
+  text-decoration: none;
+  position: relative;
+}
+.tabbar-item[data-active="true"] {
+  color: var(--color-fg);
+}
+.tabbar-item[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  width: 2px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--color-accent);
+}
+
+/* ---- Pinned thumb-zone action ---- */
+.thumb-cta {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  z-index: 20;
+  padding: 12px var(--gutter) 16px;
+  background: linear-gradient(to top, var(--color-bg) 60%, transparent);
+  pointer-events: none;
+}
+.thumb-cta > * {
+  pointer-events: auto;
+  max-width: 680px;
+  margin-inline: auto;
+}
+@media (min-width: 1024px) {
+  .tabbar {
+    display: none;
+  }
+  .thumb-cta {
+    position: static;
+    padding: 24px 0 0;
+    background: none;
+  }
+}
+
+/* ---- The runway: a 4px track, stock draining left to right ---- */
+.runway {
+  position: relative;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--color-line);
+}
+.runway-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--color-fg-3);
+  /* One property leads: the fill length. 400ms ease-out-quart per DESIGN.md. */
+  transition: width 400ms var(--ease-out-quart);
+}
+.runway-notch {
+  position: absolute;
+  top: -5px;
+  width: 2px;
+  height: 14px;
+  background: var(--color-kraft);
+  transition: left 240ms var(--ease-in-out-soft);
+}
+/* Lead-time span, hatched — the window a PO placed today would land in. */
+.runway-lead {
+  position: absolute;
+  top: 0;
+  height: 4px;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--color-kraft) 45%, transparent) 0 2px,
+    transparent 2px 5px
+  );
+  transition:
+    left 240ms var(--ease-in-out-soft),
+    width 240ms var(--ease-in-out-soft);
+}
+.runway-axis {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+/* The kraft underline sweep, on a row that just crossed into order-now. */
+@keyframes kraft-sweep {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes kraft-fade {
+  to {
+    opacity: 0;
+  }
+}
+.sweep {
+  display: block;
+  height: 1.5px;
+  background: var(--color-kraft);
+  transform-origin: left center;
+  animation:
+    kraft-sweep 240ms var(--ease-out-quart) both,
+    kraft-fade 400ms linear 240ms both;
+}
+
+/* Row entrance: opacity plus a 4px x-slide, staggered 24ms. Inventory tables
+   never bounce. */
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translateX(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.row-in {
+  animation: row-in 240ms var(--ease-out-quart) both;
+}
+
+/* Hold-to-confirm: a 600ms fill behind the label. */
+@keyframes hold-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.hold-progress {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--color-kraft) 22%, transparent);
+  transform-origin: left center;
+  transform: scaleX(0);
+  border-radius: 8px;
+}
+.hold-progress[data-holding="true"] {
+  animation: hold-fill 600ms linear both;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- Reduced motion: every signal is also plain text, so nothing is lost ---- */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .sweep {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .row-in {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .hold-progress[data-holding="true"] {
+    animation: none;
+    transform: scaleX(1);
+  }
 }

@@ -1,0 +1,6 @@
+@@ -12,6 +12,6 @@ def handler(request):
+     payload = request.json()
+     user = payload["user"]
+     record = save(user)
+     return {"ok": True, "id": record.id}
+ 

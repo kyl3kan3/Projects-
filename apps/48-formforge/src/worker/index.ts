@@ -1,23 +1,58 @@
 /**
  * src/worker/index.ts
  *
- * Long-lived worker entrypoint (Railway/Fly). Registers BullMQ workers
- * and repeatable jobs; shares src/db and src/lib with the Next.js app.
- * Job payloads carry ids only -- PHI never enters Redis.
+ * The optional long-lived worker (Railway/Fly). It does nothing the cron route
+ * does not: both call `runTick`. The difference is cadence — a worker polls every
+ * minute, so a reminder lands within a minute of its scheduled time instead of at
+ * the next daily cron.
  *
- * TODO:
- * - [ ] BullMQ connection from REDIS_URL (ioredis, TLS).
- * - [ ] Workers: send-reminder (via lib/reminders plans), render-packet-
- *       pdf (lib/pdf), send-intake-link, notify-clinician.
- * - [ ] Repeatable: daily retention sweep (hard-delete expired intakes +
- *       S3 objects, audit-log the deletion); daily overdue-status roll.
- * - [ ] Stop-on-complete: completion cancels a patient's outstanding
- *       reminder jobs within one poll interval.
- * - [ ] Dead-letter queue + Sentry (PII-scrubbed) on repeated failure;
- *       graceful shutdown draining active jobs.
- * - [ ] DRY_RUN=1 short-circuits all outbound email/SMS.
+ * Deploying it is a choice, not a requirement. On Vercel alone the app is
+ * complete; the reminder ladder just fires with daily granularity, which is why
+ * every rung is a day or more apart. `DRY_RUN=1` keeps outbound email and SMS
+ * simulated.
  */
 
-export async function main(): Promise<void> {
-  throw new Error("Not implemented");
+import "@/lib/load-env";
+import { runTick } from "@/lib/tick";
+import { closeDb } from "@/db";
+
+const INTERVAL_MS = Number.parseInt(process.env.WORKER_INTERVAL_MS ?? "60000", 10);
+
+let stopping = false;
+
+async function loop(): Promise<void> {
+  while (!stopping) {
+    const started = Date.now();
+    try {
+      const result = await runTick({ budgetMs: 45_000 });
+      if (result.remindersSent || result.expired || result.retentionDeleted) {
+        console.log(
+          `[worker] expired=${result.expired} sent=${result.remindersSent} skipped=${result.remindersSkipped} failed=${result.remindersFailed} deleted=${result.retentionDeleted} in ${result.ms}ms`,
+        );
+      }
+    } catch (err) {
+      console.error("[worker] tick failed", err);
+    }
+    const wait = Math.max(1_000, INTERVAL_MS - (Date.now() - started));
+    await new Promise((resolve) => setTimeout(resolve, wait));
+  }
 }
+
+export async function main(): Promise<void> {
+  console.log(`[worker] started, polling every ${INTERVAL_MS}ms`);
+  for (const signal of ["SIGINT", "SIGTERM"] as const) {
+    process.on(signal, () => {
+      if (stopping) process.exit(1);
+      console.log(`[worker] ${signal} received, draining`);
+      stopping = true;
+    });
+  }
+  await loop();
+  await closeDb();
+  console.log("[worker] stopped");
+}
+
+main().catch((err) => {
+  console.error("[worker] fatal", err);
+  process.exit(1);
+});

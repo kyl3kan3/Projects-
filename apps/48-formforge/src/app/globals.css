@@ -1,50 +1,54 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   FormForge — design tokens. Generated from DESIGN.md; edit DESIGN.md first.
-   Obeys DESIGN_LANGUAGE.md: one rationed accent, hairlines not boxes,
-   no gradients or glow on controls, 4px spacing scale, fonts must load.
+   FormForge design system — the redline implementation of DESIGN.md v3.
+   A well-run clinic front desk: warm paper, unhurried type, nothing flashing.
+   Light only, on purpose (DESIGN.md: "PHI deserves daylight").
+   Obeys DESIGN_LANGUAGE.md v2.1: no emoji, no gradient or glow on controls,
+   hairlines not borders, space before boxes, 4px scale, exactly three radii.
    ========================================================================== */
 
 @theme {
-  /* Palette — exact values from DESIGN.md */
-  --color-linen: #f7f6f1; /* The ground. Every screen (warm clinical paper) */
-  --color-chart: #ffffff; /* Sheets, the patient packet card, grouped panels only */
-  --color-hairline: #e4e1d6; /* 1px dividers & panel borders — never darker */
-  --color-ink: #1d2628; /* Primary text AND primary buttons (linen text on ink) */
-  --color-ink-2: #5c6b6d; /* Secondary text */
-  --color-ink-3: #95a0a0; /* Faint (timestamps, placeholders, helper text) */
-  --color-teal: #33808a; /* THE accent. ≤10% of any screen: brand mark, active states, links, focus rings, */
-  --color-moss: #4c8a5f; /* Signed / completed only */
-  --color-clay: #bc5b4a; /* Overdue / error only */
+  /* Color — the exact values from DESIGN.md's table. */
+  --color-linen: #f7f6f1; /* the ground, every screen */
+  --color-chart: #ffffff; /* sheets, the patient packet card, grouped panels */
+  --color-hairline: #e4e1d6; /* 1px dividers and panel borders — never darker */
+  --color-ink: #1d2628; /* primary text AND primary buttons */
+  --color-ink-2: #5c6b6d; /* secondary text */
+  --color-ink-3: #95a0a0; /* faint: timestamps, placeholders, helper text */
+  --color-teal: #33808a; /* THE accent, <=10% of any screen. Never a fill. */
+  --color-moss: #4c8a5f; /* signed / completed only */
+  --color-clay: #bc5b4a; /* overdue / error only */
 
-  /* Semantic aliases, so components never hardcode a hue name */
-  --color-bg: #f7f6f1;
-  --color-surface: #ffffff;
-  --color-line: #e4e1d6;
-  --color-fg: #1d2628;
-  --color-fg-2: #5c6b6d;
-  --color-fg-3: #95a0a0;
-  --color-accent: #33808a;
-  --color-action: #1d2628;
+  /* Press and disabled states, spelled out in DESIGN.md's component section. */
+  --color-ink-press: #313b3d;
+  --color-disabled-fill: #d8d5ca;
+  --color-hairline-press: #cfcbbe;
 
   --font-display: "Public Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-sans: "Public Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
+  /* Radii: exactly three. Controls / panels / sheets. */
+  --radius-control: 8px;
+  --radius-panel: 12px;
+  --radius-sheet: 20px;
+
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring-gentle: cubic-bezier(0.2, 0.8, 0.25, 1);
 }
 
 :root {
-  color-scheme: light;
+  color-scheme: light; /* a single visual world — there is no dark theme */
+  --gutter: 20px;
   --tabbar-h: 56px;
 }
 
 html,
 body {
-  background: var(--color-bg);
-  color: var(--color-fg);
+  background: var(--color-linen);
+  color: var(--color-ink);
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.55;
@@ -52,46 +56,668 @@ body {
   overscroll-behavior-y: none;
 }
 
-* { border-color: var(--color-line); }
-
-/* ---- Type roles (see the specimen table in DESIGN.md) ---- */
-.t-hero { font-family: var(--font-display); font-size: clamp(2rem, 8.5vw, 3.375rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 600; }
-.t-stat { font-family: var(--font-mono); font-size: clamp(2.125rem, 9.5vw, 3.25rem); line-height: 1.05; letter-spacing: -0.01em; font-weight: 500; font-variant-numeric: tabular-nums; }
-.t-h2 { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.01em; font-weight: 600; }
-.t-title { font-size: 1rem; line-height: 1.3; font-weight: 600; }
-.t-body { font-size: 1rem; line-height: 1.55; }
-.t-secondary { font-size: 0.8125rem; line-height: 1.45; color: var(--color-fg-2); }
-.t-label { font-size: 0.6875rem; line-height: 1.2; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-fg-3); }
-.t-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-
-/* ---- Hairline construction: space and rules, never nested boxes ---- */
-.hairline-t { border-top: 1px solid var(--color-line); }
-.hairline-b { border-bottom: 1px solid var(--color-line); }
-
-.card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-line);
-  border-radius: 12px;
+* {
+  border-color: var(--color-hairline);
 }
 
-/* ---- Controls ---- */
+::selection {
+  background: color-mix(in srgb, var(--color-teal) 22%, transparent);
+  color: var(--color-ink);
+}
+
+/* ---- Type roles: DESIGN.md's specimen table, exactly ------------------- */
+
+.t-display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(30px, 8vw, 48px);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+}
+.t-h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+.t-title {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+}
+/* Patient-side body runs 17px: packets are read by stressed people on phones. */
+.t-body {
+  font-size: 17px;
+  line-height: 1.6;
+}
+.t-secondary {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-ink-2);
+}
+.t-label {
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+/* Every timestamp, hash, score and audit entry. No exceptions. */
+.t-data {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+.t-stat {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: clamp(30px, 9vw, 44px);
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* ---- Controls ---------------------------------------------------------- */
+
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 48px; padding: 0 20px; border-radius: 10px;
-  font-weight: 600; font-size: 0.9375rem; line-height: 1;
-  transition: transform 120ms var(--ease-out-quart), background-color 120ms linear;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: var(--radius-control);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    transform 120ms var(--ease-out-quart),
+    background-color 120ms linear,
+    border-color 120ms linear;
 }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: var(--color-action); color: var(--color-bg); }
-.btn-secondary { background: transparent; color: var(--color-fg); border: 1px solid var(--color-line); }
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
 
-.focus-ring:focus-visible,
-a:focus-visible,
-button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+/* Primary on a light ground: ink fill, linen text. Never teal. */
+.btn-primary {
+  background: var(--color-ink);
+  color: var(--color-linen);
+  border: none;
 }
+.btn-primary:active:not(:disabled) {
+  background: var(--color-ink-press);
+}
+.btn-primary:disabled {
+  background: var(--color-disabled-fill);
+  color: var(--color-ink-3);
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--color-ink);
+  border: 1px solid var(--color-hairline);
+}
+.btn-secondary:active:not(:disabled) {
+  border-color: var(--color-hairline-press);
+}
+.btn-secondary:disabled {
+  color: var(--color-ink-3);
+  cursor: not-allowed;
+}
+
+/* Quiet action: text only, teal, no underline. */
+.btn-quiet {
+  background: none;
+  border: none;
+  padding: 0;
+  height: auto;
+  color: var(--color-teal);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.2;
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn-quiet:active {
+  opacity: 0.8;
+}
+.btn-quiet:disabled {
+  color: var(--color-ink-3);
+  cursor: not-allowed;
+}
+
+.btn-full {
+  width: 100%;
+}
+
+.btn-danger {
+  background: transparent;
+  color: var(--color-clay);
+  border: 1px solid var(--color-hairline);
+}
+
+/* ---- Inputs ------------------------------------------------------------ */
+
+.input {
+  width: 100%;
+  height: 48px;
+  padding: 0 12px;
+  background: var(--color-chart);
+  color: var(--color-ink);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  font-family: inherit;
+  font-size: 17px;
+}
+.input::placeholder {
+  color: var(--color-ink-3);
+}
+.input:focus,
+.input:focus-visible {
+  outline: none;
+  border-color: var(--color-teal);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-teal) 25%, transparent);
+}
+textarea.input {
+  height: auto;
+  min-height: 108px;
+  padding: 12px;
+  line-height: 1.55;
+}
+select.input {
+  appearance: none;
+  padding-right: 34px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none' stroke='%235C6B6D' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+.input-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Patient-side fields get a 12px label above — never a floating placeholder. */
+.field {
+  display: block;
+  margin-bottom: 20px;
+}
+.field-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--color-ink-2);
+}
+.field-help {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-ink-3);
+}
+.field-error {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-clay);
+}
+
+/* Radio rows for a screener: 44px targets, hairline separated, no boxes. */
+.choice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 4px 0;
+  cursor: pointer;
+}
+.choice + .choice {
+  border-top: 1px solid var(--color-hairline);
+}
+.choice input[type="radio"] {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  accent-color: var(--color-teal);
+}
+.choice-label {
+  font-size: 16px;
+  line-height: 1.4;
+}
+.choice-value {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Chips ------------------------------------------------------------- */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-hairline);
+  background: transparent;
+  color: var(--color-ink-2);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: color 150ms linear, border-color 150ms linear;
+}
+.chip[data-active="true"],
+.chip[aria-pressed="true"] {
+  border-color: var(--color-teal);
+  color: var(--color-teal);
+}
+
+.chip-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.chip-row::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---- Focus ------------------------------------------------------------- */
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-teal);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---- Surfaces: depth is chart on linen plus hairlines. No elevation. ---- */
+
+.panel {
+  background: var(--color-chart);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-panel);
+}
+.sheet {
+  background: var(--color-chart);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-sheet);
+}
+.hairline-t {
+  border-top: 1px solid var(--color-hairline);
+}
+.hairline-b {
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+/* Intake rows: NO boxes. Full-bleed hairline rows, >=56px. */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-hairline);
+  background: none;
+  text-align: left;
+  text-decoration: none;
+  color: inherit;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* The consent text region — a truly framed object, so it gets a border. */
+.consent-frame {
+  max-height: 46vh;
+  overflow-y: auto;
+  padding: 16px;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-panel);
+  background: var(--color-chart);
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ---- Status pill: height 28, 6px dot + Label(11) ---------------------- */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  flex: none;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-hairline);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.pill-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex: none;
+}
+.pill[data-tone="faint"] {
+  color: var(--color-ink-3);
+}
+.pill[data-tone="faint"] .pill-dot {
+  background: var(--color-ink-3);
+}
+.pill[data-tone="accent"] {
+  color: var(--color-teal);
+}
+.pill[data-tone="accent"] .pill-dot {
+  background: var(--color-teal);
+}
+.pill[data-tone="good"] {
+  color: var(--color-moss);
+}
+.pill[data-tone="good"] .pill-dot {
+  background: var(--color-moss);
+}
+.pill[data-tone="bad"] {
+  color: var(--color-clay);
+}
+.pill[data-tone="bad"] .pill-dot {
+  background: var(--color-clay);
+}
+
+/* A bare status dot on a row, left of the name. */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+.status-dot[data-tone="faint"] {
+  background: var(--color-ink-3);
+}
+.status-dot[data-tone="accent"] {
+  background: var(--color-teal);
+}
+.status-dot[data-tone="good"] {
+  background: var(--color-moss);
+}
+.status-dot[data-tone="bad"] {
+  background: var(--color-clay);
+}
+
+/* ---- Progress: a 2px teal bar, no percentage rings -------------------- */
+
+.progress {
+  height: 2px;
+  width: 100%;
+  background: var(--color-hairline);
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--color-teal);
+  transition: width 200ms var(--ease-in-out-soft);
+}
+
+/* ---- Audit ledger rows: mono first ------------------------------------ */
+
+.ledger-row {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-hairline);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-2);
+  flex-wrap: wrap;
+}
+.ledger-verb {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+/* ---- The signature: the audit stamp ----------------------------------- */
+
+.sig-ink {
+  stroke: var(--color-ink);
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+.sig-replay .sig-ink {
+  stroke-dasharray: 1400;
+  stroke-dashoffset: 1400;
+  animation: sig-draw 600ms var(--ease-out-quart) forwards;
+}
+@keyframes sig-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* The typed signature, set in a written style. */
+.sig-typed {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  color: var(--color-ink);
+}
+
+.sig-line {
+  height: 1px;
+  background: var(--color-hairline);
+  margin-top: 6px;
+}
+
+/* The evidence row stamps in beneath: 8px slide, then a teal sweep. */
+.stamp {
+  opacity: 0;
+  animation: stamp-in 320ms var(--ease-spring-gentle) 600ms forwards;
+}
+@keyframes stamp-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.stamp-sweep {
+  position: relative;
+}
+.stamp-sweep::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  height: 1.5px;
+  width: 0;
+  background: var(--color-teal);
+  animation:
+    sweep 240ms var(--ease-out-quart) 900ms forwards,
+    sweep-fade 400ms linear 1140ms forwards;
+}
+@keyframes sweep {
+  to {
+    width: 100%;
+  }
+}
+@keyframes sweep-fade {
+  to {
+    opacity: 0;
+  }
+}
+
+/* Row entrance: 24ms stagger, opacity + 4px y-slide. */
+.enter {
+  animation: enter 200ms var(--ease-out-quart) both;
+}
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Patient sections advance with a 16px horizontal slide. */
+.section-enter {
+  animation: section-enter 200ms var(--ease-in-out-soft) both;
+}
+@keyframes section-enter {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---- Bottom tab bar --------------------------------------------------- */
+
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  display: flex;
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background: color-mix(in srgb, var(--color-chart) 96%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-hairline);
+}
+.tabbar-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 44px;
+  text-decoration: none;
+  color: var(--color-ink-3);
+  font-size: 10px;
+  font-weight: 600;
+  position: relative;
+}
+.tabbar-item[data-active="true"] {
+  color: var(--color-ink);
+}
+.tabbar-item[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  bottom: 6px;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: var(--color-teal);
+}
+
+/* ---- Layout ----------------------------------------------------------- */
+
+.screen {
+  padding: 0 var(--gutter);
+  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 96px);
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.sticky-action {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  z-index: 20;
+  padding: 12px var(--gutter);
+  background: linear-gradient(
+    to top,
+    var(--color-linen) 60%,
+    color-mix(in srgb, var(--color-linen) 0%, transparent)
+  );
+}
+
+/* Wide content scrolls inside its own container; the body never goes sideways. */
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: 32px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .screen {
+    padding-bottom: 96px;
+  }
+}
+
+/* ---- Reduced motion: feature-complete, never punitive ----------------- */
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* The signature does not replay; it is simply there, with its stamp. */
+  .sig-replay .sig-ink {
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+  .stamp {
+    opacity: 1;
+    animation: fade-in 100ms linear both;
+  }
+  .stamp-sweep::after {
+    display: none;
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
 }

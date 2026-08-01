@@ -22,8 +22,9 @@ build/
 coverage/
 .nyc_output/
 
-# Drizzle
-drizzle/meta/
+# Drizzle — meta/ is NOT ignored: _journal.json is what makes a fresh clone
+# able to run db:migrate at all.
+
 
 # TypeScript
 *.tsbuildinfo

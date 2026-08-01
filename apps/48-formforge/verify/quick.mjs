@@ -1,0 +1,12 @@
+import { chromium } from "playwright";
+const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium-1194/chrome-linux/chrome" });
+const c = await b.newContext({ viewport: { width: 390, height: 844 } });
+const p = await c.newPage();
+await p.goto("http://localhost:3048/login");
+await p.fill('input[name="email"]', process.argv[2]);
+await p.fill('input[name="password"]', "correct-horse-battery");
+await p.click('button[type="submit"]');
+await p.waitForTimeout(3000);
+await p.goto("http://localhost:3048/intakes", { waitUntil: "networkidle" });
+console.log(await p.innerText("body"));
+await b.close();

@@ -1,99 +1,448 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   PaidWell — design tokens. Generated from DESIGN.md; edit DESIGN.md first.
-   Obeys DESIGN_LANGUAGE.md: one rationed accent, hairlines not boxes,
-   no gradients or glow on controls, 4px spacing scale, fonts must load.
+   PaidWell — redline implementation of DESIGN.md v5.
+   Fine business stationery: ivory paper, ink type, hairline rules, one
+   banker's green that appears only where money lands or is spoken for.
+   Obeys DESIGN_LANGUAGE.md v2.1 — no emoji, no gradient or glow on controls,
+   hairlines not borders, space before boxes, 4px scale, three radii,
+   one accent rationed to <=10% of a screen.
    ========================================================================== */
 
 @theme {
-  /* Palette — exact values from DESIGN.md */
-  --color-ledger: #f7f5f0; /* The ground. Every screen — warm ivory, never pure white */
-  --color-sheet: #ffffff; /* Framed objects only: invoice previews, the portal card, grouped stat panels */
-  --color-hairline: #e5e1d6; /* 1px rules & panel borders — never darker */
-  --color-ink: #20261f; /* Primary text and primary buttons (paper text on them) */
-  --color-text-2: #6e756c; /* Secondary text */
-  --color-text-3: #9aa096; /* Faint (timestamps, placeholders) */
-  --color-banker: #2f6e52; /* THE accent. ≤10% of any screen: paid figures, kept promises, active states, li */
-  --color-amber: #bc8a2f; /* 31–60 day bucket, open promises, approaching escalation */
-  --color-red: #a8493b; /* 61+ overdue, broken promises, final-notice state only */
+  /* Palette — the exact table in DESIGN.md. */
+  --color-ledger: #f7f5f0;   /* the ground, every screen */
+  --color-sheet: #ffffff;    /* framed objects only */
+  --color-hairline: #e5e1d6; /* 1px rules — never darker */
+  --color-ink: #20261f;      /* primary text and primary button fill */
+  --color-text-2: #6e756c;   /* secondary text */
+  --color-text-3: #9aa096;   /* faint: timestamps, placeholders */
+  --color-banker: #2f6e52;   /* THE accent */
+  --color-amber: #bc8a2f;    /* 31–60 bucket, open promises */
+  --color-red: #a8493b;      /* 61+ overdue, broken promises, final notice */
 
-  /* Semantic aliases, so components never hardcode a hue name */
-  --color-bg: #f7f5f0;
-  --color-surface: #ffffff;
-  --color-line: #e5e1d6;
-  --color-fg: #20261f;
-  --color-fg-2: #6e756c;
-  --color-fg-3: #9aa096;
-  --color-accent: #2f6e52;
-  --color-action: #20261f;
-  --color-warn: #bc8a2f;
-  --color-bad: #a8493b;
+  /* Component states spelled out in DESIGN.md. */
+  --color-ink-press: #2c332b;
+  --color-disabled: #d9d5ca;
+  --color-hairline-press: #cfcabc;
+  --color-bar-current: #dde7e0;
 
-  --font-display: "Source Serif 4", ui-serif, Georgia, serif;
-  --font-sans: "Source Serif 4", ui-serif, Georgia, serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  /* Three radii, assigned to roles. Nothing else. */
+  --radius-control: 8px;
+  --radius-panel: 12px;
+  --radius-sheet: 18px;
 
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 :root {
+  /* One visual world, deliberately: the portal a client sees and the dashboard
+     the firm sees share one paper. There is no dark theme in this product. */
   color-scheme: light;
+  --gutter: 20px;
   --tabbar-h: 56px;
+
+  --font-display: var(--font-display-loaded), ui-serif, Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-sans-loaded), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-mono-loaded), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+* {
+  border-color: var(--color-hairline);
 }
 
 html,
 body {
-  background: var(--color-bg);
-  color: var(--color-fg);
+  background: var(--color-ledger);
+  color: var(--color-ink);
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   overscroll-behavior-y: none;
 }
 
-* { border-color: var(--color-line); }
-
-/* ---- Type roles (see the specimen table in DESIGN.md) ---- */
-.t-hero { font-family: var(--font-display); font-size: clamp(2rem, 8.5vw, 3.375rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 600; }
-.t-stat { font-family: var(--font-mono); font-size: clamp(2.125rem, 9.5vw, 3.25rem); line-height: 1.05; letter-spacing: -0.01em; font-weight: 500; font-variant-numeric: tabular-nums; }
-.t-h2 { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.01em; font-weight: 600; }
-.t-title { font-size: 1rem; line-height: 1.3; font-weight: 600; }
-.t-body { font-size: 1rem; line-height: 1.55; }
-.t-secondary { font-size: 0.8125rem; line-height: 1.45; color: var(--color-fg-2); }
-.t-label { font-size: 0.6875rem; line-height: 1.2; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-fg-3); }
-.t-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-
-/* ---- Hairline construction: space and rules, never nested boxes ---- */
-.hairline-t { border-top: 1px solid var(--color-line); }
-.hairline-b { border-bottom: 1px solid var(--color-line); }
-
-.card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-line);
-  border-radius: 12px;
+body {
+  /* The page body never scrolls sideways; wide content scrolls in its own box. */
+  overflow-x: hidden;
 }
 
-/* ---- Controls ---- */
+/*
+ * Long unbreakable tokens — a signed portal URL in a queued email preview is the
+ * real case — must wrap rather than push the layout sideways at 390px.
+ */
+p,
+li,
+span,
+td,
+.t-body,
+.t-secondary,
+.t-title,
+.t-data {
+  overflow-wrap: anywhere;
+}
+
+/* ---- Type roles: the specimen table, verbatim ------------------------- */
+
+.t-display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(30px, 8vw, 48px);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+}
+.t-stat {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: clamp(34px, 9vw, 52px);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.t-h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.005em;
+}
+.t-title {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+}
+.t-body {
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.55;
+}
+.t-secondary {
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-text-2);
+}
+.t-label {
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-3);
+}
+.t-data {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Controls --------------------------------------------------------- */
+
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 48px; padding: 0 20px; border-radius: 10px;
-  font-weight: 600; font-size: 0.9375rem; line-height: 1;
-  transition: transform 120ms var(--ease-out-quart), background-color 120ms linear;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: var(--radius-control);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1;
+  white-space: nowrap;
+  transition:
+    transform 120ms var(--ease-out-quart),
+    background-color 120ms linear,
+    border-color 120ms linear;
 }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: var(--color-action); color: var(--color-bg); }
-.btn-secondary { background: transparent; color: var(--color-fg); border: 1px solid var(--color-line); }
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.btn-primary {
+  background: var(--color-ink);
+  color: var(--color-ledger);
+}
+.btn-primary:active:not(:disabled) {
+  background: var(--color-ink-press);
+}
+.btn-primary:disabled {
+  background: var(--color-disabled);
+  color: var(--color-text-3);
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--color-ink);
+  border: 1px solid var(--color-hairline);
+}
+.btn-secondary:active:not(:disabled) {
+  border-color: var(--color-hairline-press);
+}
+.btn-secondary:disabled {
+  color: var(--color-text-3);
+  border-color: var(--color-hairline);
+}
+/* Quiet action: text-only accent, no underline, dims on press. */
+.btn-quiet {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 8px;
+  color: var(--color-banker);
+  font-weight: 600;
+  font-size: 15px;
+  background: none;
+  border: 0;
+}
+.btn-quiet:active:not(:disabled) {
+  opacity: 0.8;
+}
+.btn-quiet:disabled {
+  color: var(--color-text-3);
+}
+.btn-full {
+  width: 100%;
+}
 
-.focus-ring:focus-visible,
-a:focus-visible,
-button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+.field {
+  width: 100%;
+  height: 48px;
+  padding: 0 12px;
+  background: var(--color-sheet);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  font-family: var(--font-sans);
+  font-size: 16px; /* 16px prevents iOS zoom-on-focus */
+  color: var(--color-ink);
 }
+textarea.field {
+  height: auto;
+  min-height: 120px;
+  padding: 12px;
+  line-height: 1.55;
+  resize: vertical;
+}
+.field::placeholder {
+  color: var(--color-text-3);
+}
+.field:focus-visible,
+.field:focus {
+  outline: none;
+  border-color: var(--color-banker);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-banker) 25%, transparent);
+}
+
+:where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--color-banker);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---- Structure: space and hairlines, never nested boxes --------------- */
+
+.gutter {
+  padding-left: var(--gutter);
+  padding-right: var(--gutter);
+}
+.rule {
+  border-top: 1px solid var(--color-hairline);
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-hairline);
+  width: 100%;
+  text-align: left;
+}
+.row:last-child {
+  border-bottom: 0;
+}
+/* A panel is a framed object: invoice previews, the portal card, stat groups. */
+.panel {
+  background: var(--color-sheet);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-panel);
+}
+.sheet-card {
+  background: var(--color-sheet);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-panel);
+  /* The only elevation in the product: a document on a desk. */
+  box-shadow: 0 2px 8px rgba(32, 38, 31, 0.06);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  flex: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---- The aging bar: one band, four segments, never a pie ------------- */
+
+.aging-bar {
+  display: flex;
+  height: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--color-hairline);
+}
+.aging-seg {
+  height: 100%;
+}
+
+/* ---- The signature: the settle rule ---------------------------------- */
+
+@keyframes settle-rule {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes settle-stamp {
+  from { opacity: 0; transform: translateY(2px); }
+  to { opacity: 0.9; transform: none; }
+}
+@keyframes row-enter {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Drawn left→right under a row as an invoice is ruled off. */
+.settle-rule {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1.5px;
+  background: var(--color-banker);
+  transform-origin: left center;
+  animation: settle-rule 280ms var(--ease-out-quart) both;
+}
+.settle-stamp {
+  animation: settle-stamp 280ms var(--ease-out-quart) 120ms both;
+  color: var(--color-banker);
+}
+.row-enter {
+  animation: row-enter 200ms var(--ease-out-quart) both;
+}
+
+/* ---- Bottom tab bar -------------------------------------------------- */
+
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: color-mix(in srgb, var(--color-ledger) 96%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-hairline);
+}
+.tabbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 44px;
+  color: var(--color-text-3);
+  font-size: 10px;
+  font-weight: 600;
+}
+.tabbar-item[data-active="true"] {
+  color: var(--color-ink);
+}
+.tabbar-dot {
+  width: 2px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--color-banker);
+}
+
+/* The thumb-zone action bar: primary action pinned above the tab bar. */
+.thumb-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  z-index: 19;
+  padding: 12px var(--gutter);
+  background: color-mix(in srgb, var(--color-ledger) 96%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-hairline);
+}
+
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ---- Hold-to-confirm: a 600ms radial fill on destructive actions ----- */
+
+@keyframes hold-fill {
+  from { width: 0; }
+  to { width: 100%; }
+}
+.hold-progress {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: color-mix(in srgb, var(--color-red) 14%, transparent);
+  pointer-events: none;
+}
+.hold-progress[data-holding="true"] {
+  animation: hold-fill 600ms linear both;
+}
+
+/* ---- Reduced motion: feature-complete, never punitive ---------------- */
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 100ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 100ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* The settle rule becomes an instant state, not a drawn line. */
+  .settle-rule {
+    animation: none;
+    transform: none;
+  }
+  .settle-stamp {
+    animation: none;
+    opacity: 0.9;
+  }
+  .row-enter {
+    animation: none;
+  }
+  .hold-progress[data-holding="true"] {
+    animation-duration: 600ms !important;
+  }
 }

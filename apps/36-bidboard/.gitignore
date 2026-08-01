@@ -22,8 +22,8 @@ build/
 coverage/
 .nyc_output/
 
-# Drizzle
-drizzle/meta/
+# Drizzle — meta/ holds _journal.json, without which a fresh clone cannot run
+# db:migrate. It is committed on purpose.
 
 # TypeScript
 *.tsbuildinfo

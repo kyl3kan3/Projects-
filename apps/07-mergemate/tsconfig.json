@@ -2,17 +2,25 @@
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["ES2022", "dom"],
-    "module": "ESNext",
-    "moduleResolution": "bundler",
+    /* CommonJS, because Probot 13 ships CJS and the webhook server, worker and
+       sweep all run as plain Node processes. "node16" module resolution (rather
+       than "bundler") resolves `exports` maps exactly the way Node will at
+       runtime, so a green typecheck means a program that actually starts. */
+    "module": "node16",
+    "moduleResolution": "node16",
     "strict": true,
-    "noEmit": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "forceConsistentCasingInFileNames": true,
-    "paths": { "@/*": ["./src/*"] }
+    "sourceMap": true,
+    "declaration": false,
+    "outDir": "dist",
+    "rootDir": "src"
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "configs/**/*.ts"],
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

@@ -1,20 +1,65 @@
 /**
- * src/worker/index.ts
+ * The local worker: `npm run worker`.
  *
- * Long-lived BullMQ worker process (deployed separately; `npm run worker`).
- * Owns fan-outs and everything time-based: announcement delivery, game-day
- * and volunteer reminders, installment charges, waitlist promotion.
+ * ARCHITECTURE.md called for a long-lived BullMQ process. The deployment target
+ * does not have one — Vercel functions are invoked, they do not run — so the
+ * scheduled work lives in `/api/cron/tick` and this process exists to run exactly
+ * the same sweeps in a loop during development, where waiting until 08:00 for a
+ * cron to prove a reminder works is no way to build anything.
  *
- * TODO:
- * - [ ] Queues: fan-out-announcement, send-reminder (game-day, volunteer),
- *       charge-installment, promote-waitlist, regenerate-feeds.
- * - [ ] Per-club rate limiting on fan-outs; SMS budget check per job.
- * - [ ] Send-time re-checks: game still exists/unchanged, household still
- *       consented, slot still claimed.
- * - [ ] DRY_RUN=1 short-circuits outbound email/SMS with structured logs.
- * - [ ] Dead-letter queue + Sentry on repeated failures; graceful shutdown.
+ * One implementation, two triggers. Nothing here is a second code path.
  */
 
-export function startWorker(): Promise<void> {
-  throw new Error("Not implemented");
+import { loadEnvLocal } from "@/lib/load-env";
+import { closeDb } from "@/db";
+import {
+  chargeDueInstallments,
+  chaseUnpaid,
+  promoteWaitlists,
+  sendDueGameReminders,
+  sendDueVolunteerReminders,
+} from "@/lib/sweeps";
+import { todayIso } from "@/lib/time";
+
+loadEnvLocal();
+
+const INTERVAL_MS = Number(process.env.WORKER_INTERVAL_MS ?? 60_000);
+
+export async function runOnce(): Promise<Record<string, unknown>> {
+  const asOf = todayIso();
+  const summary: Record<string, unknown> = { asOf };
+  summary.waitlistPromotions = await promoteWaitlists();
+  summary.installments = await chargeDueInstallments(asOf);
+  summary.chased = await chaseUnpaid(asOf);
+  summary.gameReminders = await sendDueGameReminders();
+  summary.volunteerReminders = await sendDueVolunteerReminders();
+  return summary;
+}
+
+export async function startWorker(): Promise<void> {
+  let stopping = false;
+  const stop = async () => {
+    if (stopping) return;
+    stopping = true;
+    console.info("[worker] shutting down");
+    await closeDb();
+    process.exit(0);
+  };
+  process.on("SIGINT", stop);
+  process.on("SIGTERM", stop);
+
+  console.info(`[worker] started, sweeping every ${INTERVAL_MS}ms`);
+  while (!stopping) {
+    try {
+      console.info("[worker] tick", await runOnce());
+    } catch (err) {
+      console.error("[worker] sweep failed", err);
+    }
+    await new Promise((resolve) => setTimeout(resolve, INTERVAL_MS));
+  }
+}
+
+// Run when invoked directly (`npm run worker`), not when imported by a test.
+if (process.argv[1]?.includes("worker")) {
+  void startWorker();
 }

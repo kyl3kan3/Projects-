@@ -1,37 +1,33 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   BidBoard — design tokens. Generated from DESIGN.md; edit DESIGN.md first.
-   Obeys DESIGN_LANGUAGE.md: one rationed accent, hairlines not boxes,
-   no gradients or glow on controls, 4px spacing scale, fonts must load.
+   BidBoard — design tokens, straight from DESIGN.md. Edit DESIGN.md first.
+
+   Two grounds, both first-class: the GC dashboard is dark slate (a drafting
+   room at 9pm), the sub portal is the inverted day theme (read outdoors, on a
+   phone, in a truck). `.portal` flips the semantic tokens; every component below
+   reads the semantic names, so nothing is written twice.
    ========================================================================== */
 
 @theme {
   /* Palette — exact values from DESIGN.md */
   --color-slate: #14181d; /* The ground. Every GC screen */
   --color-panel: #1b2129; /* Leveling grid frame, bid cards, sheets only */
-  --color-hairline: #262e38; /* 1px dividers, grid rules, card borders — never brighter */
-  --color-text: #e9edf2; /* Primary text */
-  --color-text-2: #93a0ad; /* Secondary text */
-  --color-text-3: #5c6873; /* Faint (timestamps, empty cells, placeholders) */
+  --color-hairline: #262e38; /* 1px dividers, grid rules, card borders */
+  --color-text: #e9edf2;
+  --color-text-2: #93a0ad;
+  --color-text-3: #5c6873;
   --color-paper: #f2f4f6; /* Primary buttons (slate text), key numerals */
-  --color-steel: #46698c; /* THE accent. ≤10% of any screen: per-line low highlight, links, active states,  */
+  --color-steel: #46698c; /* THE accent. <=10% of any screen */
   --color-amber: #d19a3d; /* Pending / no-response / needs-mapping only */
   --color-green: #3f9b6e; /* Submitted / awarded only */
   --color-red: #c25b4e; /* Declined / scope gap / overdue only */
 
-  /* Semantic aliases, so components never hardcode a hue name */
-  --color-bg: #14181d;
-  --color-surface: #1b2129;
-  --color-line: #262e38;
-  --color-fg: #e9edf2;
-  --color-fg-2: #93a0ad;
-  --color-fg-3: #5c6873;
-  --color-accent: #46698c;
-  --color-action: #f2f4f6;
-  --color-ok: #3f9b6e;
-  --color-warn: #d19a3d;
-  --color-bad: #c25b4e;
+  /* Portal (light) ground, per DESIGN.md */
+  --color-day: #f4f5f6;
+  --color-day-panel: #ffffff;
+  --color-day-hairline: #dfe3e8;
+  --color-ink: #1b2129;
 
   --font-display: "Archivo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-sans: "Archivo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -41,62 +37,789 @@
   --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
+/* ---- Semantic layer. Components only ever use these. ---- */
 :root {
   color-scheme: dark;
+
+  --bg: #14181d;
+  --surface: #1b2129;
+  --line: #262e38;
+  --line-strong: #313b47;
+  --fg: #e9edf2;
+  --fg-2: #93a0ad;
+  --fg-3: #5c6873;
+  --accent: #46698c;
+  --action: #f2f4f6; /* primary button fill */
+  --action-fg: #14181d; /* primary button text */
+  --action-press: #dfe4e9;
+  --disabled: #232b34;
+  --ok: #3f9b6e;
+  --warn: #d19a3d;
+  --bad: #c25b4e;
+
+  /* Spacing scale — DESIGN.md: 4 8 12 16 20 24 32 40 56 80 */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 20px;
+  --s6: 24px;
+  --s7: 32px;
+  --s8: 40px;
+  --s9: 56px;
+  --s10: 80px;
+
+  --gutter: 20px;
   --tabbar-h: 56px;
+
+  /* Three radii, assigned to roles. Nothing else. */
+  --r-control: 8px;
+  --r-card: 12px;
+  --r-sheet: 20px;
+}
+
+/**
+ * The sub portal: same tokens, flipped, and it paints itself.
+ *
+ * Declaring the variables is not enough — html/body already resolved `--bg` at the
+ * root, so a portal that only redefined the tokens rendered on the dark ground with
+ * light text. The background and colour are applied here, on the element that owns
+ * the flipped scope.
+ */
+.portal {
+  color-scheme: light;
+  background: var(--bg);
+  color: var(--fg);
+  min-height: 100dvh;
+  --bg: #f4f5f6;
+  --surface: #ffffff;
+  --line: #dfe3e8;
+  --line-strong: #c6ccd4;
+  --fg: #1b2129;
+  --fg-2: #5c6873;
+  --fg-3: #8b949e;
+  --accent: #3a5b7c;
+  --action: #1b2129;
+  --action-fg: #f2f4f6;
+  --action-press: #2a323c;
+  --disabled: #e4e7ea;
+}
+
+*,
+*::before,
+*::after {
+  border-color: var(--line);
+}
+
+html {
+  /* The leveling grid scrolls inside its own track; overflow that escapes it must
+     not become a page-level sideways scroll. `clip` (not `hidden`) keeps the page
+     vertically scrollable while refusing to scroll sideways — body alone was not
+     enough, because the overflow propagated up to the document element. */
+  overflow-x: clip;
 }
 
 html,
 body {
-  background: var(--color-bg);
-  color: var(--color-fg);
+  background: var(--bg);
+  color: var(--fg);
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
-  overscroll-behavior-y: none;
+  -webkit-text-size-adjust: 100%;
 }
 
-* { border-color: var(--color-line); }
+body {
+  /* The page body never scrolls sideways; wide content gets its own track. */
+  overflow-x: clip;
+}
 
-/* ---- Type roles (see the specimen table in DESIGN.md) ---- */
-.t-hero { font-family: var(--font-display); font-size: clamp(2rem, 8.5vw, 3.375rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 600; }
-.t-stat { font-family: var(--font-mono); font-size: clamp(2.125rem, 9.5vw, 3.25rem); line-height: 1.05; letter-spacing: -0.01em; font-weight: 500; font-variant-numeric: tabular-nums; }
-.t-h2 { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.01em; font-weight: 600; }
-.t-title { font-size: 1rem; line-height: 1.3; font-weight: 600; }
-.t-body { font-size: 1rem; line-height: 1.55; }
-.t-secondary { font-size: 0.8125rem; line-height: 1.45; color: var(--color-fg-2); }
-.t-label { font-size: 0.6875rem; line-height: 1.2; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-fg-3); }
-.t-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+::selection {
+  background: color-mix(in srgb, var(--accent) 40%, transparent);
+}
 
-/* ---- Hairline construction: space and rules, never nested boxes ---- */
-.hairline-t { border-top: 1px solid var(--color-line); }
-.hairline-b { border-bottom: 1px solid var(--color-line); }
+/* ==========================================================================
+   Type roles — the specimen table in DESIGN.md, exactly
+   ========================================================================== */
 
+.t-hero {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 8.5vw, 3.5rem);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  font-weight: 600;
+}
+.t-stat {
+  font-family: var(--font-mono);
+  font-size: clamp(2rem, 9vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.t-h2 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+.t-title {
+  font-size: 16px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+.t-body {
+  font-size: 16px;
+  line-height: 1.55;
+}
+.t-secondary {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--fg-2);
+}
+.t-label {
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+.t-data {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.t-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Layout
+   ========================================================================== */
+
+.screen {
+  min-height: 100dvh;
+  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + var(--s6));
+}
+.gutter {
+  padding-inline: var(--gutter);
+}
+.stack {
+  display: flex;
+  flex-direction: column;
+}
+.wrap {
+  width: 100%;
+  max-width: 1120px;
+  margin-inline: auto;
+}
+.wrap-wide {
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: 32px;
+  }
+}
+
+/* Space before boxes: a card is for genuinely framed objects only. */
 .card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-line);
-  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+}
+.hairline-t {
+  border-top: 1px solid var(--line);
+}
+.hairline-b {
+  border-bottom: 1px solid var(--line);
 }
 
-/* ---- Controls ---- */
+/* Full-bleed hairline-divided rows — the status board and project list. */
+.rows > * + * {
+  border-top: 1px solid var(--line);
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+  min-height: 56px;
+  padding-block: var(--s3);
+  text-align: left;
+  width: 100%;
+}
+
+/* ==========================================================================
+   Controls
+   ========================================================================== */
+
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 48px; padding: 0 20px; border-radius: 10px;
-  font-weight: 600; font-size: 0.9375rem; line-height: 1;
-  transition: transform 120ms var(--ease-out-quart), background-color 120ms linear;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+  height: 48px;
+  padding-inline: var(--s5);
+  border-radius: var(--r-control);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 120ms var(--ease-out-quart),
+    background-color 120ms linear,
+    border-color 120ms linear;
 }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: var(--color-action); color: var(--color-bg); }
-.btn-secondary { background: transparent; color: var(--color-fg); border: 1px solid var(--color-line); }
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.btn-full {
+  width: 100%;
+}
+.btn-primary {
+  background: var(--action);
+  color: var(--action-fg);
+  border: 1px solid var(--action);
+}
+.btn-primary:active:not(:disabled) {
+  background: var(--action-press);
+  border-color: var(--action-press);
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid var(--line);
+}
+.btn-secondary:active:not(:disabled) {
+  border-color: var(--line-strong);
+}
+.btn:disabled {
+  background: var(--disabled);
+  border-color: var(--disabled);
+  color: var(--fg-3);
+  cursor: not-allowed;
+}
+.btn-quiet {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 13px;
+  padding: var(--s2) 0;
+  min-height: 44px;
+  cursor: pointer;
+  text-align: left;
+}
+.btn-quiet:active {
+  opacity: 0.8;
+}
+.btn-danger {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--bad);
+}
 
-.focus-ring:focus-visible,
-a:focus-visible,
-button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+.input,
+.select,
+.textarea {
+  width: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  min-height: 48px;
+  padding: var(--s3) var(--s4);
+  font-family: var(--font-sans);
+  font-size: 16px; /* 16px stops iOS zooming on focus */
+  line-height: 1.4;
 }
+.portal .input,
+.portal .select,
+.portal .textarea {
+  background: var(--surface);
+}
+.textarea {
+  min-height: 88px;
+  padding-block: var(--s3);
+  resize: vertical;
+}
+.input-money {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--fg-3);
+}
+.input:focus-visible,
+.select:focus-visible,
+.textarea:focus-visible,
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-color: var(--accent);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+.link {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   Status pill — DESIGN.md: height 28, 6px dot + Label(11)
+   ========================================================================== */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  height: 28px;
+  padding-inline: 10px;
+  border-radius: var(--r-control);
+  border: 1px solid var(--line);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: color 150ms linear;
+}
+.pill-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  background: currentColor;
+  flex: none;
+}
+.pill-neutral {
+  color: var(--fg-2);
+}
+.pill-amber {
+  color: var(--warn);
+}
+.pill-green {
+  color: var(--ok);
+}
+.pill-red {
+  color: var(--bad);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  /* 44px floor from DESIGN_LANGUAGE. A sub taps these with a work glove on. */
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: var(--r-control);
+  border: 1px solid var(--line);
+  font-size: 13px;
+  background: transparent;
+  color: var(--fg-2);
+  cursor: pointer;
+  transition: opacity 150ms linear;
+}
+.chip[data-on="true"] {
+  color: var(--fg);
+  border-color: var(--line-strong);
+  background: var(--surface);
+}
+.chip-out[data-on="true"] {
+  color: var(--bad);
+  border-color: color-mix(in srgb, var(--bad) 50%, var(--line));
+}
+
+/* Coverage track: 4px hairline rail filled steel. */
+.track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+  overflow: hidden;
+}
+.track > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 240ms var(--ease-out-quart);
+}
+
+/* ==========================================================================
+   The leveling grid
+   ========================================================================== */
+
+.grid-track {
+  overflow-x: auto;
+  overflow-y: visible;
+  /**
+   * `overflow-x: auto` alone was not enough. The sticky row headers inside the table
+   * still contributed to the *document's* scrollable overflow, so the whole page could
+   * be dragged 224px sideways at 390px wide — the one layout rule DESIGN_LANGUAGE calls
+   * out by name. `contain: paint` makes this element the clip boundary it was always
+   * supposed to be; the track still scrolls, the page no longer does.
+   */
+  contain: paint;
+  -webkit-overflow-scrolling: touch;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+}
+.lvl {
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 100%;
+  font-size: 13px;
+}
+.lvl th,
+.lvl td {
+  border-bottom: 1px solid var(--line);
+  padding: 10px var(--s3);
+  vertical-align: middle;
+}
+.lvl tbody tr:last-child td {
+  border-bottom: none;
+}
+.lvl thead th {
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  z-index: 2;
+  text-align: right;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  white-space: nowrap;
+}
+.lvl th.lvl-head,
+.lvl td.lvl-row-head {
+  position: sticky;
+  left: 0;
+  background: var(--surface);
+  z-index: 3;
+  text-align: left;
+  min-width: 168px;
+  max-width: 220px;
+  border-right: 1px solid var(--line);
+}
+.lvl td.lvl-row-head {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fg);
+  z-index: 1;
+}
+.lvl td.lvl-cell {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  min-width: 120px;
+  color: var(--fg);
+  white-space: nowrap;
+}
+.lvl td.is-low {
+  color: var(--accent);
+  box-shadow: inset 2px 0 0 0 var(--accent);
+}
+.lvl td.is-plug {
+  color: var(--fg-3);
+  font-style: italic;
+}
+.lvl td.is-empty {
+  color: var(--fg-3);
+}
+.lvl tr.scope-gap td.lvl-row-head {
+  box-shadow: inset 2px 0 0 0 var(--bad);
+}
+.lvl tfoot td {
+  border-top: 1px solid var(--line);
+  border-bottom: none;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  color: var(--action);
+  text-align: right;
+  white-space: nowrap;
+}
+.lvl tfoot td.lvl-row-head {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--fg-2);
+}
+.lvl tfoot td.is-apparent-low {
+  color: var(--accent);
+  border-bottom: 2px solid var(--accent);
+}
+.plug-mark {
+  font-size: 9px;
+  vertical-align: super;
+  font-style: normal;
+}
+
+/* The inclusion/exclusion matrix: filled dot in, red ring out, faint unstated. */
+.mx-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
+}
+.mx-in {
+  background: var(--fg);
+}
+.mx-out {
+  border: 2px solid var(--bad);
+}
+.mx-unstated {
+  background: var(--fg-3);
+  opacity: 0.6;
+}
+
+/* ==========================================================================
+   The signature: the level snap
+   ========================================================================== */
+
+@keyframes snap-in {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes low-sweep {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes row-enter {
+  from {
+    transform: translateX(4px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+@keyframes bell-tip {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  40% {
+    transform: rotate(8deg);
+  }
+}
+
+/* One snap per grid render, staggered top-to-bottom, <=8 rows animate. */
+.snap [data-snap] {
+  animation: snap-in 240ms var(--ease-out-quart) both;
+}
+.snap [data-snap="0"] { animation-delay: 0ms; }
+.snap [data-snap="1"] { animation-delay: 24ms; }
+.snap [data-snap="2"] { animation-delay: 48ms; }
+.snap [data-snap="3"] { animation-delay: 72ms; }
+.snap [data-snap="4"] { animation-delay: 96ms; }
+.snap [data-snap="5"] { animation-delay: 120ms; }
+.snap [data-snap="6"] { animation-delay: 144ms; }
+.snap [data-snap="7"] { animation-delay: 168ms; }
+
+.snap td.is-low::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--accent);
+  transform-origin: left;
+  animation: low-sweep 200ms var(--ease-out-quart) 240ms both;
+}
+.lvl td.is-low {
+  position: relative;
+}
+
+.stagger > * {
+  animation: row-enter 200ms var(--ease-out-quart) both;
+}
+.stagger > *:nth-child(1) { animation-delay: 0ms; }
+.stagger > *:nth-child(2) { animation-delay: 24ms; }
+.stagger > *:nth-child(3) { animation-delay: 48ms; }
+.stagger > *:nth-child(4) { animation-delay: 72ms; }
+.stagger > *:nth-child(5) { animation-delay: 96ms; }
+.stagger > *:nth-child(6) { animation-delay: 120ms; }
+.stagger > *:nth-child(7) { animation-delay: 144ms; }
+.stagger > *:nth-child(n + 9) { animation: none; }
+
+.bell-tip:active .glyph {
+  animation: bell-tip 200ms var(--ease-in-out-soft);
+}
+
+/* ==========================================================================
+   Bottom tab bar (GC, mobile)
+   ========================================================================== */
+
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--line);
+}
+.tabbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 10px;
+  color: var(--fg-3);
+  position: relative;
+}
+.tabbar-item[data-active] {
+  color: var(--fg);
+}
+.tabbar-item[data-active]::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  right: calc(50% - 14px);
+  width: 4px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+.sticky-actions {
+  position: sticky;
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  z-index: 20;
+  display: flex;
+  gap: var(--s3);
+  padding: var(--s3) var(--gutter) var(--s4);
+  background: linear-gradient(to top, var(--bg) 62%, transparent);
+}
+.portal .sticky-actions {
+  bottom: 0;
+  padding-bottom: calc(var(--s4) + env(safe-area-inset-bottom));
+}
+
+/* Sheets */
+.sheet-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgb(6 8 11 / 0.6);
+  z-index: 50;
+}
+.sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 51;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  border-radius: var(--r-sheet) var(--r-sheet) 0 0;
+  padding: var(--s5) var(--gutter) calc(var(--s6) + env(safe-area-inset-bottom));
+  max-height: 86dvh;
+  overflow-y: auto;
+  box-shadow: 0 -12px 40px rgb(0 0 0 / 0.35);
+}
+
+.glyph {
+  display: inline-block;
+  flex: none;
+  vertical-align: -0.15em;
+}
+
+.notice {
+  border-left: 2px solid var(--warn);
+  padding: var(--s2) 0 var(--s2) var(--s3);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--fg-2);
+}
+.notice-bad {
+  border-color: var(--bad);
+}
+.notice-ok {
+  border-color: var(--ok);
+}
+.notice-accent {
+  border-color: var(--accent);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ==========================================================================
+   Reduced motion — every signal is also plain text or a static border
+   ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .snap [data-snap] {
+    animation: none;
+  }
+  .snap td.is-low::after {
+    animation: none;
+    transform: scaleX(1);
+  }
+  .stagger > * {
+    animation: none;
+  }
 }

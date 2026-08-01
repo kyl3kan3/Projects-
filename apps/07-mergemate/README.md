@@ -107,6 +107,69 @@ Our position: we do not try to out-index Greptile or out-distribute GitHub. We w
 4. **Trust cold-start.** Nobody believes "high accuracy" claims from a new tool, and the first bad comment costs the install. Mitigation: shadow mode (findings to dashboard only, no PR comments) as an onboarding default for skeptics; published golden-set metrics; conservative default threshold that loosens only with accumulated feedback.
 5. **Category crowding compresses price.** If the floor drops toward $5/dev, margin depends entirely on LLM efficiency. Mitigation: keep infra lean (see cost model in ARCHITECTURE.md), and anchor value on the auditable-standards story, which is closer to compliance budget than tooling budget.
 
+## Setup
+
+Node 22+, Postgres 14+, and (optionally) Redis.
+
+```bash
+npm install
+cp .env.example .env          # then fill in the values it describes
+npm run db:migrate            # idempotent; safe to re-run
+npm run dev                   # webhook receiver + dashboard on PORT (default 3007)
+npm run worker                # only if REDIS_URL is set
+```
+
+Minimum to boot: `DATABASE_URL` and `AUTH_SECRET`. Without `APP_ID`/`PRIVATE_KEY`
+the server still starts and the dashboard works, but it cannot call GitHub.
+Without `ANTHROPIC_API_KEY` reviews come from the deterministic pattern reviewer,
+labelled as such on every comment and every dashboard row.
+
+For local webhooks, create a channel at [smee.io](https://smee.io/new) and set
+`WEBHOOK_PROXY_URL`; GitHub's deliveries then reach `localhost`. To sign in to the
+dashboard without GitHub OAuth, set `MERGEMATE_DEV_LOGIN=1` (refused when
+`NODE_ENV=production`).
+
+Two processes, by design: the webhook receiver acks in milliseconds and enqueues;
+the worker drains the queue at a controlled concurrency, per installation. With
+`REDIS_URL` empty there is no queue and the receiver reviews inline — correct for a
+single-tenant self-host, wrong for a busy monorepo.
+
+### Commands
+
+| Command | What it does |
+|---|---|
+| `npm run dev` | Webhook receiver + dashboard + landing page |
+| `npm run worker` | BullMQ review worker (needs `REDIS_URL`) |
+| `npm run sweep` | Polls reactions on recent comments; also `POST /internal/sweep` with `SWEEP_SECRET` |
+| `npm run eval` | Golden-set report: precision, false positives, comments per PR, red-team |
+| `npm run review:dry-run -- owner/repo#123` | Reviews a real pull request read-only and prints what it would post. Needs `GITHUB_TOKEN` |
+| `npm test` | Unit tests (`node:test` via tsx) |
+| `npm run typecheck` / `npm run build` | `tsc --noEmit` / emit to `dist/` |
+
+Behind an HTTP proxy, Node's `fetch` needs `NODE_USE_ENV_PROXY=1` before it will
+honour `HTTPS_PROXY`; the dry run and the OAuth exchange are the two paths that use
+it.
+
+### The rulebook
+
+Commit `.mergemate.yml` to the default branch. Starter templates are served at
+`/templates/typescript.yml`, `/templates/python.yml` and `/templates/go.yml`, and
+are also in `src/rules/templates.ts`. Every push that touches the file creates a new
+immutable version and a check run; a version that does not validate is recorded,
+reported on the check, and ignored — reviews continue on the last one that did.
+
 ## Status
 
-Pre-code scaffold. See ARCHITECTURE.md for system design and ROADMAP.md for the build plan.
+MVP built. What works, and what is not yet verifiable, is recorded honestly here:
+
+- **Verified against real infrastructure:** webhook signature verification and
+  handling (installation, pull_request, marketplace_purchase), the review pipeline
+  against Postgres, the BullMQ queue and worker against Redis (including retry and
+  per-installation slots), the dashboard end to end in Chromium at 390px, and every
+  read-only GitHub call against a live repository via `npm run review:dry-run`.
+- **Not exercised:** the live Claude call (no API key was available while building);
+  GitHub *write* calls — posting a review, creating or editing a comment, creating a
+  check run — because that needs an installed App on a repository we own; and the
+  GitHub OAuth code exchange for dashboard sign-in.
+
+See ARCHITECTURE.md for system design and ROADMAP.md for what Phase 2 adds.

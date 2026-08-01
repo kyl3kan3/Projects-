@@ -14,7 +14,7 @@ run, a referral queue that deadlocked under launch-day load, magic-link login
 broken outright, certificate-expiry alerts that fired once and then went quiet
 forever. All were found by running the thing.
 
-## Verified working (16 of 74)
+## Verified working (17 of 74)
 
 Each was re-checked here after its build agent reported: line count, absence of
 unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
@@ -27,6 +27,7 @@ unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
 | 04 | lenscrm | 2,269 | 56 | — |
 | 05 | pulsewatch | 6,972 | 69 | 39 |
 | 06 | vaultback | 10,089 | 84 | 60 |
+| 07 | mergemate | 12,617 | 68 | 153 |
 | 12 | papertrail | 9,318 | 69 | 193 |
 | 15 | launchlist | 9,415 | 86 | 106 |
 | 17 | trustbadge | 8,831 | 88 | 163 |
@@ -41,13 +42,16 @@ unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
 Apps 01–04 and 51 predate this process and have no test suites; they are counted
 as working on the strength of having no unimplemented stubs, not on verification.
 
-## Not built (58)
+## Not built (57)
 
 Scaffolds that compile and do nothing. 49 are "partial" — complete data model,
-design tokens and build config, no business logic. 9 are near-empty:
+design tokens and build config, no business logic. 8 are near-empty:
 
-`07-mergemate` · `08-subsage` · `10-streakly` · `13-inboxpilot` · `21-lingoloop`
-· `40-formcoach` · `52-stimtrack` · `53-splitkit` · `54-kindesk`
+`08-subsage` · `10-streakly` · `13-inboxpilot` · `21-lingoloop` · `40-formcoach`
+· `52-stimtrack` · `53-splitkit` · `54-kindesk`
+
+`07-mergemate` was in that near-empty group (about 5 lines) and is now built, so a
+from-scratch stub is no harder for an agent than filling in a partial scaffold.
 
 ## What is untested everywhere
 
