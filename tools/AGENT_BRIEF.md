@@ -68,6 +68,29 @@ invent a different approach.
   would be expensive to get wrong — date/schedule maths, money, plan limits,
   parsers, state machines.
 
+## If your app calls a model
+
+There is **no `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` in this environment**, so a
+live model call cannot be part of your verification. That is not a reason to leave
+the feature unbuilt or untested.
+
+- Put the model behind a narrow interface (`summarise(input): Promise<Result>`)
+  with two implementations: the real one, and a deterministic fake used by tests
+  and selected automatically when no key is present.
+- Everything around the call is then fully testable, and that is where the bugs
+  live: prompt assembly, response parsing, schema validation of what came back,
+  token/cost accounting, retry and timeout behaviour, and — most importantly —
+  what the product does when the model returns nonsense, refuses, or times out.
+- Never let a parse failure surface as a confident wrong answer. If extraction
+  fails, the UI must say so.
+- Use current model ids: `claude-opus-5`, `claude-sonnet-5`,
+  `claude-haiku-4-5-20251001`. Do not invent or guess older names, and prefer the
+  Anthropic SDK (`@anthropic-ai/sdk`) already used elsewhere in the portfolio.
+- Say plainly in your report that the live call is unexercised.
+
+The same pattern applies to any third-party API with no credential here — Shopify,
+Twilio, GitHub, SERP providers, WHOIS. Interface, fake, test everything else.
+
 ## Dependencies and building
 
 Do **not** run `npm install` in your app folder. The repo shares one toolchain.
@@ -89,6 +112,41 @@ PATH="node_modules/.bin:$PATH" tsc --noEmit
 PATH="node_modules/.bin:$PATH" npm test
 PATH="node_modules/.bin:$PATH" NEXT_TELEMETRY_DISABLED=1 next build --no-lint
 ```
+
+## Bugs the last ten builds all hit
+
+Every one of these passed `tsc` and `next build`. Check for them early rather than
+rediscovering them.
+
+1. **A `Date` inside a raw `sql` fragment.** `sql\`${col} > ${date}\`` skips
+   Drizzle's column encoder, so postgres.js tries `Buffer.byteLength` on a Date and
+   the query throws **at runtime**. Hit in five apps independently — in one it broke
+   magic-link login entirely. Use the typed operators (`gt`, `gte`, `lt`, `lte`) or
+   pass `date.toISOString()` with an explicit `::timestamptz` cast.
+2. **A `Column` rendered unqualified inside a select-list `sql` fragment** binds to
+   the subquery's own alias instead of the outer table, silently returning zeros
+   forever. Name the table explicitly.
+3. **Comparing a JS `Date` against `timestamptz` for an optimistic lock.** JS
+   truncates to milliseconds, Postgres keeps microseconds, so a row whose timestamp
+   came from SQL `now()` is found "due" and then never claimed — a scheduler that
+   silently never runs. Let the database do the comparison.
+4. **Notifications that never stop.** An "expired"/"overdue" state stays true
+   forever, so a naive daily sweep mails the same person every day for eternity. Pin
+   notices to fixed distances from the event.
+5. **Its mirror: a threshold ladder that goes silent.** Selecting the *loosest*
+   crossed threshold means a 30-day warning fires and nothing else ever does. Select
+   the tightest, and dedupe per rung with a unique index.
+6. **Money as float.** Use integer cents (or bigint fixed-point) and round once, at
+   the edge. A payment must cascade across a customer's open invoices oldest-first,
+   or an overpayment parks as "credit" while the customer still looks delinquent.
+7. **Rendering a stored status column that a cron reconciles.** It shows stale —
+   "Due" on an invoice 212 days late. Derive status as-of-now for display.
+8. **A client component importing anything that reaches the db client**, which pulls
+   `postgres` into the browser bundle. Extract the pure part.
+9. **`.gitignore` excluding `drizzle/meta/`.** Present in every scaffold; it holds
+   `_journal.json`, without which a fresh clone cannot run `db:migrate`. Un-ignore it.
+10. **Every exported `"use server"` function is a public endpoint.** Delete the ones
+    nothing calls; they are attack surface, not dead code.
 
 ## Verification — this is the part that matters
 
