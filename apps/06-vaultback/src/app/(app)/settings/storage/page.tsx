@@ -41,17 +41,17 @@ export default async function StoragePage() {
                 {target.name}
                 {target.isDefault ? " · default" : ""}
               </span>
-              <span className="t-data mt-1.5 block truncate" style={{ color: "var(--color-text-3)" }}>
+              <span className="t-data mt-2 block truncate" style={{ color: "var(--color-text-3)" }}>
                 {target.kind === "managed"
                   ? managedTargetDescription()
                   : `${target.kind === "byo_r2" ? "r2" : "s3"}://${target.bucket}${target.prefix ? `/${target.prefix}` : ""}`}
               </span>
               {target.lastCheckError ? (
-                <span className="t-secondary mt-1.5 block" style={{ color: "var(--color-torch)" }}>
+                <span className="t-secondary mt-2 block" style={{ color: "var(--color-torch)" }}>
                   {target.lastCheckError}
                 </span>
               ) : (
-                <span className="t-data mt-1.5 block" style={{ color: "var(--color-text-3)" }}>
+                <span className="t-data mt-2 block" style={{ color: "var(--color-text-3)" }}>
                   {target.verifiedAt ? `verified ${formatTimestamp(target.verifiedAt)}` : "not verified"}
                 </span>
               )}

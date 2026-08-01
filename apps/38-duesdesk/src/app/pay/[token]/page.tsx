@@ -10,7 +10,6 @@ import { memberIssues, signPhotos, threadForMember, ISSUE_KIND_LABELS } from "@/
 import { formatIso, today } from "@/lib/dates";
 import { daysPastDue } from "@/lib/dues";
 import { formatMoney } from "@/lib/money";
-import { featureAllowed } from "@/lib/plans";
 import {
   DataRow,
   HeroAmount,
@@ -90,9 +89,10 @@ export default async function PortalPage({
   const balance = balances.get(household.id);
   const enrollment = await enrollmentFor(household.id);
   const issues = await memberIssues(household.id);
-  const documents = featureAllowed(association.plan, "documentLibrary")
-    ? await listDocuments(household.associationId, { memberVisibleOnly: true })
-    : [];
+  // Deliberately not plan-gated. The plan gates *uploading* a document; it must
+  // never hide one the association has already published to its own members —
+  // the same rule the billing screen promises about downgrades.
+  const documents = await listDocuments(household.associationId, { memberVisibleOnly: true });
   const docUrls = new Map<string, string>();
   for (const doc of documents) {
     try {
@@ -103,6 +103,10 @@ export default async function PortalPage({
   }
 
   const asOf = today();
+  // Online payment needs the association's own Stripe account to be live. When it
+  // is not, the portal says so plainly instead of offering a button that leads to
+  // an error — a member who cannot pay online can still write a check.
+  const onlinePayments = Boolean(association.stripeAccountId && association.stripeAccountReady);
   const payable = ledgers.filter((l) => l.dueNowCents > 0);
   const clearing = ledgers.filter((l) => l.pendingCents > 0);
 
@@ -170,7 +174,14 @@ export default async function PortalPage({
             <p className="t-label">The easy way</p>
             <h2 className="t-h2 mt-1">Never think about dues again.</h2>
             <div className="mt-4">
-              <AutopayInvite token={token} unitLabel={household.unitLabel} />
+              {onlinePayments ? (
+                <AutopayInvite token={token} unitLabel={household.unitLabel} />
+              ) : (
+                <p className="t-secondary">
+                  Your board has not finished connecting the association&apos;s bank details yet, so
+                  autopay is not available. This page will offer it the moment they do.
+                </p>
+              )}
             </div>
             {enrollment?.status === "failed" ? (
               <p className="t-secondary mt-3 amber">
@@ -198,6 +209,7 @@ export default async function PortalPage({
                 token={token}
                 associationName={association.name}
                 asOf={asOf}
+                onlinePayments={onlinePayments}
               />
             ))
           )}
@@ -328,11 +340,13 @@ function PortalInvoice({
   token,
   associationName,
   asOf,
+  onlinePayments,
 }: {
   ledger: InvoiceLedger;
   token: string;
   associationName: string;
   asOf: string;
+  onlinePayments: boolean;
 }) {
   const { invoice, lines } = ledger;
   const late = daysPastDue(invoice.dueOn, asOf);
@@ -348,7 +362,7 @@ function PortalInvoice({
             {ledger.balanceCents > 0 && late > 0 ? ` · ${late} days ago` : ""}
           </p>
         </div>
-        {invoice.status === "paid" ? <PaidSeal /> : <InvoicePill status={invoice.status} />}
+        {ledger.status === "paid" ? <PaidSeal /> : <InvoicePill status={ledger.status} />}
       </div>
 
       {invoice.prorationNote ? <p className="t-secondary mt-3">{invoice.prorationNote}</p> : null}
@@ -387,11 +401,14 @@ function PortalInvoice({
 
       {ledger.dueNowCents > 0 ? (
         <div className="mt-4">
-          <PayButton
-            token={token}
-            invoiceId={invoice.id}
-            amountCents={ledger.dueNowCents}
-          />
+          {onlinePayments ? (
+            <PayButton token={token} invoiceId={invoice.id} amountCents={ledger.dueNowCents} />
+          ) : (
+            <p className="t-secondary">
+              Online payment is not switched on for this association yet. Send a check to the board
+              as usual — they will record it here and this balance will clear.
+            </p>
+          )}
         </div>
       ) : null}
     </article>

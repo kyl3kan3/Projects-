@@ -128,7 +128,7 @@ export function ConnectForm({
             "A schedule is created at your plan's best frequency",
             "The first backup runs immediately",
           ].map((item) => (
-            <li key={item} className="hairline-b flex items-start gap-2.5 py-3">
+            <li key={item} className="hairline-b flex items-start gap-3 py-3">
               <span style={{ color: "var(--color-text-3)", marginTop: 2 }}>
                 <IconCheck size={16} />
               </span>

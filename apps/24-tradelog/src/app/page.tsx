@@ -5,7 +5,6 @@ import { DrawOnce } from "@/components/DrawOnce";
 import { HERO_DEMO, REVERSAL_CSV, REVERSAL_DEMO } from "./demo";
 import { PLANS, monthlyEquivalent } from "@/lib/plans";
 import { MIN_SEGMENT, MIN_TRADES } from "@/lib/leaks";
-import { formatCents, formatPercent, formatRatio } from "@/lib/money";
 import { IconArrowRight, IconCheck } from "@/components/icons";
 
 export const metadata: Metadata = {
@@ -51,15 +50,12 @@ export default function LandingPage() {
 
           <div className="mt-8">
             <DrawOnce sessionKey="marketing-hero">
-              {(animate) => (
-                <CounterfactualCurve
-                  actual={actual}
-                  without={without}
-                  animate={animate}
-                  height={220}
-                  label={`A demonstration history ends at ${actualLabel}; without the trades behind its biggest leak it would read ${withoutLabel}`}
-                />
-              )}
+              <CounterfactualCurve
+                actual={actual}
+                without={without}
+                height={220}
+                label={`A demonstration history ends at ${actualLabel}; without the trades behind its biggest leak it would read ${withoutLabel}`}
+              />
             </DrawOnce>
             <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
               <span className="t-secondary flex items-center gap-2">
@@ -239,17 +235,20 @@ export default function LandingPage() {
               <p className="t-stat mt-2">${PLANS.trader.priceMonthly}</p>
             </div>
             <div className="stat">
-              <p className="t-label">Demo win rate</p>
-              <p className="t-stat mt-2">{formatPercent(summary.winRatePct)}</p>
+              <p className="t-label">Demo curve, as it happened</p>
+              <p className="t-stat v-loss mt-2">{actualLabel}</p>
+              <span className="spark" style={{ background: "var(--color-loss)" }} />
             </div>
             <div className="stat">
-              <p className="t-label">Demo profit factor</p>
-              <p className="t-stat mt-2">{formatRatio(summary.profitFactor)}</p>
+              <p className="t-label">Demo curve, without the leak</p>
+              <p className="t-stat v-profit mt-2">{withoutLabel}</p>
+              <span className="spark" style={{ background: "var(--color-profit)" }} />
             </div>
           </div>
           <p className="t-secondary mt-5" style={{ maxWidth: "46ch" }}>
-            A trader taking twenty trades a week does not need the subscription to pay for itself
-            twice; they need to stop one habit once. That is the whole pitch, and it is why the
+            Same {summary.closedCount} trades, same fills, same commissions. The difference between
+            those two figures is one habit, and it is {gapLabel}. A trader does not need the
+            subscription to pay for itself twice — they need to stop one habit once. That is why the
             findings carry dollar figures instead of badges.
           </p>
         </section>

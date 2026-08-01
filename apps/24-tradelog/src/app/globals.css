@@ -283,7 +283,9 @@ select.input {
   padding-right: 32px;
 }
 
-/* Ruled notes: the journal's writing surface, on 24px rules. */
+/* Ruled notes: the journal's writing surface, on 24px rules. The repeating
+   gradient has hard stops — it draws 1px hairlines, not a gradient fill, so it is
+   not the component paint DESIGN_LANGUAGE rule 2 forbids. */
 textarea.ruled {
   background-image: repeating-linear-gradient(
     to bottom,
@@ -583,7 +585,29 @@ tr.leg td:first-child::before {
   }
 }
 
-/* ---- The signature: the counterfactual gap ----------------------------- */
+/* ---- The signature: the counterfactual gap -----------------------------
+   Every animated chart part is authored in its finished state under `.no-draw`,
+   which is what the server renders (see components/DrawOnce.tsx). The animation
+   only runs when that class is removed on the first view of a session. */
+
+.no-draw .curve-base,
+.no-draw .curve-counterfactual,
+.no-draw .bracket {
+  animation: none;
+  stroke-dashoffset: 0;
+}
+.no-draw .curve-gap {
+  animation: none;
+  clip-path: inset(0 0 0 0);
+}
+.no-draw .endpoint-dot {
+  animation: none;
+  opacity: 1;
+}
+.no-draw .pin {
+  animation: none;
+}
+
 
 .curve-base {
   stroke-dasharray: var(--len);

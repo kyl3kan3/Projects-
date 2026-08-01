@@ -26,6 +26,7 @@ export default async function ParticipantPage({
   const history = await signatureHistory(participant.id);
   const tz = location.timezone;
 
+  // Mono date stamps carry no comma (DESIGN.md: `SIGNED MAR 2 2026`).
   const fmtDate = (d: Date) =>
     new Intl.DateTimeFormat("en-US", {
       timeZone: tz,
@@ -34,6 +35,7 @@ export default async function ParticipantPage({
       year: "numeric",
     })
       .format(d)
+      .replace(",", "")
       .toUpperCase();
 
   return (

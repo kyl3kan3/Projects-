@@ -47,15 +47,15 @@ export default async function ActivityPage() {
                 <span className="t-title block" style={{ color: TONE[entry.action] ?? undefined }}>
                   {describeAudit(entry)}
                 </span>
-                <span className="t-data mt-1.5 block truncate" style={{ color: "var(--color-text-3)" }}>
+                <span className="t-data mt-2 block truncate" style={{ color: "var(--color-text-3)" }}>
                   {formatTimestamp(entry.createdAt)} · {entry.action}
                   {entry.actorUserId ? "" : " · system"}
                 </span>
                 {typeof entry.metadata?.detail === "string" ? (
-                  <span className="t-secondary mt-1.5 block">{entry.metadata.detail}</span>
+                  <span className="t-secondary mt-2 block">{entry.metadata.detail}</span>
                 ) : null}
                 {typeof entry.metadata?.sha256 === "string" ? (
-                  <span className="t-data mt-1.5 block" style={{ color: "var(--color-text-3)" }}>
+                  <span className="t-data mt-2 block" style={{ color: "var(--color-text-3)" }}>
                     sha256:{String(entry.metadata.sha256).slice(0, 16)}…
                   </span>
                 ) : null}

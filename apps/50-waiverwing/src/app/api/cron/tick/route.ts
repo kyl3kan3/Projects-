@@ -24,6 +24,7 @@ import { env } from "@/lib/env";
 import { digestEmail, send, signLinkEmail } from "@/lib/email";
 import { issueLinkToken, signUrl } from "@/lib/qr";
 import { deriveCoverage } from "@/lib/search";
+import { shouldSendResignNotice } from "@/lib/coverage";
 import { todayBoard } from "@/lib/checkin";
 import { localDateString } from "@/lib/time";
 
@@ -47,7 +48,9 @@ export async function GET(req: Request): Promise<Response> {
   const horizon = new Date(now.getTime() + HORIZON_DAYS * 86_400_000);
   const db = getDb();
 
-  let resignEmails = 0;
+  // Counted as attempts, not deliveries: with DRY_RUN=1 nothing is sent, and a
+  // response saying "0" would read as "the expiry roll did nothing".
+  let resignNotices = 0;
   let digests = 0;
   let expiringSeen = 0;
   let budgetHit = false;
@@ -108,6 +111,11 @@ export async function GET(req: Request): Promise<Response> {
 
       expiringSeen += 1;
 
+      // Notices are pinned to fixed distances from the lapse date. Without this
+      // a daily cron would email the same customer every day for the rest of
+      // time, because "expired" never stops being true.
+      if (!shouldSendResignNotice(endsAt, now)) continue;
+
       // A minor's own record holds no email; the guardian's does.
       let to = info.email;
       if (!to) {
@@ -130,7 +138,7 @@ export async function GET(req: Request): Promise<Response> {
         },
         60 * 60 * 24 * 30,
       );
-      const result = await send(
+      await send(
         signLinkEmail({
           to,
           venueName: primary.name,
@@ -140,7 +148,7 @@ export async function GET(req: Request): Promise<Response> {
           reason: state.reason,
         }),
       );
-      if (result.sent) resignEmails += 1;
+      resignNotices += 1;
     }
 
     /* ---- daily digest ---- */
@@ -162,7 +170,7 @@ export async function GET(req: Request): Promise<Response> {
       // Nothing happened and nothing is wrong: do not send mail for that.
       if (board.signedCount === 0 && board.checkedInCount === 0 && open === 0) continue;
 
-      const result = await send(
+      await send(
         digestEmail({
           to: owner.email,
           venueName: location.name,
@@ -174,7 +182,7 @@ export async function GET(req: Request): Promise<Response> {
           openIncidents: open,
         }),
       );
-      if (result.sent) digests += 1;
+      digests += 1;
     }
   }
 
@@ -183,7 +191,7 @@ export async function GET(req: Request): Promise<Response> {
     ms: Date.now() - startedAt,
     accounts: allAccounts.length,
     expiringSeen,
-    resignEmails,
+    resignNotices,
     digests,
     budgetHit,
     dryRun: env.dryRun,

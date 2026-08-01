@@ -9,4 +9,6 @@ coverage/
 *.log
 .DS_Store
 .turbo/
-drizzle/meta/
+drizzle/meta/_journal.json.bak
+.vaultback-storage/
+*.tsbuildinfo

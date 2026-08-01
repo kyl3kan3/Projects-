@@ -50,7 +50,7 @@ export default async function SettingsPage() {
           </span>
           <span className="min-w-0 flex-1">
             <span className="t-title block">{target?.name ?? "No storage target"}</span>
-            <span className="t-data mt-1.5 block truncate" style={{ color: "var(--color-text-3)" }}>
+            <span className="t-data mt-2 block truncate" style={{ color: "var(--color-text-3)" }}>
               {target?.kind === "managed"
                 ? managedTargetDescription()
                 : `${target?.bucket ?? ""}${target?.prefix ? `/${target.prefix}` : ""}`}
@@ -76,7 +76,7 @@ export default async function SettingsPage() {
             <span className="t-title block">
               {limits.name} · ${limits.priceMonthly}/mo
             </span>
-            <span className="t-data mt-1.5 block" style={{ color: "var(--color-text-3)" }}>
+            <span className="t-data mt-2 block" style={{ color: "var(--color-text-3)" }}>
               {subscription
                 ? `${subscription.status}${subscription.currentPeriodEnd ? ` · renews ${subscription.currentPeriodEnd.toISOString().slice(0, 10)}` : ""}`
                 : org.trialEndsAt
@@ -130,7 +130,7 @@ export default async function SettingsPage() {
           </span>
           <span className="min-w-0 flex-1">
             <span className="t-title block">Audit log</span>
-            <span className="t-data mt-1.5 block" style={{ color: "var(--color-text-3)" }}>
+            <span className="t-data mt-2 block" style={{ color: "var(--color-text-3)" }}>
               every backup, restore, drill and settings change
             </span>
           </span>
@@ -170,7 +170,7 @@ export default async function SettingsPage() {
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="hairline-b flex flex-wrap items-baseline justify-between gap-3 py-2.5 last:border-0">
+    <div className="hairline-b flex flex-wrap items-baseline justify-between gap-3 py-3 last:border-0">
       <dt className="t-label">{label}</dt>
       <dd className="t-data" style={{ color: "var(--color-text-2)" }}>
         {value}

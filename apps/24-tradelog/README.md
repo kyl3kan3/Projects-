@@ -35,13 +35,62 @@ Undercuts Tradezella/TraderSync meaningfully at the entry tier — land on price
 
 ## MVP Features
 
-- [ ] Broker imports: CSV for the long tail + direct sync where APIs allow (Interactive Brokers Flex, Tradovate, ThinkorSwim/Schwab exports, crypto exchange APIs)
-- [ ] Auto trade-matching: executions → round-trip trades (scaling in/out handled correctly — this is the hard part competitors get wrong)
-- [ ] Journal view: per-trade P&L, R-multiple, screenshots/chart snapshots, notes, emotional-state tags
-- [ ] Setup & tag system: user-defined playbooks ("ORB breakout", "VWAP fade") with per-setup expectancy
-- [ ] The truth dashboard: win rate, profit factor, expectancy, drawdown, P&L by setup / time-of-day / day-of-week / hold time
-- [ ] **Leak detector:** automated findings — "your first trade after a stop-out loses 2.3× your average", "trades after 11:30 are net negative"
-- [ ] Calendar heatmap + equity curve; weekly review ritual (guided template)
+- [x] Broker imports: CSV for the long tail + direct sync where APIs allow (Interactive Brokers Flex, Tradovate, ThinkorSwim/Schwab exports, crypto exchange APIs)
+- [x] Auto trade-matching: executions → round-trip trades (scaling in/out handled correctly — this is the hard part competitors get wrong)
+- [x] Journal view: per-trade P&L, R-multiple, screenshots/chart snapshots, notes, emotional-state tags
+- [x] Setup & tag system: user-defined playbooks ("ORB breakout", "VWAP fade") with per-setup expectancy
+- [x] The truth dashboard: win rate, profit factor, expectancy, drawdown, P&L by setup / time-of-day / day-of-week / hold time
+- [x] **Leak detector:** automated findings — "your first trade after a stop-out loses 2.3× your average", "trades after 11:30 are net negative"
+- [x] Calendar heatmap + equity curve; weekly review ritual (guided template)
+
+## Setup
+
+Requires Node 20+ and a Postgres database. Nothing else — no Redis, no S3 bucket,
+no always-on worker.
+
+```bash
+cp .env.example .env          # then fill DATABASE_URL and AUTH_SECRET
+npm install
+npm run db:migrate            # applies drizzle/*.sql
+npm run dev                   # http://localhost:3024
+```
+
+Sign up, then drop a broker export on the import screen. The formats it reads:
+
+| Broker | Where the file comes from |
+|---|---|
+| ThinkorSwim / Schwab | Monitor → Account Statement → export CSV (keep the whole file) |
+| Interactive Brokers | Performance & Reports → Flex Queries → a Trades query, CSV **or** XML |
+| Tradovate | Orders → History → export CSV, with the Fee column |
+| Binance (spot) | Orders → Spot Order → Trade History → Export |
+
+`src/lib/parsers/fixtures/` holds a small hand-written example of each, which is
+the fastest way to see the app with data in it.
+
+### The parts that are optional
+
+- **Stripe** (`STRIPE_SECRET_KEY` + the four price ids) — only the checkout and
+  billing-portal screens need it. Without it the pricing table still renders and
+  says so.
+- **`SYNC_CREDS_ENCRYPTION_KEY`** — 32 bytes of hex, encrypts stored IBKR Flex
+  tokens. Unset, automatic sync is switched off and the import screen says so;
+  CSV and XML import are unaffected.
+- **`CRON_SECRET`** — protects `/api/cron/tick`, which runs broker syncs and
+  recomputes leak findings. The route refuses to run when it is unset.
+
+### Scheduled work
+
+There is no long-running process. `vercel.json` points a daily cron at
+`/api/cron/tick`; for a self-hosted deployment, `npm run worker` calls the same
+tick on a loop (`TICK_INTERVAL_MS`, default 15 minutes).
+
+### Checks
+
+```bash
+npm run typecheck
+npm test          # node:test via tsx — money, matcher, analytics, leaks, parsers
+npm run build
+```
 
 ## Differentiation
 

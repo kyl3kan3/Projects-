@@ -8,7 +8,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { IconCurve, IconImport, IconJournal, IconLeak } from "@/components/icons";
+import { IconCurve, IconGear, IconImport, IconJournal, IconLeak } from "@/components/icons";
 
 const ITEMS = [
   { href: "/dashboard", label: "Dashboard", Icon: IconCurve },
@@ -89,29 +89,9 @@ export function SideRail() {
           background: isActive(pathname, "/settings") ? "var(--color-panel)" : "transparent",
         }}
       >
-        <IconGearInline />
+        <IconGear size={20} />
         Settings
       </Link>
     </nav>
-  );
-}
-
-function IconGearInline() {
-  // Kept local so the rail's extra destinations do not widen the tab-bar set.
-  return (
-    <svg
-      width={20}
-      height={20}
-      viewBox="0 0 20 20"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.75}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <circle cx="10" cy="10" r="2.6" />
-      <path d="M10 2.5v2M10 15.5v2M2.5 10h2M15.5 10h2M4.7 4.7l1.4 1.4M13.9 13.9l1.4 1.4M15.3 4.7l-1.4 1.4M6.1 13.9l-1.4 1.4" />
-    </svg>
   );
 }

@@ -66,7 +66,7 @@ export function SideRail() {
           <Link
             key={href}
             href={href}
-            className="flex items-center gap-3 rounded-[6px] px-3 py-2.5 text-[15px] font-medium no-underline"
+            className="flex items-center gap-3 rounded-[6px] px-3 py-3 text-[15px] font-medium no-underline"
             style={{
               color: active ? "var(--color-text)" : "var(--color-text-3)",
               background: active ? "var(--color-steel)" : "transparent",

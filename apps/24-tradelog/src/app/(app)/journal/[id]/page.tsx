@@ -17,7 +17,7 @@ import {
 import { formatHold, zonedClock, zonedDateKey } from "@/lib/tz";
 import { segmentBySetup } from "@/lib/analytics";
 import { plan } from "@/lib/plans";
-import { Money, pnlClass } from "@/components/Money";
+import { pnlClass } from "@/components/Money";
 import { DrawOnce } from "@/components/DrawOnce";
 import { TradeChart, type FillPoint } from "./TradeChart";
 import { TradeForm } from "./TradeForm";
@@ -110,14 +110,10 @@ export default async function TradeDetailPage({ params }: { params: Promise<{ id
           <section className="mb-6">
             <h2 className="t-label mb-3">Your fills</h2>
             <DrawOnce sessionKey={`trade-${trade.id}`}>
-              {(animate) => (
-                <TradeChart
-                  fills={fills}
-                  stop={trade.stopPrice === null ? null : priceToNumber(trade.stopPrice)}
-                  stopLabel={trade.stopPrice === null ? null : formatPrice(trade.stopPrice)}
-                  animate={animate}
-                />
-              )}
+              <TradeChart
+                fills={fills}
+                stop={trade.stopPrice === null ? null : priceToNumber(trade.stopPrice)}
+              />
             </DrawOnce>
             <p className="t-secondary mt-3">
               Filled prices only — solid pins are entries, hollow pins are exits. TradeLog has no

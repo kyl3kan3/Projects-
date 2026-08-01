@@ -3,35 +3,47 @@
 /**
  * "One draw per session; the restraint is the clinical credibility."
  *
- * Renders its children static on the server and on a repeat visit, and animated
- * exactly once per browser session per key. Because the static form is the
- * default, a reader with JavaScript off or reduced motion on still gets the whole
- * chart — it simply does not draw itself.
+ * The chart inside is rendered on the server, complete, with its animation
+ * classes already on it — and this wrapper starts with `no-draw`, which overrides
+ * every one of those animations to their finished state. So the server HTML, a
+ * reader with JavaScript off, and a reader with `prefers-reduced-motion` all get
+ * the whole chart immediately.
+ *
+ * On the first view of a session the class is removed in a *layout* effect, which
+ * runs before the browser paints, so the animation starts from its first frame
+ * with no flash of the finished line. On every later view the class stays and the
+ * chart is simply already drawn.
  */
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+
+const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 export function DrawOnce({
   sessionKey,
   children,
+  className,
 }: {
   sessionKey: string;
-  children: (animate: boolean) => ReactNode;
+  children: ReactNode;
+  className?: string;
 }) {
-  const [animate, setAnimate] = useState(false);
+  const [draw, setDraw] = useState(false);
+  const decided = useRef(false);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
+  useIsomorphicLayoutEffect(() => {
+    if (decided.current) return;
+    decided.current = true;
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
     const key = `tradelog:drawn:${sessionKey}`;
     try {
       if (sessionStorage.getItem(key)) return;
       sessionStorage.setItem(key, "1");
     } catch {
-      return;
+      return; // private mode: show it drawn, skip the flourish
     }
-    setAnimate(true);
+    setDraw(true);
   }, [sessionKey]);
 
-  return <>{children(animate)}</>;
+  return <div className={`${draw ? "" : "no-draw"} ${className ?? ""}`.trim()}>{children}</div>;
 }

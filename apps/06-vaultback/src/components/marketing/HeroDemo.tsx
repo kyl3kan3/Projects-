@@ -56,7 +56,7 @@ export function HeroDemo() {
       </div>
 
       <p className="t-title mt-3">prod-supabase</p>
-      <p className="t-data mt-1.5" style={{ color: "var(--color-text-3)" }}>
+      <p className="t-data mt-2" style={{ color: "var(--color-text-3)" }}>
         2026-07-03 04:00 UTC · 1.2 GB · 41 tables
       </p>
 

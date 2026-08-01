@@ -8,6 +8,7 @@ import { requireUser } from "@/lib/auth";
 import { parsePrice } from "@/lib/money";
 import { rMultipleFor } from "@/lib/pipeline";
 import { plan } from "@/lib/plans";
+import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_BYTES } from "@/lib/media";
 import { recomputeFindings } from "@/lib/findings";
 import { SETUP_COLORS, type SetupColor } from "@/db/schema";
 
@@ -16,9 +17,6 @@ export interface TradeFormState {
   saved?: boolean;
 }
 
-/** 2 MB a chart, which is a generous PNG of a trading view. */
-export const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
-const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 
 export async function saveTradeAction(
   _prev: TradeFormState,
@@ -120,7 +118,7 @@ export async function addTradeImageAction(
 
   const file = formData.get("image");
   if (!(file instanceof File) || file.size === 0) return { error: "Choose an image first." };
-  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+  if (!(ALLOWED_IMAGE_TYPES as readonly string[]).includes(file.type)) {
     return { error: "Chart snapshots must be PNG, JPEG, WebP or GIF." };
   }
   if (file.size > MAX_IMAGE_BYTES) {

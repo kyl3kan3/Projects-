@@ -32,15 +32,16 @@ export function GeofenceRing({
     <div className="minimap" role="img" aria-label={`${label} — ${caption}`}>
       <div className="minimap-grid" aria-hidden="true" />
       <svg className="ring-svg" viewBox="0 0 200 112" aria-hidden="true">
-        {/* r=48 → circumference ≈ 302, which is the dash length in globals.css */}
+        {/* r=40 → circumference ≈ 252, the dash length in globals.css. Sized to
+            clear the site label at the foot of the panel. */}
         <circle
           className="ring-path"
           cx="100"
-          cy="56"
-          r="48"
+          cy="46"
+          r="40"
           data-draw={state === "on" ? "true" : "undraw"}
         />
-        <circle className="site-dot" cx="100" cy="56" r="4" />
+        <circle className="site-dot" cx="100" cy="46" r="4" />
       </svg>
       <div className="absolute inset-x-0 bottom-0 flex flex-col gap-1 p-4">
         <span className="t-label" style={{ color: "var(--fg-2)" }}>

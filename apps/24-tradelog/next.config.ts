@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["bullmq","ioredis","postgres"],
+  // postgres.js opens raw sockets; it must not be bundled for the server runtime.
+  serverExternalPackages: ["postgres"],
 };
 
 export default nextConfig;

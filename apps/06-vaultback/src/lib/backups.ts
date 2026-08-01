@@ -559,8 +559,18 @@ export async function pruneExpiredSnapshots(orgId?: string, limit = 200): Promis
   return pruned;
 }
 
-/** Jobs stuck mid-flight because their process died. Reaped by the watchdog. */
-export async function reapStuckJobs(olderThanMs = 45 * 60 * 1000): Promise<number> {
+/**
+ * Jobs stuck mid-flight because their process died. Reaped by the watchdog so a
+ * crash cannot leave a job "running" forever and suppress the next slot's alert.
+ *
+ * The threshold has to exceed the longest dump you expect: reaping a job that is
+ * genuinely still streaming marks it failed and sends a false alarm (the real job
+ * still finishes and still records its snapshot). Raise
+ * STUCK_JOB_TIMEOUT_MS when running the worker against very large databases.
+ */
+export async function reapStuckJobs(
+  olderThanMs = Number(process.env.STUCK_JOB_TIMEOUT_MS ?? 45 * 60 * 1000),
+): Promise<number> {
   const db = getDb();
   const cutoff = new Date(Date.now() - olderThanMs);
   const stuck = await db

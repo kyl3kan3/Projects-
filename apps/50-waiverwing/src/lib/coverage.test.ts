@@ -7,6 +7,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { deriveCoverage, COVERAGE_LABEL } from "@/lib/search";
+import { daysUntil, shouldSendResignNotice } from "@/lib/coverage";
 import type { Signature } from "@/db/schema";
 
 const TZ = "America/Denver";
@@ -121,5 +122,35 @@ describe("deriveCoverage", () => {
     assert.equal(COVERAGE_LABEL.visitor, "VISITOR");
     assert.equal(COVERAGE_LABEL.expired, "EXPIRED");
     assert.equal(COVERAGE_LABEL.none, "NONE");
+  });
+});
+
+describe("re-sign notice schedule", () => {
+  const now = new Date("2026-07-04T18:00:00Z");
+  const inDays = (n: number) => new Date(now.getTime() + n * 86_400_000 + 3600_000);
+
+  it("sends on the scheduled distances and stays quiet in between", () => {
+    const sends = [] as number[];
+    for (let d = -10; d <= 45; d++) {
+      if (shouldSendResignNotice(inDays(d), now)) sends.push(d);
+    }
+    assert.deepEqual(sends, [-1, 0, 1, 7, 14, 30]);
+  });
+
+  it("never nags a customer daily forever after their waiver lapses", () => {
+    // The failure this exists to prevent: a daily cron emailing the same person
+    // every day because "expired" stays true.
+    for (const d of [-2, -5, -30, -400]) {
+      assert.equal(shouldSendResignNotice(inDays(d), now), false, `${d} days should be silent`);
+    }
+  });
+
+  it("says nothing about coverage that never expires", () => {
+    assert.equal(shouldSendResignNotice(null, now), false);
+  });
+
+  it("counts whole days from now", () => {
+    assert.equal(daysUntil(new Date(now.getTime() + 7 * 86_400_000 + 1000), now), 7);
+    assert.equal(daysUntil(new Date(now.getTime() - 1000), now), -1);
   });
 });

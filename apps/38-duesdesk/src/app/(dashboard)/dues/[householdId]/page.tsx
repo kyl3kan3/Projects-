@@ -45,9 +45,7 @@ export default async function HouseholdPage({
   const canMove = can(user.role, "money");
   const asOf = today();
 
-  const open = ledgers.filter(
-    (l) => l.balanceCents > 0 && l.invoice.status !== "written_off",
-  );
+  const open = ledgers.filter((l) => l.balanceCents > 0 && l.status !== "written_off");
   const oldest = open.at(-1) ?? null;
   const primary = members.find((m) => m.isPrimary) ?? members[0] ?? null;
 
@@ -270,7 +268,7 @@ function InvoicePanel({
             {ledger.balanceCents > 0 && late > 0 ? ` · ${late} days late` : ""}
           </p>
         </div>
-        {invoice.status === "paid" ? <PaidSeal /> : <InvoicePill status={invoice.status} />}
+        {ledger.status === "paid" ? <PaidSeal /> : <InvoicePill status={ledger.status} />}
       </div>
 
       {invoice.prorationNote ? (
@@ -320,7 +318,7 @@ function InvoicePanel({
         </div>
       ) : null}
 
-      {canMove && invoice.status !== "written_off" ? (
+      {canMove && ledger.status !== "written_off" ? (
         <div className="hairline-t mt-3 pt-3">
           <HouseholdPowerActions
             invoiceId={invoice.id}

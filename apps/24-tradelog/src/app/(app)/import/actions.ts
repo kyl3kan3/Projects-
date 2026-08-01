@@ -7,7 +7,7 @@ import { accounts, executions, importBatches } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { getAccount, listAccounts, rebuildTrades } from "@/lib/trades";
 import { importText, MAX_IMPORT_BYTES, type ImportOutcome } from "@/lib/imports";
-import { PARSERS, parserById } from "@/lib/parsers/registry";
+import { parserById } from "@/lib/parsers/registry";
 import { accountLimitReached, plan } from "@/lib/plans";
 import { encryptSecret } from "@/lib/secrets";
 import { syncAccount } from "@/lib/sync";
@@ -183,9 +183,3 @@ export async function deleteBatchAction(batchId: string): Promise<void> {
   revalidatePath("/journal");
   revalidatePath("/insights");
 }
-
-export const BROKER_OPTIONS = PARSERS.map((parser) => ({
-  id: parser.id,
-  label: parser.label,
-  hint: parser.hint,
-}));

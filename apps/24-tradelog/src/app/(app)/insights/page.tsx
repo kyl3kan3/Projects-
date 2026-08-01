@@ -122,20 +122,17 @@ export default async function InsightsPage({
           <section className="mt-6">
             <h2 className="t-label mb-3">You, and you without this leak</h2>
             <DrawOnce sessionKey={`counterfactual-${finding.id}`}>
-              {(animate) => (
-                <CounterfactualCurve
-                  actual={actual}
-                  without={without}
-                  animate={animate}
-                  label={`Your cumulative net profit and loss ends at ${formatCents(
-                    BigInt(Math.round(actual[actual.length - 1] ?? 0)),
-                    { ascii: true },
-                  )}; with the ${finding.sampleSize} trades behind this finding removed it would read ${formatCents(
-                    BigInt(Math.round(without[without.length - 1] ?? 0)),
-                    { ascii: true },
-                  )}`}
-                />
-              )}
+              <CounterfactualCurve
+                actual={actual}
+                without={without}
+                label={`Your cumulative net profit and loss ends at ${formatCents(
+                  BigInt(Math.round(actual[actual.length - 1] ?? 0)),
+                  { ascii: true },
+                )}; with the ${finding.sampleSize} trades behind this finding removed it would read ${formatCents(
+                  BigInt(Math.round(without[without.length - 1] ?? 0)),
+                  { ascii: true },
+                )}`}
+              />
             </DrawOnce>
             <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2">
               <span className="t-secondary flex items-center gap-2">

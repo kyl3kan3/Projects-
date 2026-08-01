@@ -11,13 +11,11 @@ import { CURVE_FRAME, pathLength, polyline, project, sharedDomain, zeroY } from 
 export function EquityCurve({
   values,
   height = 200,
-  animate = true,
   label,
 }: {
   /** Cumulative cents at each closed trade, oldest first. */
   values: number[];
   height?: number;
-  animate?: boolean;
   label: string;
 }) {
   const frame = { ...CURVE_FRAME, height };
@@ -71,15 +69,15 @@ export function EquityCurve({
           stroke="var(--color-text-2)"
           strokeWidth={1.5}
           vectorEffect="non-scaling-stroke"
-          className={animate ? "curve-base" : undefined}
-          style={animate ? ({ "--len": length } as React.CSSProperties) : undefined}
+          className="curve-base"
+          style={{ "--len": length } as React.CSSProperties}
         />
         <circle
           cx={last.x}
           cy={last.y}
           r={2.5}
           fill="var(--color-text)"
-          className={animate ? "endpoint-dot" : undefined}
+          className="endpoint-dot"
         />
       </svg>
     </div>

@@ -40,7 +40,7 @@ export function DatabaseRow({ health }: { health: ConnectionHealth }) {
 
       <span className="min-w-0 flex-1">
         <span className="t-title block truncate">{connection.name}</span>
-        <span className="t-data mt-1.5 block truncate" style={{ color: detailColor }}>
+        <span className="t-data mt-2 block truncate" style={{ color: detailColor }}>
           {detail}
         </span>
       </span>

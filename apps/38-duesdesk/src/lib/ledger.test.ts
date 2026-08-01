@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import {
   allocate,
   amountDueNow,
+  cascade,
   assessmentTotal,
   balanceCents,
   DEFAULT_REMINDER_LADDER,
@@ -106,6 +107,75 @@ describe("allocate", () => {
     // $180 invoice, $100 already settled, member sends $100: $80 applied, $20 credit.
     const a = allocate(balanceCents([dues], [settled(10000)]), 10000);
     assert.deepEqual(a, { appliedCents: 8000, creditCents: 2000 });
+  });
+});
+
+describe("cascade", () => {
+  // The treasurer's real Tuesday: one check covering three unpaid quarters.
+  const threeQuarters = [
+    { invoiceId: "q1", balanceCents: 18000 },
+    { invoiceId: "q2", balanceCents: 18000 },
+    { invoiceId: "q3", balanceCents: 18000 },
+  ];
+
+  it("clears the oldest invoices first and creates no credit", () => {
+    const result = cascade(threeQuarters, 54000);
+    assert.deepEqual(result.allocations, [
+      { invoiceId: "q1", appliedCents: 18000 },
+      { invoiceId: "q2", appliedCents: 18000 },
+      { invoiceId: "q3", appliedCents: 18000 },
+    ]);
+    assert.equal(result.appliedCents, 54000);
+    assert.equal(result.creditCents, 0);
+  });
+
+  it("stops part-way through when the check does not cover everything", () => {
+    // $250 against three $180 quarters: q1 in full, $70 onto q2, q3 untouched.
+    const result = cascade(threeQuarters, 25000);
+    assert.deepEqual(result.allocations, [
+      { invoiceId: "q1", appliedCents: 18000 },
+      { invoiceId: "q2", appliedCents: 7000 },
+    ]);
+    assert.equal(result.appliedCents, 25000);
+    assert.equal(result.creditCents, 0);
+  });
+
+  it("credits only what is left after every balance is cleared", () => {
+    const result = cascade(threeQuarters, 60000);
+    assert.equal(result.appliedCents, 54000);
+    assert.equal(result.creditCents, 6000);
+  });
+
+  it("turns a payment with nothing to pay entirely into credit", () => {
+    const result = cascade([], 18000);
+    assert.deepEqual(result.allocations, []);
+    assert.equal(result.creditCents, 18000);
+  });
+
+  it("skips invoices that are already settled", () => {
+    const result = cascade(
+      [
+        { invoiceId: "q1", balanceCents: 0 },
+        { invoiceId: "q2", balanceCents: 18000 },
+      ],
+      18000,
+    );
+    assert.deepEqual(result.allocations, [{ invoiceId: "q2", appliedCents: 18000 }]);
+  });
+
+  it("never loses or invents a cent", () => {
+    for (const amount of [1, 999, 17999, 18000, 18001, 53999, 54000, 54001, 99999]) {
+      const result = cascade(threeQuarters, amount);
+      assert.equal(
+        result.appliedCents + result.creditCents,
+        amount,
+        `applied + credit must equal the ${amount} that came in`,
+      );
+      assert.equal(
+        result.allocations.reduce((sum, a) => sum + a.appliedCents, 0),
+        result.appliedCents,
+      );
+    }
   });
 });
 

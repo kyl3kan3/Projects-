@@ -23,15 +23,11 @@ export interface FillPoint {
 export function TradeChart({
   fills,
   stop,
-  stopLabel,
   height = 200,
-  animate = true,
 }: {
   fills: FillPoint[];
   stop: number | null;
-  stopLabel: string | null;
   height?: number;
-  animate?: boolean;
 }) {
   const frame = { width: 340, height, padTop: 24, padBottom: 24 };
   if (fills.length === 0) {
@@ -93,16 +89,14 @@ export function TradeChart({
               stroke="var(--color-text-2)"
               strokeWidth={1}
               vectorEffect="non-scaling-stroke"
-              className={animate ? "bracket" : undefined}
+              className="bracket"
               style={
-                animate
-                  ? ({
-                      "--len": pathLength([
-                        { x: 6, y: avgEntryY },
-                        { x: 6, y: stopPoint.y },
-                      ]),
-                    } as React.CSSProperties)
-                  : undefined
+                {
+                  "--len": pathLength([
+                    { x: 6, y: avgEntryY },
+                    { x: 6, y: stopPoint.y },
+                  ]),
+                } as React.CSSProperties
               }
             />
             <text x={10} y={round((avgEntryY + stopPoint.y) / 2) + 4} className="t-cell" fill="var(--color-text-2)" fontSize={11}>
@@ -114,8 +108,8 @@ export function TradeChart({
         {points.map((point, index) => (
           <g
             key={index}
-            className={animate ? "pin" : undefined}
-            style={animate ? { animationDelay: `${Math.min(index, 8) * 120}ms` } : undefined}
+            className="pin"
+            style={{ animationDelay: `${Math.min(index, 8) * 120}ms` }}
           >
             <circle
               cx={point.x}

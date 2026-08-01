@@ -6,12 +6,21 @@
  * — and it is also what makes missed-schedule detection trustworthy: enqueueing
  * is cheap and cannot be starved by a slow dump.
  *
- * Claiming is a conditional UPDATE on `next_run_at`. Two concurrent ticks race
- * on the same row; exactly one wins and the loser sees zero rows updated. The
- * unique index on (policy_id, scheduled_for) is the second line of defence.
+ * Claiming is a conditional UPDATE whose predicate the *database* evaluates:
+ * `next_run_at <= now()`. Two concurrent ticks race on the same row; the second
+ * blocks on the row lock, re-reads after the first commits, sees a future
+ * `next_run_at`, and updates nothing. The unique index on
+ * (policy_id, scheduled_for) is the second line of defence.
+ *
+ * The predicate deliberately does *not* compare against the timestamp we read a
+ * moment ago. `timestamptz` keeps microseconds and a JavaScript Date only holds
+ * milliseconds, so `next_run_at = <the value we just read>` is false for any row
+ * whose timestamp came from SQL `now()` — including the column default. That bug
+ * looks like a schedule that simply never runs, which is the exact failure this
+ * product exists to prevent.
  */
 
-import { and, asc, eq, isNotNull, lte } from "drizzle-orm";
+import { and, asc, eq, isNotNull, lte, sql as raw } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
   backupPolicies,
@@ -75,11 +84,17 @@ export async function dispatchDueBackups(limit = 50, now = new Date()): Promise<
       continue;
     }
 
-    // Claim: only the tick that still sees this slot may advance it.
+    // Claim: the database decides whether this policy is still due.
     const advanced = await db
       .update(backupPolicies)
       .set({ nextRunAt: next })
-      .where(and(eq(backupPolicies.id, policy.id), eq(backupPolicies.nextRunAt, slot)))
+      .where(
+        and(
+          eq(backupPolicies.id, policy.id),
+          eq(backupPolicies.enabled, true),
+          lte(backupPolicies.nextRunAt, raw`now()`),
+        ),
+      )
       .returning();
     if (!advanced.length) {
       skipped++;
@@ -177,12 +192,19 @@ export async function dispatchDueDrills(limit = 5, now = new Date()): Promise<Dr
       continue;
     }
 
-    const slot = policy.nextDrillAt as Date;
     const next = nextDrillAfter(policy.drillFrequency, now);
+    // Same reasoning as the backup claim: let the database decide, and never
+    // compare against a millisecond-truncated copy of a microsecond timestamp.
     const advanced = await db
       .update(backupPolicies)
       .set({ nextDrillAt: next })
-      .where(and(eq(backupPolicies.id, policy.id), eq(backupPolicies.nextDrillAt, slot)))
+      .where(
+        and(
+          eq(backupPolicies.id, policy.id),
+          eq(backupPolicies.enabled, true),
+          lte(backupPolicies.nextDrillAt, raw`now()`),
+        ),
+      )
       .returning();
     if (!advanced.length) {
       skipped++;

@@ -79,3 +79,31 @@ export function deriveCoverage(
     reason: "No waiver on file.",
   };
 }
+
+/* ------------------------------------------------- re-sign notice schedule */
+
+/**
+ * The days-before-lapse on which a re-sign notice is worth sending.
+ *
+ * The cron job runs from current state, not from a cursor, which makes it
+ * correct at any frequency but also means a naive "email everyone whose coverage
+ * has run out" would email the same customer every single day forever. The
+ * failure mode is the mirror image of a job that fires once and then goes silent,
+ * and it is just as damaging: people mute you, and the one notice that mattered
+ * goes unread.
+ *
+ * So notices are pinned to specific distances from the lapse date. A daily cron
+ * sends at most five per lapse; a weekly one sends fewer; neither sends none, and
+ * neither sends a stream.
+ */
+export const RESIGN_NOTICE_DAYS = [30, 14, 7, 1, 0, -1] as const;
+
+/** Whole days from `now` until coverage ends. Negative once it has lapsed. */
+export function daysUntil(endsAt: Date, now: Date): number {
+  return Math.floor((endsAt.getTime() - now.getTime()) / 86_400_000);
+}
+
+export function shouldSendResignNotice(endsAt: Date | null, now: Date): boolean {
+  if (endsAt === null) return false;
+  return (RESIGN_NOTICE_DAYS as readonly number[]).includes(daysUntil(endsAt, now));
+}

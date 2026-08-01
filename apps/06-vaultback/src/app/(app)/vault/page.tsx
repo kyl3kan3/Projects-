@@ -178,7 +178,7 @@ function EmptyState() {
         ].map((example) => (
           <li key={example.name} className="hairline-t pt-3">
             <p className="t-title">{example.name}</p>
-            <p className="t-data mt-1.5" style={{ color: "var(--color-text-3)" }}>
+            <p className="t-data mt-2" style={{ color: "var(--color-text-3)" }}>
               {example.detail}
             </p>
           </li>

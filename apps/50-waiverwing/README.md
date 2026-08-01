@@ -87,3 +87,57 @@ Post-MVP (explicitly cut from v1): bookings/scheduling integrations (Peek, FareH
 3. **Kiosk environment chaos.** Old tablets, flaky Wi-Fi, sticky fingers. Mitigation: PWA with offline queue and aggressive auto-recovery, a supported-devices doc, and a "kiosk health" indicator staff can see.
 4. **Seasonality (tour/rental segment).** Outfitters pause in the off-season. Mitigation: gyms are counter-seasonal ballast; annual plans discounted into the pre-season; pause-not-cancel plan preserving the archive (small retention fee).
 5. **Data protection duty.** The participant database holds PII including minors'. Mitigation: encryption at rest, role-based access, retention policies per location, breach-response plan, and COPPA-aware minimalism (collect only what the waiver needs).
+
+## Setup
+
+Requires Node 20+ and a Postgres 14+ database (the first migration enables
+`pg_trgm`, which the participant search depends on).
+
+```bash
+npm install
+cp .env.example .env.local          # DATABASE_URL and AUTH_SECRET are the only
+                                    # two that must be real to run the product
+npm run db:migrate                  # creates the schema and the trigram indexes
+npm run db:seed                     # optional: a demo gym with a Saturday's traffic
+npm run dev                         # http://localhost:3050
+```
+
+`npm run db:seed` prints the login it created, the QR sign link and the kiosk
+URL with its PIN. Without it, sign up at `/signup`: choosing an activity template
+publishes a starter waiver, so the QR poster and the kiosk work immediately.
+
+**What each optional service buys you.** Nothing below is needed to take a real
+signature:
+
+| Unset | What happens |
+|---|---|
+| `STRIPE_SECRET_KEY` | The billing screen says Stripe is not configured; plans still display. |
+| `S3_BUCKET` / `AWS_ACCESS_KEY_ID` | PDFs render per request instead of being cached. The record is in Postgres either way. |
+| `RESEND_API_KEY` (or `DRY_RUN=1`) | Receipts, sign links and digests are logged instead of sent, and the UI shows the link so staff can read it out. |
+| `CRON_SECRET` | `/api/cron/tick` refuses to run at all, rather than defaulting to open. |
+
+### The three URLs
+
+- `/` — the marketing page.
+- `/sign/<poster token>` — what a customer's phone opens from the QR poster. No
+  account, no app. Print the poster from **Settings → QR poster**.
+- `/kiosk/<location id>` — the counter tablet. Enter the kiosk PIN once, then add
+  the page to the tablet's home screen; it runs full-screen, resets between
+  signers, and queues signatures locally when the Wi-Fi drops.
+
+### Scripts
+
+```bash
+npm run typecheck     # tsc --noEmit
+npm test              # node:test via tsx — domain logic, no database needed
+npm run build         # production build
+npm run db:generate   # new migration from a schema change
+```
+
+### Deploying
+
+Vercel + Neon; see the repo's `DEPLOYING.md`. Use Neon's **pooled** connection
+string, run migrations from your machine rather than from a build step, and set
+`CRON_SECRET` so `vercel.json`'s daily cron entry is authorised. The cron job
+(expiry roll + digest) is written to be correct at any frequency, so Hobby's
+once-a-day floor is fine.

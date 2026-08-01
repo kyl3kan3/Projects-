@@ -17,7 +17,7 @@ export function AddTargetForm({
       <input type="hidden" name="kind" value={kind} />
 
       <div>
-        <p className="t-label mb-2.5">Provider</p>
+        <p className="t-label mb-3">Provider</p>
         <div className="flex gap-2">
           <button
             type="button"

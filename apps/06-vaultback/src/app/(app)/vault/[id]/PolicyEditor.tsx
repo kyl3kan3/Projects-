@@ -53,7 +53,7 @@ export function PolicyEditor({
       <input type="hidden" name="drillFrequency" value={drill} />
 
       <div>
-        <p className="t-label mb-2.5">Frequency</p>
+        <p className="t-label mb-3">Frequency</p>
         <div className="flex gap-2">
           {(["hourly", "daily"] as Frequency[]).map((option) => {
             const blocked = option === "hourly" && limits.maxFrequency === "daily";
@@ -76,7 +76,7 @@ export function PolicyEditor({
       </div>
 
       <div className={frequency === "hourly" ? "opacity-60" : ""}>
-        <p className="t-label mb-2.5">Time of day</p>
+        <p className="t-label mb-3">Time of day</p>
         <div className="flex items-center gap-2">
           <input
             className="input input-mono"
@@ -126,7 +126,7 @@ export function PolicyEditor({
       </div>
 
       <div>
-        <p className="t-label mb-2.5">Keep snapshots for</p>
+        <p className="t-label mb-3">Keep snapshots for</p>
         <div className="flex flex-wrap gap-2">
           {RETENTION_STEPS.map((days) => {
             const blocked = days > limits.retentionDays;
@@ -147,7 +147,7 @@ export function PolicyEditor({
       </div>
 
       <div>
-        <p className="t-label mb-2.5">Restore drills</p>
+        <p className="t-label mb-3">Restore drills</p>
         <div className="flex gap-2">
           {DRILLS.map((option) => {
             const blocked =
@@ -175,7 +175,7 @@ export function PolicyEditor({
       </div>
 
       <div>
-        <p className="t-label mb-2.5">Storage</p>
+        <p className="t-label mb-3">Storage</p>
         <select className="input" name="storageTargetId" defaultValue={policy.storageTargetId}>
           {targets.map((target) => (
             <option key={target.id} value={target.id} disabled={!target.verifiedAt}>

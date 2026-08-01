@@ -210,8 +210,11 @@ describe("formatting", () => {
     assert.equal(formatR(24_996n), "+2.50R");
     assert.equal(formatR(-24_996n), "−2.50R");
     assert.equal(formatR(24_996n, 4), "+2.4996R");
+    // Percentages are whole by default — 83.33% of 72 trades is false precision.
     assert.equal(formatPercent(5_400n), "54%");
-    assert.equal(formatPercent(5_425n), "54.25%");
+    assert.equal(formatPercent(8_333n), "83%");
+    assert.equal(formatPercent(8_350n), "84%", "rounds, not truncates");
+    assert.equal(formatPercent(5_425n, 2), "54.25%");
     assert.equal(formatPercent(null), "—");
   });
 });

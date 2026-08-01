@@ -9,7 +9,7 @@
  */
 
 import { useActionState, useState } from "react";
-import { REVIEW_PROMPTS } from "@/lib/review";
+import { REVIEW_PROMPTS } from "@/lib/review-prompts";
 import { saveReviewAction, type ReviewFormState } from "./actions";
 import { IconCheck } from "@/components/icons";
 

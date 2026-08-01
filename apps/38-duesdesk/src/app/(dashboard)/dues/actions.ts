@@ -19,7 +19,7 @@ import {
 } from "@/lib/invoicing";
 import { chargeRun } from "@/lib/autopay";
 import { createPaymentPlan, reminderSweep } from "@/lib/reminders";
-import { parseMoney } from "@/lib/money";
+import { formatMoney, parseMoney } from "@/lib/money";
 import { featureAllowed, planForFeature } from "@/lib/plans";
 
 export interface ActionState {
@@ -79,12 +79,16 @@ export async function recordPaymentAction(
 
     revalidatePath("/dues");
     revalidatePath(`/dues/${invoice.householdId}`);
-    return {
-      ok:
-        result.creditCents > 0
-          ? `Recorded. ${(result.creditCents / 100).toFixed(2)} over the balance is held as credit for this household.`
-          : "Recorded.",
-    };
+
+    const spread =
+      result.invoiceIds.length > 1
+        ? ` Applied across ${result.invoiceIds.length} invoices, oldest first.`
+        : "";
+    const credit =
+      result.creditCents > 0
+        ? ` ${formatMoney(result.creditCents)} was more than this household owed and is held as credit.`
+        : "";
+    return { ok: `Recorded ${formatMoney(amountCents)}.${spread}${credit}` };
   } catch (err) {
     return { error: err instanceof Error ? err.message : "Could not record that payment" };
   }

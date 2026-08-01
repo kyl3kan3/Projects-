@@ -270,7 +270,7 @@ export default function LandingPage() {
             "Connection strings are encrypted at rest under a key separate from the one protecting snapshots, and never written to a log.",
             "We are easier to trust because we are easy to leave.",
           ].map((item) => (
-            <li key={item} className="flex items-start gap-2.5">
+            <li key={item} className="flex items-start gap-3">
               <span style={{ color: "var(--color-seal)", marginTop: 2 }}>
                 <IconShieldCheck size={18} />
               </span>

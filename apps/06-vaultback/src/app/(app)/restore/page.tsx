@@ -82,7 +82,7 @@ export default async function RestorePage({
               >
                 <span className="min-w-0 flex-1">
                   <span className="t-data block">{formatTimestamp(snapshot.createdAt)}</span>
-                  <span className="t-data mt-1.5 block truncate" style={{ color: "var(--color-text-3)" }}>
+                  <span className="t-data mt-2 block truncate" style={{ color: "var(--color-text-3)" }}>
                     {nameFor(snapshot.databaseConnectionId)} ·{" "}
                     {formatBytes(snapshot.compressedSizeBytes)} ·{" "}
                     {formatCount(snapshot.manifest?.totalRows ?? 0)} rows
@@ -109,12 +109,12 @@ export default async function RestorePage({
             <div key={run.id} className="row">
               <span className="min-w-0 flex-1">
                 <span className="t-data block truncate">{run.targetFingerprint}</span>
-                <span className="t-data mt-1.5 block" style={{ color: "var(--color-text-3)" }}>
+                <span className="t-data mt-2 block" style={{ color: "var(--color-text-3)" }}>
                   {formatTimestamp(run.createdAt)} · {formatCount(run.tablesRestored)} tables ·{" "}
                   {formatCount(Number(run.rowsRestored))} rows · {formatDuration(run.durationMs)}
                 </span>
                 {run.errorDetail ? (
-                  <span className="t-secondary mt-1.5 block" style={{ color: "var(--color-torch)" }}>
+                  <span className="t-secondary mt-2 block" style={{ color: "var(--color-torch)" }}>
                     {run.errorDetail}
                   </span>
                 ) : null}

@@ -123,3 +123,89 @@ Positioning sentence: SimpleBackups is backups for people who manage servers; Va
 3. **Security breach blast radius.** We hold connection strings to hundreds of production databases; a compromise of VaultBack is a compromise of every customer. This is an existential, not operational, risk. Mitigation: envelope encryption with KMS for all snapshots, connection credentials encrypted at rest with a separate key, read-only backup roles documented and encouraged (enforced where providers allow), no plaintext credentials in logs or job payloads, and an honest SECURITY page. A breach ends the company; the architecture must assume it is being attacked.
 4. **Single-founder ops burden of an insurance product.** Customers pay precisely so that failures are not silent -- which means the founder is the on-call rotation. A broken worker at 3 a.m. is a breach of the core promise. Mitigation: aggressive dead-man's-switch alerting (missed schedule pages the founder before the customer notices), idempotent retry-safe jobs, boring infrastructure choices, and honest status communication. Budget real emotional overhead for this; it is the tax on near-zero churn.
 5. **Storage cost creep.** A few customers with 100 GB+ databases on hourly backups can invert unit economics on the managed-storage path. Mitigation: compression, retention enforcement, soft caps with overage pricing on managed storage, and nudging heavy users to BYO-bucket where they pay their own storage bill.
+
+## Setup
+
+You need Postgres and Node 20+. Nothing else is required to run the whole thing
+locally: Stripe, Resend, GitHub OAuth and a real S3 bucket are all optional in
+development, and the app says so on screen where a feature is unconfigured.
+
+```bash
+npm install
+cp .env.example .env.local        # fill DATABASE_URL, AUTH_SECRET,
+                                 # BACKUP_MASTER_KEY, CREDENTIALS_KEY, CRON_SECRET
+npm run db:migrate               # creates the 13 tables
+npm run dev                      # http://localhost:3006
+```
+
+Sign up, paste a Postgres connection string, and the first encrypted snapshot is
+taken during the request. Backups after that are on a schedule, and schedules
+need something to drive the tick:
+
+```bash
+# run one scheduler tick by hand (this is what Vercel Cron calls)
+curl -H "Authorization: Bearer $CRON_SECRET" localhost:3006/api/cron/tick
+```
+
+In production that URL is a cron job; for databases too large to dump inside a
+serverless function, run the same work as a long-lived process instead:
+
+```bash
+npm run worker                   # same tick, on a loop, no duration ceiling
+```
+
+Both shapes are safe to run together. See [DEPLOYING.md](./DEPLOYING.md).
+
+A few things to know while developing:
+
+- **With no S3 bucket configured**, snapshots are written under
+  `.vaultback-storage` — still gzipped, still AES-256-GCM encrypted. That
+  fallback refuses to run on Vercel.
+- **Restore drills** create and drop a database on `SCRATCH_POSTGRES_URL`, which
+  defaults to the server in `DATABASE_URL`. It must never point at a customer
+  database.
+- **Without `RESEND_API_KEY`** alert emails are logged rather than sent.
+- **Without `STRIPE_SECRET_KEY`** the billing screen shows the plan ladder and
+  hides the upgrade buttons.
+- **Without GitHub OAuth credentials** the "Continue with GitHub" button is
+  hidden and the OAuth routes return 404.
+- `pg_dump` is used when it is installed and new enough for the source server;
+  otherwise the built-in TypeScript dump engine runs. Force either with
+  `VAULTBACK_DUMP_ENGINE=pg_dump|js`.
+
+### Checks and tests
+
+```bash
+npm run typecheck    # tsc --noEmit
+npm test             # unit tests (node:test via tsx, no extra dependencies)
+npm run build        # production build
+```
+
+## Repository Layout
+
+One package: the Next.js app, the cron route, and the worker share a single
+`src/` tree. `ARCHITECTURE.md` has the data model and cost model; `DEPLOYING.md`
+records where the build deliberately departs from it and why.
+
+```
+src/
+  app/          Next.js App Router — marketing page, dashboard, API routes
+    (app)/      signed-in screens: vault, restore, drills, settings
+    (auth)/     sign up, sign in
+    api/        cron tick, Stripe webhook, GitHub OAuth, compliance PDF
+  db/           Drizzle schema + client (control-plane metadata only)
+  lib/          domain logic:
+                  dump.ts          two dump engines behind one interface
+                  crypto.ts        envelope encryption + streaming AES-256-GCM
+                  sqlsplit.ts      statement splitter the restore path depends on
+                  restore-engine.ts apply + verify, shared by restores and drills
+                  drills.ts        the headline feature
+                  scheduler.ts     claim what is due, alert on what was missed
+                  tick.ts          one unit of background work
+  worker/       long-lived process that runs the same tick on a loop
+  components/   UI, including the checksum-lock signature detail
+```
+
+Status: MVP implemented. Every item in the feature list above is built. What has
+and has not been verified against real infrastructure is recorded honestly in the
+build report rather than claimed here.

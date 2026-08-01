@@ -40,18 +40,27 @@ export function EditSheet({
   jobs,
   period,
   strings,
+  children,
 }: {
   entry: EditableEntry;
   jobs: { id: string; name: string }[];
   period: string;
   strings: EditSheetStrings;
+  /** The row itself is the trigger (DESIGN.md: "row tap opens an edit sheet"). */
+  children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
 
   return (
     <>
-      <button type="button" className="chip" onClick={() => setOpen(true)}>
-        {strings.edit}
+      <button
+        type="button"
+        className="row items-start"
+        onClick={() => setOpen(true)}
+        aria-haspopup="dialog"
+        aria-label={`${strings.title} — ${entry.workerName}`}
+      >
+        {children}
       </button>
 
       {open ? (

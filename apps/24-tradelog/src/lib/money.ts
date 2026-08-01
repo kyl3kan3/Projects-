@@ -292,8 +292,13 @@ export function formatRatio(value: bigint | null, decimals = 2): string {
   return formatScaled(rounded, decimals, { minDecimals: decimals });
 }
 
-/** "54%" — integer percent, scaled by 1e2 internally. */
-export function formatPercent(basisPoints: bigint | null): string {
-  if (basisPoints === null) return "—";
-  return `${formatScaled(basisPoints, 2, { minDecimals: 0 })}%`;
+/**
+ * "54%" — percentages arrive scaled by 1e2 and are shown to whole percent by
+ * default, which is DESIGN.md's specimen and the only precision a win rate over a
+ * few hundred trades can honestly carry.
+ */
+export function formatPercent(hundredths: bigint | null, decimals = 0): string {
+  if (hundredths === null) return "—";
+  const rounded = divRound(hundredths, 10n ** BigInt(2 - decimals));
+  return `${formatScaled(rounded, decimals, { minDecimals: decimals })}%`;
 }

@@ -3,7 +3,7 @@
  * Deleted before hand-off; anything worth keeping becomes a unit test.
  */
 import { getDb, closeDb } from "@/db";
-import * as s from "@/db/schema";
+import * as s_ from "@/db/schema";
 import { sql, eq, and } from "drizzle-orm";
 import { hashPassword } from "@/lib/password";
 import { DEFAULT_SETTINGS } from "@/lib/settings";
@@ -26,7 +26,7 @@ import {
 } from "@/lib/invoicing";
 import { chargeRun, enroll, enrollmentStats } from "@/lib/autopay";
 import { agingSummary, checksToChase, createPaymentPlan, reminderSweep } from "@/lib/reminders";
-import { importRoster, parseRoster, roster, rosterExportCsv, transferOwnership, activeHouseholdCount } from "@/lib/roster";
+import { createHousehold, importRoster, parseRoster, roster, rosterExportCsv, transferOwnership, activeHouseholdCount } from "@/lib/roster";
 import { mintPortalToken, verifyPortalToken, revokePortalToken, mintStepUpToken, verifyStepUpToken } from "@/lib/portal";
 import { appendEvent, createIssue, listIssues, sendNotice, setIssueStatus, threadForBoard, threadForMember } from "@/lib/issues";
 import { createAnnouncement, deliveryReport, resolveSegment, sendAnnouncement } from "@/lib/announcements";
@@ -59,13 +59,13 @@ async function main() {
   console.log(`storage adapter: ${storageName()}`);
 
   // ---- association + board ----
-  const [assoc] = await db.insert(s.associations).values({
+  const [assoc] = await db.insert(s_.associations).values({
     name: "Maple Ridge Homeowners Association",
     kind: "hoa",
     plan: "neighborhood",
     settings: DEFAULT_SETTINGS,
   }).returning();
-  const [pres] = await db.insert(s.users).values({
+  const [pres] = await db.insert(s_.users).values({
     associationId: assoc.id, email: "dana@mapleridge.org", name: "Dana Whitfield",
     passwordHash: await hashPassword("password1234"), role: "president",
   }).returning();
@@ -122,7 +122,7 @@ async function main() {
   check("step-up token is not a portal token", !(await verifyPortalToken(step)).ok);
 
   console.log("\n== dues schedule + preview ==");
-  const [sched] = await db.insert(s.assessmentSchedules).values({
+  const [sched] = await db.insert(s_.assessmentSchedules).values({
     associationId: assoc.id, name: "2026 Quarterly Dues", cadence: "quarterly",
     amountCents: 18000, dueDay: 1, startsOn: "2026-01-01", prorate: true,
     lateFeePolicy: DEFAULT_LATE_FEE,
@@ -143,22 +143,28 @@ async function main() {
 
   const inv212 = (await householdInvoices(h212.id))[0];
   eq_("prorated invoice amount", inv212.totalCents, 9890);
+  // The defect this catches: an invoice generated as "sent" whose grace date has
+  // since passed. The stored column still reads sent until a cron tick; the
+  // derived status must already read overdue, or a treasurer sees "Due" on an
+  // invoice that is months late.
+  eq_("stored status right after generation", inv212.invoice.status, "sent");
+  eq_("derived status accounts for the grace date having passed", inv212.status, "overdue");
   check("proration note present", (inv212.invoice.prorationNote ?? "").includes("50 of 91"), inv212.invoice.prorationNote ?? "");
 
-  console.log("\n== payments: check, partial, overpayment ==");
+  console.log("\n== payments: partial, cascade, overpayment ==");
   const inv204 = (await householdInvoices(h204.id))[0];
   const partial = await recordManualPayment(
     { invoiceId: inv204.invoice.id, amountCents: 5000, method: "check", receivedOn: "2026-04-03", reference: "check 1841" }, actor);
   eq_("partial applied", [partial.appliedCents, partial.creditCents], [5000, 0]);
   let l204 = await loadInvoice(inv204.invoice.id);
   eq_("partial balance", l204!.balanceCents, 13000);
-  eq_("partial status (derived as of today, past due)", l204!.invoice.status, "overdue");
+  eq_("derived status is overdue as of today", l204!.status, "overdue");
 
   const over = await recordManualPayment(
     { invoiceId: inv204.invoice.id, amountCents: 15000, method: "check", receivedOn: "2026-04-20", reference: "check 1902" }, actor);
   eq_("overpayment split", [over.appliedCents, over.creditCents], [13000, 2000]);
   l204 = await loadInvoice(inv204.invoice.id);
-  eq_("paid after settle", l204!.invoice.status, "paid");
+  eq_("paid after settle", l204!.status, "paid");
   eq_("balance zero", l204!.balanceCents, 0);
   check("paidAt stamped", l204!.invoice.paidAt !== null);
   const bal = await associationBalances(assoc.id);
@@ -174,7 +180,7 @@ async function main() {
   eq_("nothing left to ask for", l208!.dueNowCents, 0);
   const dup = await applyStripePayment({ paymentIntentId: "pi_ach_1", invoiceId: inv208.invoice.id, amountCents: 18000, method: "ach", status: "pending" });
   check("retried pending webhook is a no-op", !dup.changed);
-  const rowsFor208 = await db.select().from(s.payments).where(eq(s.payments.invoiceId, inv208.invoice.id));
+  const rowsFor208 = await db.select().from(s_.payments).where(eq(s_.payments.invoiceId, inv208.invoice.id));
   eq_("still one payment row", rowsFor208.length, 1);
 
   const r2 = await applyStripePayment({ paymentIntentId: "pi_ach_1", invoiceId: inv208.invoice.id, amountCents: 18000, method: "ach", status: "settled" });
@@ -183,7 +189,7 @@ async function main() {
   eq_("now paid", l208!.invoice.status, "paid");
   const r3 = await applyStripePayment({ paymentIntentId: "pi_ach_1", invoiceId: inv208.invoice.id, amountCents: 18000, method: "ach", status: "settled" });
   check("retried succeeded webhook is a no-op", !r3.changed);
-  eq_("still one payment row after settle", (await db.select().from(s.payments).where(eq(s.payments.invoiceId, inv208.invoice.id))).length, 1);
+  eq_("still one payment row after settle", (await db.select().from(s_.payments).where(eq(s_.payments.invoiceId, inv208.invoice.id))).length, 1);
 
   const fail = await markStripePaymentFailed("pi_ach_1", "insufficient funds");
   check("failure recorded", fail.changed);
@@ -205,7 +211,7 @@ async function main() {
   l216 = await loadInvoice(inv216.invoice.id);
   eq_("total back to dues", l216!.totalCents, 18000);
   eq_("fee lines kept on record", l216!.lines.length, 3);
-  const auditRows = await db.select().from(s.auditLog).where(eq(s.auditLog.associationId, assoc.id));
+  const auditRows = await db.select().from(s_.auditLog).where(eq(s_.auditLog.associationId, assoc.id));
   check("apply + waive both audited",
     auditRows.some(a => a.action === "applied_late_fee") && auditRows.some(a => a.action === "waived_late_fee"));
 
@@ -220,12 +226,12 @@ async function main() {
   eq_("charged two", c1.charged, 2);
   const c2 = await chargeRun("2026-04-15", assoc.id);
   eq_("double-fired charge run charges nothing", [c2.charged, c2.processing], [0, 0]);
-  const attempts = await db.select().from(s.autopayAttempts);
+  const attempts = await db.select().from(s_.autopayAttempts);
   eq_("one attempt per invoice", attempts.length, 2);
   const l212 = await loadInvoice(inv212.invoice.id);
   eq_("212 paid by autopay", l212!.invoice.status, "paid");
   eq_("212 charged prorated amount", l212!.settledCents, 9890);
-  const pays212 = await db.select().from(s.payments).where(eq(s.payments.invoiceId, inv212.invoice.id));
+  const pays212 = await db.select().from(s_.payments).where(eq(s_.payments.invoiceId, inv212.invoice.id));
   eq_("no double credit", pays212.length, 1);
   check("simulated intent id marked", (pays212[0].stripePaymentIntentId ?? "").startsWith("pi_dryrun_"), pays212[0].stripePaymentIntentId ?? "");
 
@@ -235,15 +241,15 @@ async function main() {
   const sweep1 = await reminderSweep("2026-04-06");
   console.log(`  sweep at +5d: ${JSON.stringify(sweep1)}`);
   check("208 got a reminder", sweep1.sent >= 1);
-  const inv208row = (await db.select().from(s.invoices).where(eq(s.invoices.id, inv208.invoice.id)))[0];
+  const inv208row = (await db.select().from(s_.invoices).where(eq(s_.invoices.id, inv208.invoice.id)))[0];
   eq_("rung 0 recorded", inv208row.reminderRungSent, 0);
   const sweep2 = await reminderSweep("2026-04-06");
   eq_("same-day double sweep sends nothing", sweep2.sent, 0);
   const sweep3 = await reminderSweep("2026-05-11");
   check("escalated later", sweep3.sent >= 1);
-  const inv208row2 = (await db.select().from(s.invoices).where(eq(s.invoices.id, inv208.invoice.id)))[0];
+  const inv208row2 = (await db.select().from(s_.invoices).where(eq(s_.invoices.id, inv208.invoice.id)))[0];
   eq_("jumped to the board rung, not rung 1", inv208row2.reminderRungSent, 2);
-  const delivered = await db.select().from(s.deliveries).where(and(eq(s.deliveries.associationId, assoc.id), eq(s.deliveries.invoiceId, inv208.invoice.id)));
+  const delivered = await db.select().from(s_.deliveries).where(and(eq(s_.deliveries.associationId, assoc.id), eq(s_.deliveries.invoiceId, inv208.invoice.id)));
   check("deliveries recorded", delivered.length >= 2, `${delivered.length} rows`);
 
   console.log("\n== aging + delinquency ==");
@@ -301,7 +307,7 @@ async function main() {
   const seg = await resolveSegment(assoc.id, { kind: "all" });
   eq_("all-segment recipients", seg.recipients.length, 5); // 4 households, 204 has two owners
   eq_("sms reach honest (nobody opted in)", seg.smsReach, 0);
-  await db.update(s.members).set({ smsOptIn: true, phone: "+16145550187" }).where(eq(s.members.email, "ken@example.com"));
+  await db.update(s_.members).set({ smsOptIn: true, phone: "+16145550187" }).where(eq(s_.members.email, "ken@example.com"));
   eq_("sms reach after opt-in", (await resolveSegment(assoc.id, { kind: "all" })).smsReach, 1);
   const delinq = await resolveSegment(assoc.id, { kind: "delinquent", bucket: "any" });
   // 208 still owes Q2; every household owes the $450 special assessment created above.
@@ -344,7 +350,7 @@ async function main() {
 
   console.log("\n== ownership transfer ==");
   const incoming = await transferOwnership(h204.id, { leftOn: "2026-06-30", newPrimaryName: "Tomas Lindqvist", newPrimaryEmail: "tomas@example.com", joinedOn: "2026-07-01" }, actor);
-  const closed = (await db.select().from(s.households).where(eq(s.households.id, h204.id)))[0];
+  const closed = (await db.select().from(s_.households).where(eq(s_.households.id, h204.id)))[0];
   eq_("old household closed", closed.leftOn, "2026-06-30");
   eq_("successor linked", closed.succeededById, incoming.id);
   eq_("active count unchanged", await activeHouseholdCount(assoc.id), 4);
@@ -371,6 +377,33 @@ async function main() {
   console.log(`  scheduled invoicing on Jul 5: created ${scheduled.created}`);
   eq_("Q3 generated once", scheduled.created, 4);
   eq_("second cron pass creates nothing", (await runScheduledInvoicing("2026-07-05")).created, 0);
+
+  console.log("\n== one check across three quarters (cascade) ==");
+  const hCascade = await createHousehold(assoc.id, {
+    unitLabel: "300 Cedar Ct", joinedOn: "2024-01-01", primaryName: "Ada Fenwick",
+    primaryEmail: "ada@example.com",
+  }, actor);
+  const [schedQ] = await db.insert(s_.assessmentSchedules).values({
+    associationId: assoc.id, name: "Cascade Test Dues", cadence: "quarterly",
+    amountCents: 18000, dueDay: 1, startsOn: "2025-01-01", prorate: false,
+    lateFeePolicy: DEFAULT_LATE_FEE,
+  }).returning();
+  await generateInvoices(schedQ.id, 0, actor);
+  await generateInvoices(schedQ.id, 1, actor);
+  await generateInvoices(schedQ.id, 2, actor);
+  const cascadeTarget = (await householdInvoices(hCascade.id)).filter(l => l.invoice.assessmentScheduleId === schedQ.id);
+  eq_("three quarters open", cascadeTarget.length, 3);
+  const oldest = cascadeTarget.sort((a, b) => a.invoice.dueOn < b.invoice.dueOn ? -1 : 1)[0];
+  const oneCheck = await recordManualPayment(
+    { invoiceId: oldest.invoice.id, amountCents: 54000, method: "check", receivedOn: "2026-01-15", reference: "check 2210" }, actor);
+  eq_("one check cleared all three", [oneCheck.invoiceIds.length, oneCheck.appliedCents, oneCheck.creditCents], [3, 54000, 0]);
+  const afterCascade = (await householdInvoices(hCascade.id)).filter(l => l.invoice.assessmentScheduleId === schedQ.id);
+  eq_("every quarter now settled", afterCascade.map(l => l.status), ["paid", "paid", "paid"]);
+  eq_("no credit invented", afterCascade.reduce((n, l) => n + l.payments.reduce((m, p) => m + p.creditCents, 0), 0), 0);
+  const over3 = await recordManualPayment(
+    { invoiceId: oldest.invoice.id, amountCents: 5000, method: "check", receivedOn: "2026-02-01" }, actor);
+  eq_("a check against a settled household is all credit", [over3.appliedCents, over3.creditCents], [0, 5000]);
+
 
   console.log(failures === 0 ? "\nALL CHECKS PASSED" : `\n${failures} CHECK(S) FAILED`);
   await closeDb();

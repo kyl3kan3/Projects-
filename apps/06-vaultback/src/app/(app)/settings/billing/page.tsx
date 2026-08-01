@@ -60,7 +60,7 @@ export default async function BillingPage({
                 <p className="t-data">${p.priceMonthly}/mo</p>
               </div>
 
-              <ul className="mt-3 flex flex-col gap-1.5">
+              <ul className="mt-3 flex flex-col gap-2">
                 <Feature>{databasesLabel(p)} databases</Feature>
                 <Feature>{p.maxFrequency === "hourly" ? "Hourly or daily" : "Daily"} backups</Feature>
                 <Feature>
@@ -148,7 +148,7 @@ function Feature({ children }: { children: React.ReactNode }) {
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="hairline-b flex items-baseline justify-between gap-4 py-2.5 last:border-0">
+    <div className="hairline-b flex items-baseline justify-between gap-4 py-3 last:border-0">
       <dt className="t-label">{label}</dt>
       <dd className="t-data text-right">{value}</dd>
     </div>

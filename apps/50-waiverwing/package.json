@@ -4,10 +4,10 @@
   "private": true,
   "description": "Digital waivers, kiosk check-in, and a searchable signed-participant database for gyms, tour operators, and rental businesses",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3050",
     "build": "next build",
-    "start": "next start",
-    "lint": "eslint .",
+    "start": "next start -p 3050",
+    "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test src/**/*.test.ts",
     "db:generate": "drizzle-kit generate",

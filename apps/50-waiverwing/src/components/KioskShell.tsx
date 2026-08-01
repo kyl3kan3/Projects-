@@ -56,6 +56,17 @@ export function KioskShell({
     }
   }, []);
 
+  // Register the kiosk service worker so a reload during a Wi-Fi drop still
+  // lands on the signing screen. Failure is non-fatal: without it the tablet
+  // simply needs a connection to reload, and the outbox still protects
+  // signatures captured mid-session.
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    navigator.serviceWorker
+      .register("/sw.js", { scope: "/" })
+      .catch((err) => console.warn("[kiosk] service worker not registered", err));
+  }, []);
+
   useEffect(() => {
     setOnline(navigator.onLine);
     void refreshQueue();

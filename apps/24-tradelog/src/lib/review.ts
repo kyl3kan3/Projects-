@@ -17,23 +17,7 @@ import { addDaysToKey, weekStartKey, zonedDateKey } from "@/lib/tz";
 import { closedTradesFor } from "@/lib/trades";
 import { summarize, type ClosedTrade, type Summary } from "@/lib/analytics";
 
-export const REVIEW_PROMPTS = [
-  {
-    field: "wentWell" as const,
-    label: "What did you do well?",
-    hint: "Name one thing you would repeat exactly. Be specific about the setup.",
-  },
-  {
-    field: "wentWrong" as const,
-    label: "Where did you break your own rules?",
-    hint: "Not the losses — the rules. A losing trade taken correctly is not a mistake.",
-  },
-  {
-    field: "oneChange" as const,
-    label: "One change for next week.",
-    hint: "One. A rule you can check yourself against on Friday.",
-  },
-];
+export { REVIEW_PROMPTS } from "@/lib/review-prompts";
 
 export function currentWeekStart(user: User, now = new Date()): string {
   return weekStartKey(now, user.timezone);

@@ -74,7 +74,7 @@ export function RestorePanel({
       <section className="report-card">
         <p className="t-label">Restoring</p>
         <p className="t-data mt-2">{formatTimestamp(snapshot.createdAt)}</p>
-        <p className="t-data mt-1.5" style={{ color: "var(--color-text-3)" }}>
+        <p className="t-data mt-2" style={{ color: "var(--color-text-3)" }}>
           {snapshot.databaseName} · {formatBytes(snapshot.bytes)} ·{" "}
           {formatCount(snapshot.rows)} rows · {formatCount(snapshot.tables)} tables
         </p>

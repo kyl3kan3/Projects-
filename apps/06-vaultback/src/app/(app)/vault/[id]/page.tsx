@@ -227,7 +227,7 @@ export default async function DatabasePage({
                   >
                     <span className="min-w-0 flex-1">
                       <span className="t-data block">{formatTimestamp(snapshot.createdAt)}</span>
-                      <span className="t-data mt-1.5 block" style={{ color: "var(--color-text-3)" }}>
+                      <span className="t-data mt-2 block" style={{ color: "var(--color-text-3)" }}>
                         {formatBytes(snapshot.compressedSizeBytes)} ·{" "}
                         {formatCount(snapshot.manifest?.totalRows ?? 0)} rows
                       </span>

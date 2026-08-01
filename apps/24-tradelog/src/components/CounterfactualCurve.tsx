@@ -26,7 +26,6 @@ export function CounterfactualCurve({
   actual,
   without,
   height = 200,
-  animate = true,
   label,
 }: {
   /** Cumulative cents, oldest first, as it happened. */
@@ -34,7 +33,6 @@ export function CounterfactualCurve({
   /** The same series with the leak's trades removed. */
   without: number[];
   height?: number;
-  animate?: boolean;
   label: string;
 }) {
   const frame = { ...CURVE_FRAME, height };
@@ -82,7 +80,7 @@ export function CounterfactualCurve({
           d={gapArea(withoutPoints, actualPoints)}
           fill="var(--color-leak)"
           fillOpacity={0.12}
-          className={animate ? "curve-gap" : undefined}
+          className="curve-gap"
         />
 
         <path
@@ -91,8 +89,8 @@ export function CounterfactualCurve({
           stroke="var(--color-text-2)"
           strokeWidth={1.5}
           vectorEffect="non-scaling-stroke"
-          className={animate ? "curve-base" : undefined}
-          style={animate ? ({ "--len": pathLength(actualPoints) } as React.CSSProperties) : undefined}
+          className="curve-base"
+          style={{ "--len": pathLength(actualPoints) } as React.CSSProperties}
         />
 
         <path
@@ -101,10 +99,8 @@ export function CounterfactualCurve({
           stroke="var(--color-paper)"
           strokeWidth={1.5}
           vectorEffect="non-scaling-stroke"
-          className={animate ? "curve-counterfactual" : undefined}
-          style={
-            animate ? ({ "--len": pathLength(withoutPoints) } as React.CSSProperties) : undefined
-          }
+          className="curve-counterfactual"
+          style={{ "--len": pathLength(withoutPoints) } as React.CSSProperties}
         />
       </svg>
     </div>

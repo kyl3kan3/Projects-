@@ -11,7 +11,7 @@ import {
 } from "@/lib/analytics";
 import { formatCents, formatPercent, formatRatio } from "@/lib/money";
 import { displaySymbol } from "@/lib/instruments";
-import { zonedParts } from "@/lib/tz";
+import { zonedDateKey, zonedParts } from "@/lib/tz";
 import { plan, visibleFindings } from "@/lib/plans";
 import { EquityCurve } from "@/components/EquityCurve";
 import { DrawOnce } from "@/components/DrawOnce";
@@ -75,13 +75,10 @@ export default async function DashboardPage() {
         <section className="mb-6">
           <h2 className="t-label mb-3">Equity curve · cumulative net P&amp;L</h2>
           <DrawOnce sessionKey="dashboard-curve">
-            {(animate) => (
-              <EquityCurve
-                values={curve}
-                animate={animate}
-                label={`Cumulative net profit and loss across ${summary.closedCount} closed trades, ending at ${formatCents(summary.netCents, { ascii: true })}`}
-              />
-            )}
+            <EquityCurve
+              values={curve}
+              label={`Cumulative net profit and loss across ${summary.closedCount} closed trades, ending at ${formatCents(summary.netCents, { ascii: true })}`}
+            />
           </DrawOnce>
         </section>
 
@@ -206,10 +203,22 @@ export default async function DashboardPage() {
   );
 }
 
-/** The month grid, built server-side so the client only decides an opacity. */
+/**
+ * The month grid, built server-side so the client only decides an opacity.
+ *
+ * It opens on the current month, unless there is nothing in it — a trader who has
+ * just imported last year's history should see last year's history, not a blank
+ * grid that looks like a bug.
+ */
 function MonthHeatmap({ closed, timezone }: { closed: ClosedTrade[]; timezone: string }) {
   const now = new Date();
-  const here = zonedParts(now, timezone);
+  const currentPrefix = zonedDateKey(now, timezone).slice(0, 7);
+  const allDays = dailyPnl(closed, timezone);
+  const hasThisMonth = [...allDays.keys()].some((date) => date.startsWith(currentPrefix));
+  const latest = [...allDays.keys()].sort().at(-1);
+  const anchor =
+    hasThisMonth || !latest ? now : new Date(`${latest.slice(0, 7)}-15T12:00:00Z`);
+  const here = zonedParts(anchor, timezone);
   const monthPrefix = `${here.year}-${String(here.month).padStart(2, "0")}`;
   const daysInMonth = new Date(Date.UTC(here.year, here.month, 0)).getUTCDate();
   const firstWeekday = new Date(Date.UTC(here.year, here.month - 1, 1)).getUTCDay();
@@ -219,7 +228,7 @@ function MonthHeatmap({ closed, timezone }: { closed: ClosedTrade[]; timezone: s
     timeZone: "UTC",
   });
 
-  const byDay = dailyPnl(closed, timezone);
+  const byDay = allDays;
   const tradeById = new Map(closed.map((t) => [t.id, t]));
   const days: HeatmapDay[] = [...byDay.values()]
     .filter((day) => day.date.startsWith(monthPrefix))

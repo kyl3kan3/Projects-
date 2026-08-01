@@ -5,7 +5,7 @@ import { jobs as jobsTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireOffice } from "@/lib/auth";
 import { HoldToConfirm } from "@/components/HoldToConfirm";
-import { FenceIcon } from "@/components/icons";
+import { FenceIcon, IconChevronRight } from "@/components/icons";
 import { formatClockTime, formatDayLabel, formatShortDate, t } from "@/lib/i18n";
 import {
   addDaysToDateKey,
@@ -271,8 +271,12 @@ function EntryRow({
   };
 
   return (
-    <div className="row items-start">
-      <span className="dot" data-fence={entry.geofenceStatusIn ?? "unavailable"} />
+    <EditSheet entry={editable} jobs={jobOptions} period={period} strings={strings}>
+      <span
+        className="dot"
+        data-fence={entry.geofenceStatusIn ?? "unavailable"}
+        style={{ alignSelf: "flex-start", marginTop: 7 }}
+      />
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-3">
           <p className="t-title truncate">{userName}</p>
@@ -331,9 +335,9 @@ function EntryRow({
           </p>
         ) : null}
       </div>
-      <div className="shrink-0">
-        <EditSheet entry={editable} jobs={jobOptions} period={period} strings={strings} />
-      </div>
-    </div>
+      <span style={{ color: "var(--fg-3)", alignSelf: "flex-start", paddingTop: 2 }}>
+        <IconChevronRight size={18} />
+      </span>
+    </EditSheet>
   );
 }
