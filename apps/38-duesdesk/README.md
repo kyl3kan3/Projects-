@@ -41,19 +41,70 @@ Notes on the model:
 - **Annual = 2 months free**, aligned to HOA budget cycles (boards approve annual budgets; monthly line items get questioned).
 - **No free tier.** An association's ledger should not live on an abandonable free plan; the $49 floor is a rounding error against any alternative.
 
+## Setup
+
+Requires Node 20+ and a Postgres database.
+
+```bash
+cp .env.example .env.local          # fill in DATABASE_URL, AUTH_SECRET,
+                                    # PORTAL_TOKEN_SECRET, CRON_SECRET
+npm install
+npm run db:migrate                  # creates every table
+npm run dev                         # http://localhost:3038
+```
+
+Open `/signup`, name the association, and the dues screen walks you through the
+three setup steps in order: import the roster from a CSV, connect the
+association's Stripe account, create the first assessment.
+
+`DRY_RUN=1` is the default and it matters. Every email and text is logged instead
+of sent and no card is charged, so you can rehearse a whole quarter — invoice run,
+reminder ladder, announcements — against your real roster without a single message
+leaving the building. Set `DRY_RUN=0` only when you mean it.
+
+**Scheduled work.** One cron-triggered route, `/api/cron/tick`, does the invoice
+runs, late fees, autopay charges and reminder ladder. It is protected by
+`CRON_SECRET` and refuses to run when that is unset. `vercel.json` schedules it
+daily, which is the right granularity for a product measured in days; every step
+is idempotent, so firing it twice changes nothing and firing it late only delays.
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3038/api/cron/tick
+```
+
+**Without Stripe.** Set no Stripe keys and the association still works as a
+ledger: invoices, paper-check recording, partial payments, late fees, aging
+buckets, reminders, the issue log, announcements and documents. The member portal
+says plainly that online payment is not switched on rather than offering a button
+that fails.
+
+**Without Cloudflare R2.** Issue photos and documents are written to
+`LOCAL_STORAGE_DIR` and served from `/api/files` behind short-lived signed URLs,
+which is the same contract R2's presigned GETs give. Use R2 in production: a
+serverless filesystem is not persistent.
+
 ## MVP Feature List
 
-- [ ] Auth + association setup (Auth.js); board members with roles (treasurer/secretary/member)
-- [ ] Roster: households/members with units, contact info, mailing addresses, CSV import; join/leave history that survives board turnover
-- [ ] Member portal links: signed, no-password links (magic link upgrade path) where a household sees its balance, pays, and files requests
-- [ ] Dues engine: assessment schedules (annual/quarterly/monthly, per-unit amounts), invoice generation, proration notes, one-off special assessments
-- [ ] Stripe payments: card + ACH via hosted checkout; autopay enrollment (saved payment method, charged on the due date); paper-check recording for the holdouts
-- [ ] Delinquency view: aging buckets (current/30/60/90+), automatic reminder sequence (gentle -> firm, board-configurable), late-fee application per policy
-- [ ] Violations/requests log: numbered issues (violation | maintenance request | architectural request), photo threads, status (open/in progress/resolved/closed), member-visible vs board-only notes, fair-process timeline
-- [ ] Announcements: compose once, deliver by email (all plans) and SMS (Neighborhood+) with per-message delivery status; recipients managed by roster segment
-- [ ] Document library: bylaws, CC&Rs, minutes, budgets -- versioned uploads with member visibility flags
-- [ ] Board dashboard: collected vs expected this period, delinquency total, open issues count, recent activity
-- [ ] Billing for DuesDesk itself (Stripe Billing, three tiers)
+- [x] Auth + association setup; board members with roles (president/treasurer/secretary/member)
+- [x] Roster: households/members with units, contact info, mailing addresses, CSV import; join/leave history that survives board turnover
+- [x] Member portal links: signed, no-password links (magic-link step-up before a payment method is stored) where a household sees its balance, pays, and files requests
+- [x] Dues engine: assessment schedules (annual/quarterly/monthly, per-unit amounts), invoice generation, proration notes, one-off special assessments
+- [x] Stripe payments: card + ACH via hosted checkout; autopay enrollment (saved payment method, charged on the due date); paper-check recording for the holdouts
+- [x] Delinquency view: aging buckets (current/30/60/90+), automatic reminder sequence (gentle -> firm, board-configurable), late-fee application per policy
+- [x] Violations/requests log: numbered issues (violation | maintenance request | architectural request), photo threads, status (open/in progress/resolved/closed), member-visible vs board-only notes, fair-process timeline
+- [x] Announcements: compose once, deliver by email (all plans) and SMS (Neighborhood+) with per-message delivery status; recipients managed by roster segment
+- [x] Document library: bylaws, CC&Rs, minutes, budgets -- versioned uploads with member visibility flags
+- [x] Board dashboard: collected vs expected this period, delinquency total, open issues count, recent activity
+- [x] Billing for DuesDesk itself (Stripe Billing, three tiers)
+
+Two notes on how the built version differs from the line items above. Auth is
+scrypt password hashing plus a signed JWT session cookie (`jose`), matching the
+portfolio convention in the reference apps, rather than Auth.js — the session
+shape is the same and an OAuth provider slots in beside it. Dues are charged as
+**direct** charges on each association's connected account rather than destination
+charges, because that is the only arrangement in which association money never
+passes through a DuesDesk balance, which is the invariant ARCHITECTURE.md is
+actually protecting.
 
 Post-MVP (explicitly cut from v1): full fund accounting/reserves, vendor management + work orders, ballots/elections, ACH dues *payouts* to association-owned accounts beyond standard Stripe payouts, amenity reservations, national-association reporting packs.
 

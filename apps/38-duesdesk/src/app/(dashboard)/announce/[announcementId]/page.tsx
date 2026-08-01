@@ -117,7 +117,7 @@ export default async function DeliveryReportPage({
             <p className="t-label">Counts</p>
             <div className="mt-2">
               {Object.entries(counts).map(([status, n]) => (
-                <div key={status} className="flex items-baseline justify-between gap-3 py-1.5">
+                <div key={status} className="flex items-baseline justify-between gap-3 py-2">
                   <span className="t-secondary">{STATUS_COPY[status] ?? status}</span>
                   <span className="t-data">{n}</span>
                 </div>

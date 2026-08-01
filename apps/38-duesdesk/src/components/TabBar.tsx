@@ -66,7 +66,7 @@ export function SideRail({ associationName }: { associationName: string }) {
           <Link
             key={href}
             href={href}
-            className="flex items-center gap-3 rounded-[8px] px-3 py-2.5 text-[15px] font-semibold"
+            className="flex items-center gap-3 rounded-[8px] px-3 py-2 text-[15px] font-semibold"
             style={{
               color: active ? "var(--color-ink)" : "var(--color-ink-2)",
               background: active ? "var(--color-card)" : "transparent",

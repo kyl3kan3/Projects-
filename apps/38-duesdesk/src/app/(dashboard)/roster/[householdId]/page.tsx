@@ -141,7 +141,7 @@ export default async function RosterHouseholdPage({
               <Field label="Joined">{formatIso(household.joinedOn)}</Field>
               {household.leftOn ? <Field label="Left">{formatIso(household.leftOn)}</Field> : null}
               {household.succeededById ? (
-                <div className="py-1.5">
+                <div className="py-2">
                   <Link href={`/roster/${household.succeededById}`} className="btn-quiet">
                     See the household that succeeded this one
                   </Link>
@@ -185,7 +185,7 @@ export default async function RosterHouseholdPage({
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-baseline justify-between gap-3 py-1.5">
+    <div className="flex items-baseline justify-between gap-3 py-2">
       <span className="t-secondary">{label}</span>
       <span className="t-data text-right">{children}</span>
     </div>

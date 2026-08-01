@@ -198,7 +198,7 @@ export default async function BillingPage({
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-baseline justify-between gap-3 py-1.5">
+    <div className="flex items-baseline justify-between gap-3 py-2">
       <span className="t-secondary">{label}</span>
       <span className="t-data">{children}</span>
     </div>

@@ -306,7 +306,7 @@ function InvoicePanel({
         <div className="hairline-t mt-3 pt-3">
           <p className="t-label">Payments</p>
           {ledger.payments.map((payment) => (
-            <div key={payment.id} className="flex items-baseline justify-between gap-3 py-1.5">
+            <div key={payment.id} className="flex items-baseline justify-between gap-3 py-2">
               <span className="t-secondary">
                 {formatIso(payment.receivedOn)} · {payment.method}
                 {payment.reference ? ` · ${payment.reference}` : ""}
