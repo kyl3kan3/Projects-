@@ -55,7 +55,7 @@ export function InvoiceRow(props: InvoiceRowProps) {
           style={{
             display: "block",
             marginTop: 2,
-            color: "var(--color-text-3)",
+            color: "var(--color-text-aa)",
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
@@ -80,12 +80,12 @@ export function InvoiceRow(props: InvoiceRowProps) {
             PAID{props.paidAt ? ` · ${formatStamp(props.paidAt)}` : ""}
           </span>
         ) : (
-          <span className="t-data" style={{ display: "block", marginTop: 2, color: "var(--color-text-3)" }}>
+          <span className="t-data" style={{ display: "block", marginTop: 2, color: "var(--color-text-aa)" }}>
             {props.daysLate > 0 ? daysLabel(props.daysLate) : "—"}
           </span>
         )}
       </span>
-      <IconChevronRight size={18} style={{ color: "var(--color-text-3)", flex: "none" }} />
+      <IconChevronRight size={18} style={{ color: "var(--color-text-aa)", flex: "none" }} />
       {props.justSettled ? <span className="settle-rule" /> : null}
     </Link>
   );

@@ -72,7 +72,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
                 <span className="t-title" style={{ display: "block" }}>
                   {invoice.number}
                 </span>
-                <span className="t-secondary" style={{ color: "var(--color-text-3)" }}>
+                <span className="t-secondary" style={{ color: "var(--color-text-aa)" }}>
                   {describeInvoiceState(invoice, asOf)}
                 </span>
               </span>
@@ -80,11 +80,11 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
                 <span className="t-data" style={{ display: "block", fontSize: 14 }}>
                   {formatMoney(invoice.balanceCents, invoice.currency)}
                 </span>
-                <span className="t-data" style={{ display: "block", color: "var(--color-text-3)", marginTop: 2 }}>
+                <span className="t-data" style={{ display: "block", color: "var(--color-text-aa)", marginTop: 2 }}>
                   {daysLabel(daysOverdue(invoice.dueAt, asOf))}
                 </span>
               </span>
-              <IconChevronRight size={18} style={{ color: "var(--color-text-3)", flex: "none" }} />
+              <IconChevronRight size={18} style={{ color: "var(--color-text-aa)", flex: "none" }} />
             </Link>
           ))}
         </section>

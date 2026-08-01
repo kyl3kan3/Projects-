@@ -15,12 +15,16 @@ export interface IconProps extends Omit<SVGProps<SVGSVGElement>, "width" | "heig
   size?: number;
 }
 
-function Icon({ size = 20, children, ...rest }: IconProps & { children: React.ReactNode }) {
+function Icon({ size = 20, children, style, ...rest }: IconProps & { children: React.ReactNode }) {
   return (
     <svg
       width={size}
       height={size}
       viewBox="0 0 20 20"
+      // `flex: none` by default: an icon inside a flex row is otherwise a shrinkable
+      // flex item, and a long sentence beside it squeezes it to a smudge. Caught in a
+      // screenshot at 390px, not by any test.
+      style={{ flex: "none", ...style }}
       fill="none"
       stroke="currentColor"
       strokeWidth={1.75}

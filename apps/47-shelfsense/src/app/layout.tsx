@@ -32,6 +32,10 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3047",
   ),
+  // Served from public/ and declared explicitly rather than via the app/icon
+  // convention: the convention's generated route 404'd behind this app's middleware
+  // matcher and left a favicon 404 in every page's console.
+  icons: { icon: [{ url: "/icon.svg", type: "image/svg+xml" }] },
 };
 
 export const viewport: Viewport = {

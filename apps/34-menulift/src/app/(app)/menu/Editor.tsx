@@ -274,7 +274,7 @@ function ItemEditor({ item }: { item: ItemView }) {
             paddingTop: 2,
             transform: open ? "rotate(90deg)" : "none",
             transition: "transform 200ms",
-            color: "var(--fg-3)",
+            color: "var(--fg-2)",
           }}
         >
           <IconChevronRight size={18} />

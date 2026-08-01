@@ -55,7 +55,7 @@ export default async function SettingsPage() {
                   {site.name}
                   {site.id === location.id ? " · current" : ""}
                 </p>
-                <p className="t-data" style={{ margin: 0, marginTop: 2, color: "var(--fg-3)" }}>
+                <p className="t-data" style={{ margin: 0, marginTop: 2, color: "var(--fg-2)" }}>
                   /m/{site.slug} · {site.timezone}
                 </p>
               </div>

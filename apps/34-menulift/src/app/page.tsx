@@ -123,15 +123,21 @@ export default function LandingPage() {
           </h2>
           <ul style={{ listStyle: "none", margin: 0, padding: 0, maxWidth: 480 }}>
             {[
-              ["One reprint run at the print shop", `${money(reprintLowCents)}–${money(reprintHighCents)}`],
-              ["Weeks of lag while prices go stale", "every cycle"],
-              [`MenuLift ${PLANS.menu.name}, one location, a year`, money(menuYearCents)],
-            ].map(([label, value]) => (
-              <li key={label} className="row" style={{ alignItems: "baseline" }}>
-                <span className="t-body" style={{ flex: 1 }}>
-                  {label}
+              ["One reprint run", `${money(reprintLowCents)}–${money(reprintHighCents)}`, "and it's stale within weeks"],
+              [`MenuLift ${PLANS.menu.name}, a whole year`, money(menuYearCents), "one location, changed as often as you like"],
+            ].map(([label, value, note]) => (
+              <li key={label} className="row" style={{ display: "block" }}>
+                <span style={{ display: "flex", alignItems: "baseline", gap: 16 }}>
+                  <span className="t-body" style={{ flex: 1 }}>
+                    {label}
+                  </span>
+                  <span className="t-data" style={{ flex: "0 0 auto" }}>
+                    {value}
+                  </span>
                 </span>
-                <span className="t-data">{value}</span>
+                <span className="t-secondary" style={{ display: "block", marginTop: 4 }}>
+                  {note}
+                </span>
               </li>
             ))}
           </ul>

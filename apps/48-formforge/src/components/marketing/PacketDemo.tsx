@@ -16,10 +16,15 @@
 import { useEffect, useState } from "react";
 import { IconCheck } from "@/components/icons";
 
+/**
+ * A plausible handwritten mark, not a sine wave: uneven loop heights, a tight
+ * middle, a long exit stroke, and a crossbar drawn back over it.
+ */
 const SIGNATURE_PATH =
-  "M14 74 C24 46, 34 44, 40 62 C46 80, 52 82, 58 60 C64 38, 74 40, 78 66 " +
-  "C82 88, 92 84, 98 62 C104 40, 116 42, 122 68 C128 92, 140 84, 152 56 " +
-  "C160 38, 174 42, 182 66 C188 84, 200 84, 214 58";
+  "M12 78 C18 40, 30 30, 36 56 C41 78, 47 82, 52 54 C56 32, 66 36, 68 70 " +
+  "C70 92, 80 90, 88 58 C93 38, 100 40, 104 72 C107 90, 116 88, 124 52 " +
+  "C130 30, 142 34, 146 66 C149 86, 158 84, 168 50 C176 24, 196 30, 206 62 " +
+  "C212 80, 220 76, 228 60 M62 66 L200 44";
 
 const STAMP = "SIGNED · JUL 4 2026 · 14:02 UTC · SHA-256 9F3C…2AB1";
 

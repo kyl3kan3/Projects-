@@ -39,7 +39,7 @@ export function AgingBar({ aging }: { aging: AgingReport }) {
             <div className="t-data" style={{ fontSize: 14 }}>
               {formatMoneyShort(aging.buckets[bucket].amountCents)}
             </div>
-            <div className="t-data" style={{ color: "var(--color-text-3)", marginTop: 2 }}>
+            <div className="t-data" style={{ color: "var(--color-text-aa)", marginTop: 2 }}>
               {aging.buckets[bucket].count}
             </div>
           </div>

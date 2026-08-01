@@ -42,9 +42,37 @@ unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
 Apps 01–04 and 51 predate this process and have no test suites; they are counted
 as working on the strength of having no unimplemented stubs, not on verification.
 
-## Not built (57)
+## Built, gates pass, MVP coverage unconfirmed (7)
 
-Scaffolds that compile and do nothing. 49 are "partial" — complete data model,
+Batch 2 was cut off part-way through by a session limit, which killed seven agents
+mid-verification. Their code is substantial and complete-looking — no unimplemented
+stubs — and I re-ran the gates here myself: typecheck, tests and a production build
+all pass for all seven.
+
+That is **not** the same standard as the list above. None of these agents finished
+its verification pass or filed a report, so nobody has confirmed that every item in
+each app's MVP feature list actually works end to end. Two are known to have been
+mid-fix when they were killed: `45-rosterrally` on a client-side crash in the
+registration form, `43-paidwell` on grey tokens failing AA contrast. `45-rosterrally`
+additionally did not compile — a missing import left a cancellation path referring to
+an undeclared table — which I fixed here.
+
+Treat these as "probably close, unproven". Finishing them means re-running each
+agent to complete its verification, not rebuilding.
+
+| # | App | Lines | Files | Tests |
+|---|-----|------:|------:|------:|
+| 34 | menulift | 10,601 | 82 | 95 |
+| 36 | bidboard | 13,112 | 73 | 51 |
+| 43 | paidwell | 11,358 | 82 | 137 |
+| 45 | rosterrally | 14,917 | 87 | 49 |
+| 47 | shelfsense | 10,850 | 82 | 184 |
+| 48 | formforge | 11,953 | 92 | 151 |
+| 49 | grantgrid | 9,747 | 70 | 82 |
+
+## Not built (50)
+
+Scaffolds that compile and do nothing. 42 are "partial" — complete data model,
 design tokens and build config, no business logic. 8 are near-empty:
 
 `08-subsage` · `10-streakly` · `13-inboxpilot` · `21-lingoloop` · `40-formcoach`

@@ -35,7 +35,7 @@ export default async function HistoryPage() {
                   {row.itemName ? `${row.itemName} — ` : ""}
                   {row.field}
                 </p>
-                <p className="t-data" style={{ margin: 0, color: "var(--fg-3)", flex: "0 0 auto" }}>
+                <p className="t-data" style={{ margin: 0, color: "var(--fg-2)", flex: "0 0 auto" }}>
                   {stamp(row.changedAt, location.timezone)}
                 </p>
               </div>

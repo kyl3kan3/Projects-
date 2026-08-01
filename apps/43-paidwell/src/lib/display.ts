@@ -29,7 +29,7 @@ export const DOT_COLOR: Record<DotTone, string> = {
   amber: "var(--color-amber)",
   red: "var(--color-red)",
   banker: "var(--color-banker)",
-  faint: "var(--color-text-3)",
+  faint: "var(--color-text-aa)",
 };
 
 /** The four aging segments, in order, with their exact fills from DESIGN.md. */

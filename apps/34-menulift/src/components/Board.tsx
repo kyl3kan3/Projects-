@@ -124,7 +124,7 @@ export function Board({ rows, tonightCount, slug, standalone = false }: Props) {
                   <p className="t-dish is-86 row-86" style={{ margin: 0 }}>
                     <span className="dish-name">{row.name}</span>
                   </p>
-                  <p className="t-data" style={{ marginTop: 4, marginBottom: 0, color: "var(--fg-3)" }}>
+                  <p className="t-data" style={{ marginTop: 4, marginBottom: 0, color: "var(--fg-2)" }}>
                     {row.eightySixedAtLabel && row.eightySixedBy
                       ? `86'd ${row.eightySixedAtLabel} by ${row.eightySixedBy}`
                       : "86'd tonight"}
@@ -182,7 +182,7 @@ export function Board({ rows, tonightCount, slug, standalone = false }: Props) {
                       <p className="t-dish" style={{ margin: 0 }}>
                         <span className="dish-name">{row.name}</span>
                       </p>
-                      <p className="t-data" style={{ marginTop: 4, marginBottom: 0, color: "var(--fg-3)" }}>
+                      <p className="t-data" style={{ marginTop: 4, marginBottom: 0, color: "var(--fg-2)" }}>
                         {money(row.priceCents)}
                         {off ? " · 86'd tonight" : ""}
                       </p>

@@ -41,7 +41,7 @@ export function ScreenHeader({
               href={metaHref}
               className="t-data"
               style={{
-                color: "var(--color-text-3)",
+                color: "var(--color-text-aa)",
                 display: "inline-flex",
                 alignItems: "center",
                 minHeight: 44,
@@ -50,7 +50,7 @@ export function ScreenHeader({
               {meta}
             </Link>
           ) : (
-            <p className="t-data" style={{ color: "var(--color-text-3)", marginTop: 4 }}>
+            <p className="t-data" style={{ color: "var(--color-text-aa)", marginTop: 4 }}>
               {meta}
             </p>
           )

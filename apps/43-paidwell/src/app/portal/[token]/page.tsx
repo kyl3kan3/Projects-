@@ -86,7 +86,7 @@ export default async function PortalPage({ params }: { params: Promise<{ token: 
                       </span>
                     ) : null}
                   </span>
-                  <span className="t-secondary" style={{ display: "block", color: "var(--color-text-3)" }}>
+                  <span className="t-secondary" style={{ display: "block", color: "var(--color-text-aa)" }}>
                     Due {formatLongDate(invoice.dueAt)} · {describeDue(invoice.dueAt, asOf)}
                   </span>
                   {invoice.pdfUrl ? (
@@ -120,7 +120,7 @@ export default async function PortalPage({ params }: { params: Promise<{ token: 
                   <span className="t-title" style={{ display: "block" }}>
                     {formatMoney(payment.amountCents)}
                   </span>
-                  <span className="t-secondary" style={{ color: "var(--color-text-3)" }}>
+                  <span className="t-secondary" style={{ color: "var(--color-text-aa)" }}>
                     {payment.method === "external" ? "recorded" : payment.method} ·{" "}
                     {formatStamp(payment.paidAt)}
                   </span>
@@ -152,13 +152,13 @@ export default async function PortalPage({ params }: { params: Promise<{ token: 
 
         <div className="rule" style={{ margin: "32px 0 16px" }} />
         <p className="t-secondary" style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
-          <IconMail size={18} style={{ flex: "none", color: "var(--color-text-3)" }} />
+          <IconMail size={18} style={{ flex: "none", color: "var(--color-text-aa)" }} />
           <span>
             Questions about any of these? Reply to the email that brought you here — it reaches a
             person at {context.firm.name}, and it stops the automatic reminders straight away.
           </span>
         </p>
-        <p className="t-secondary" style={{ marginTop: 12, color: "var(--color-text-3)", fontSize: 11 }}>
+        <p className="t-secondary" style={{ marginTop: 12, color: "var(--color-text-aa)", fontSize: 11 }}>
           Sent with PaidWell on behalf of {context.firm.name}.
         </p>
       </div>
@@ -192,7 +192,7 @@ function DeadLink({ reason }: { reason: "expired" | "invalid" }) {
           Reply to the email that brought you here and whoever sent it can issue a fresh link in
           a couple of seconds. Nothing has gone wrong with your invoice.
         </p>
-        <p className="t-secondary" style={{ marginTop: 24, color: "var(--color-text-3)", fontSize: 11 }}>
+        <p className="t-secondary" style={{ marginTop: 24, color: "var(--color-text-aa)", fontSize: 11 }}>
           Sent with PaidWell.
         </p>
       </div>

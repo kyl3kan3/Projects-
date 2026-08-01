@@ -128,7 +128,7 @@ export default async function MatrixPage({
         <h1 className="t-h2" style={{ marginTop: 0, marginBottom: 8 }}>
           Menu engineering
         </h1>
-        <p className="t-data" style={{ margin: 0, color: "var(--fg-3)" }}>
+        <p className="t-data" style={{ margin: 0, color: "var(--fg-2)" }}>
           {current.filename} · {current.source} · {shortDate(current.createdAt, location.timezone)} ·{" "}
           {current.matchedCount}/{current.rowCount} rows matched
         </p>
@@ -189,7 +189,7 @@ export default async function MatrixPage({
                       {row.qtySold} sold
                     </p>
                   </div>
-                  <p className="t-data" style={{ margin: "4px 0 0", color: "var(--fg-3)" }}>
+                  <p className="t-data" style={{ margin: "4px 0 0", color: "var(--fg-2)" }}>
                     {row.sectionName} · {bpToPercent(row.mixShareBp)} of section ·{" "}
                     {row.contributionMarginCents === null
                       ? "no margin"
@@ -269,7 +269,7 @@ export default async function MatrixPage({
                 <p className="t-body" style={{ margin: 0 }}>
                   {record.filename}
                 </p>
-                <p className="t-data" style={{ margin: "2px 0 0", color: "var(--fg-3)" }}>
+                <p className="t-data" style={{ margin: "2px 0 0", color: "var(--fg-2)" }}>
                   {shortDate(record.createdAt, location.timezone)} · {record.source} ·{" "}
                   {record.matchedCount}/{record.rowCount} matched · {record.status}
                 </p>

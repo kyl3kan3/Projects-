@@ -34,7 +34,7 @@ export default async function ClientsPage() {
       {rows.length === 0 ? (
         <section className="gutter" style={{ marginTop: 32 }}>
           <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-            <IconUsers size={20} style={{ color: "var(--color-text-3)", marginTop: 2 }} />
+            <IconUsers size={20} style={{ color: "var(--color-text-aa)", marginTop: 2 }} />
             <div>
               <p className="t-title">No clients yet</p>
               <p className="t-secondary" style={{ marginTop: 4 }}>
@@ -67,7 +67,7 @@ export default async function ClientsPage() {
                   </span>
                   <span
                     className="t-secondary"
-                    style={{ display: "block", marginTop: 2, color: "var(--color-text-3)" }}
+                    style={{ display: "block", marginTop: 2, color: "var(--color-text-aa)" }}
                   >
                     {features.clientRiskProfiles
                       ? describeBehaviour(row.behaviour)
@@ -78,7 +78,7 @@ export default async function ClientsPage() {
                 <span className="t-data" style={{ fontSize: 14, flex: "none" }}>
                   {formatMoney(row.outstandingCents)}
                 </span>
-                <IconChevronRight size={18} style={{ color: "var(--color-text-3)", flex: "none" }} />
+                <IconChevronRight size={18} style={{ color: "var(--color-text-aa)", flex: "none" }} />
               </Link>
             ))}
         </section>

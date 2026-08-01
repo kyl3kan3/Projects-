@@ -28,6 +28,7 @@ import {
   paymentSchedules,
   players,
   registrations,
+  rosterSpots,
   seasons,
   type AppliedDiscount,
   type Club,
@@ -953,6 +954,17 @@ export async function refundRegistration(
       .update(registrations)
       .set({ status: "canceled", canceledAt: new Date(), waitlistPosition: null })
       .where(eq(registrations.id, registrationId));
+    // A child who has withdrawn comes off the team sheet. Leaving them on it
+    // gives a coach a roster with a player who will not turn up, and holds a
+    // place the next child on the waitlist should have.
+    await db
+      .delete(rosterSpots)
+      .where(
+        and(
+          eq(rosterSpots.playerId, row.reg.playerId),
+          eq(rosterSpots.divisionId, row.reg.divisionId),
+        ),
+      );
   }
 
   await audit(row.reg.clubId, actor, canceled ? "registration_canceled" : "refund_issued", `registration:${registrationId}`, {

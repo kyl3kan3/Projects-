@@ -158,13 +158,20 @@ body {
   line-height: 1.45;
   color: var(--fg-2);
 }
+/*
+ * Labels sit on the *secondary* ink tier, not the faint one. DESIGN.md assigns
+ * ink-3 to "timestamps, placeholders, disabled", and using it for section headers
+ * put "STARTERS" at 2.5:1 on paper — under AA and genuinely hard to read at 11px
+ * in the dim room this menu is designed for. Secondary ink measures 4.9:1 on
+ * paper and 7.6:1 on candlelight.
+ */
 .t-label {
   font-size: 11px;
   line-height: 1.2;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--fg-3);
+  color: var(--fg-2);
 }
 /* Prices and counts are data: mono, tabular, never bold-sans. Never tomato. */
 .t-data {
@@ -372,7 +379,7 @@ summary:focus-visible,
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.08em;
-  color: var(--fg-3);
+  color: var(--fg-2);
   text-transform: uppercase;
 }
 
@@ -701,7 +708,7 @@ summary:focus-visible,
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--fg-3);
+  color: var(--fg-2);
 }
 
 /* ---- The before/after review card's split slider ---------------------- */

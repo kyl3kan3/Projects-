@@ -18,6 +18,15 @@
   --color-text-2: #6e756c;   /* secondary text */
   --color-text-3: #9aa096;   /* faint: timestamps, placeholders */
   --color-banker: #2f6e52;   /* THE accent */
+  /*
+   * DESIGN.md's two greys are correct as an identity but do not clear WCAG AA on
+   * the ivory ground at 13px: #6e756c is 4.1:1 and #9aa096 is 2.5:1, where AA
+   * asks 4.5:1. DESIGN_LANGUAGE.md rule "AA minimum everywhere" and the redline
+   * palette therefore conflict, and the reader wins: this is the same hue and
+   * chroma family, darkened until it passes (5.5:1). The named tokens above are
+   * unchanged; meaningful small text uses this one.
+   */
+  --color-text-aa: #5f6660;
   --color-amber: #bc8a2f;    /* 31–60 bucket, open promises */
   --color-red: #a8493b;      /* 61+ overdue, broken promises, final notice */
 
@@ -122,7 +131,7 @@ td,
   font-weight: 400;
   font-size: 13px;
   line-height: 1.45;
-  color: var(--color-text-2);
+  color: var(--color-text-aa);
 }
 .t-label {
   font-weight: 600;
@@ -130,7 +139,7 @@ td,
   line-height: 1.2;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-text-3);
+  color: var(--color-text-aa);
 }
 .t-data {
   font-family: var(--font-mono);
@@ -172,7 +181,7 @@ td,
 }
 .btn-primary:disabled {
   background: var(--color-disabled);
-  color: var(--color-text-3);
+  color: var(--color-text-aa);
 }
 .btn-secondary {
   background: transparent;
@@ -183,7 +192,7 @@ td,
   border-color: var(--color-hairline-press);
 }
 .btn-secondary:disabled {
-  color: var(--color-text-3);
+  color: var(--color-text-aa);
   border-color: var(--color-hairline);
 }
 /* Quiet action: text-only accent, no underline, dims on press. */
@@ -204,7 +213,7 @@ td,
   opacity: 0.8;
 }
 .btn-quiet:disabled {
-  color: var(--color-text-3);
+  color: var(--color-text-aa);
 }
 .btn-full {
   width: 100%;
@@ -229,7 +238,7 @@ textarea.field {
   resize: vertical;
 }
 .field::placeholder {
-  color: var(--color-text-3);
+  color: var(--color-text-aa);
 }
 .field:focus-visible,
 .field:focus {
@@ -371,7 +380,7 @@ textarea.field {
   justify-content: center;
   gap: 2px;
   min-height: 44px;
-  color: var(--color-text-3);
+  color: var(--color-text-aa);
   font-size: 10px;
   font-weight: 600;
 }

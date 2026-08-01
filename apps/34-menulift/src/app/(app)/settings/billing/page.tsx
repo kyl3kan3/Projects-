@@ -25,7 +25,7 @@ export default async function BillingPage() {
       <h1 className="t-h2" style={{ marginTop: 0, marginBottom: 8 }}>
         Billing
       </h1>
-      <p className="t-data" style={{ marginTop: 0, color: "var(--fg-3)" }}>
+      <p className="t-data" style={{ marginTop: 0, color: "var(--fg-2)" }}>
         {STATUS_COPY[view.status] ?? view.status}
         {view.status === "trialing" && view.trialEndsAt
           ? ` · ${daysLeft} of ${TRIAL_DAYS} days left, ends ${shortDate(view.trialEndsAt, location.timezone)}`

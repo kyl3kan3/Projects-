@@ -55,7 +55,7 @@ export default async function EightySixPage() {
                 <p className="t-body" style={{ margin: 0 }}>
                   {entry.itemName}
                 </p>
-                <p className="t-data" style={{ margin: 0, marginTop: 2, color: "var(--fg-3)" }}>
+                <p className="t-data" style={{ margin: 0, marginTop: 2, color: "var(--fg-2)" }}>
                   86&apos;d {serviceTime(entry.eightySixedAt, location.timezone)} by {entry.actorLabel}
                   {entry.restoredAt
                     ? ` · back ${serviceTime(entry.restoredAt, location.timezone)}${

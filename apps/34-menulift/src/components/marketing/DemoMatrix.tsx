@@ -98,7 +98,7 @@ export function DemoMatrix() {
                 {row!.qtySold} sold
               </p>
             </div>
-            <p className="t-data" style={{ margin: "4px 0 0", color: "var(--fg-3)" }}>
+            <p className="t-data" style={{ margin: "4px 0 0", color: "var(--fg-2)" }}>
               {QUADRANT_LABEL[row!.quadrant as string]} · {bpToPercent(row!.mixShareBp)} of{" "}
               {row!.sectionName} · {money(row!.contributionMarginCents ?? 0)} margin
             </p>

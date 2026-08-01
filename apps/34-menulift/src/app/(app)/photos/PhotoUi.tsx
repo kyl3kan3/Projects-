@@ -174,7 +174,7 @@ export function ReviewCard({ card }: { card: CardView }) {
         </>
       )}
 
-      <p className="t-data" style={{ margin: 0, color: "var(--fg-3)" }}>
+      <p className="t-data" style={{ margin: 0, color: "var(--fg-2)" }}>
         {card.caption}
       </p>
 
@@ -216,7 +216,7 @@ export function LivePhotoRow({ card }: { card: CardView }) {
         <p className="t-dish" style={{ margin: 0 }}>
           {card.itemName}
         </p>
-        <p className="t-data" style={{ margin: 0, marginTop: 2, color: "var(--fg-3)" }}>
+        <p className="t-data" style={{ margin: 0, marginTop: 2, color: "var(--fg-2)" }}>
           {card.caption}
         </p>
         {state.error ? (

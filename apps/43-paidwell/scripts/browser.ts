@@ -133,6 +133,44 @@ async function main() {
   await shot(page, "04-aging");
 
   console.log("\n=== tap targets and contrast ===");
+  // Passed as a string: tsx's esbuild transform injects a `__name` helper into
+  // named function expressions, which does not exist inside the page.
+  const lowContrast = (await page.evaluate(`(() => {
+    var lum = function (rgb) {
+      var parts = (rgb.match(/\\d+(\\.\\d+)?/g) || ["0", "0", "0"]).slice(0, 3).map(Number);
+      var chan = function (c) {
+        var s = c / 255;
+        return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+      };
+      return 0.2126 * chan(parts[0]) + 0.7152 * chan(parts[1]) + 0.0722 * chan(parts[2]);
+    };
+    var bgOf = function (el) {
+      var node = el;
+      while (node) {
+        var bg = getComputedStyle(node).backgroundColor;
+        if (bg && !/rgba\\(0, 0, 0, 0\\)|transparent/.test(bg)) return bg;
+        node = node.parentElement;
+      }
+      return "rgb(255,255,255)";
+    };
+    var bad = [];
+    document.querySelectorAll("p, span, a, button, h1, h2, li, label, strong").forEach(function (el) {
+      var text = (el.textContent || "").trim();
+      if (!text || el.children.length > 0) return;
+      var style = getComputedStyle(el);
+      var size = parseFloat(style.fontSize);
+      var weight = Number(style.fontWeight) || 400;
+      var large = size >= 24 || (size >= 18.66 && weight >= 700);
+      var a = lum(style.color);
+      var b = lum(bgOf(el));
+      var ratio = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+      if (ratio < (large ? 3 : 4.5)) {
+        bad.push(text.slice(0, 28) + " :: " + style.color + " @" + size + "px = " + ratio.toFixed(2) + ":1");
+      }
+    });
+    return bad;
+  })()`)) as string[];
+  check("every text node meets WCAG AA contrast", lowContrast.length === 0, lowContrast.slice(0, 8));
   const smallTargets = await page.evaluate(() => {
     const bad: string[] = [];
     document.querySelectorAll("a, button").forEach((el) => {

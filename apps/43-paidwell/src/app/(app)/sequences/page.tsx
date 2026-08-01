@@ -102,7 +102,7 @@ export default async function SequencesPage() {
                       </p>
                     ))}
                 </div>
-                <p className="t-data" style={{ marginTop: 12, color: "var(--color-text-3)" }}>
+                <p className="t-data" style={{ marginTop: 12, color: "var(--color-text-aa)" }}>
                   {step.offsetDaysFromDue < 0
                     ? `sends ${Math.abs(step.offsetDaysFromDue)} days before the due date`
                     : `sends on day ${step.offsetDaysFromDue} after the due date`}

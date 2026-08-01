@@ -70,11 +70,11 @@ export default async function AgingPage() {
               <span className="t-title" style={{ display: "block" }}>
                 {plural(data.clientCount, "client")}
               </span>
-              <span className="t-secondary" style={{ color: "var(--color-text-3)" }}>
+              <span className="t-secondary" style={{ color: "var(--color-text-aa)" }}>
                 Payment behaviour, term overrides, VIP exclusions
               </span>
             </span>
-            <IconChevronRight size={18} style={{ color: "var(--color-text-3)" }} />
+            <IconChevronRight size={18} style={{ color: "var(--color-text-aa)" }} />
           </Link>
         )}
       </section>
@@ -107,7 +107,7 @@ export default async function AgingPage() {
             className="panel"
             style={{ padding: 16, display: "flex", gap: 12, alignItems: "flex-start" }}
           >
-            <IconAlert size={20} style={{ color: "var(--color-text-3)", flex: "none" }} />
+            <IconAlert size={20} style={{ color: "var(--color-text-aa)", flex: "none" }} />
             <div>
               <p className="t-title">Sends are being logged, not delivered</p>
               <p className="t-secondary" style={{ marginTop: 4 }}>

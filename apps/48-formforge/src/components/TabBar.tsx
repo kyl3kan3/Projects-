@@ -100,6 +100,7 @@ export function IconShieldMark({ size = 20 }: { size?: number }) {
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
+      style={{ flex: "none" }}
     >
       <path d="M10 2.4 16 4.6v4.6c0 3.6-2.4 6.6-6 8-3.6-1.4-6-4.4-6-8V4.6z" />
       <path d="M7.2 8.4h5.6M7.2 11.2h3.4" />

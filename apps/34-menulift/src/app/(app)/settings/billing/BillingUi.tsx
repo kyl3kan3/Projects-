@@ -54,7 +54,7 @@ export function PlanPicker({
                 </li>
               ))}
             </ul>
-            <p className="t-data" style={{ margin: "8px 0 0", color: "var(--fg-3)" }}>
+            <p className="t-data" style={{ margin: "8px 0 0", color: "var(--fg-2)" }}>
               {locationCount === 1
                 ? `${money(total)}/mo for this location`
                 : `${money(total)}/mo for ${locationCount} locations (20% off past the first)`}

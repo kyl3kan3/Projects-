@@ -117,7 +117,7 @@ export default async function QrPage() {
                   <p className="t-body" style={{ margin: 0 }}>
                     {menu.name}
                   </p>
-                  <p className="t-data" style={{ margin: 0, marginTop: 2, color: "var(--fg-3)" }}>
+                  <p className="t-data" style={{ margin: 0, marginTop: 2, color: "var(--fg-2)" }}>
                     /m/{location.slug}/{menu.key}
                   </p>
                 </div>

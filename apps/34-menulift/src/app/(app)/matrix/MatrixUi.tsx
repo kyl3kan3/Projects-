@@ -294,7 +294,7 @@ export function PlateCostForm({
         <p className="t-body" style={{ margin: 0 }}>
           {itemName}
         </p>
-        <p className="t-data" style={{ margin: 0, marginTop: 2, color: "var(--fg-3)" }}>
+        <p className="t-data" style={{ margin: 0, marginTop: 2, color: "var(--fg-2)" }}>
           {qtySold} sold at {money(priceCents)}
         </p>
         <Feedback state={state} />
@@ -336,7 +336,7 @@ export function AssignRowForm({
         <p className="t-body" style={{ margin: 0 }}>
           {rowName}
         </p>
-        <p className="t-data" style={{ margin: 0, marginTop: 2, color: "var(--fg-3)" }}>
+        <p className="t-data" style={{ margin: 0, marginTop: 2, color: "var(--fg-2)" }}>
           {qty} sold · {money(netCents)}
         </p>
         <Feedback state={state} />

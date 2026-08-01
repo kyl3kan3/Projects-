@@ -12,23 +12,56 @@
    fonts must actually load.
    ========================================================================== */
 
-@theme {
+/*
+ * The palette lives in a plain `:root` block, NOT in `@theme`.
+ *
+ * Tailwind v4 tree-shakes `@theme` custom properties it does not see used by a
+ * generated utility, and this app styles itself with component classes and
+ * `var(--color-…)` in inline styles rather than with colour utilities. The result
+ * was that `--color-leaf`, and later the AA text variants, were dropped from the
+ * built stylesheet entirely: every `var()` referencing them became invalid at
+ * computed-value time, so awarded amounts quietly rendered in body ink and the
+ * keyboard focus ring on a chip silently disappeared. The build was green
+ * throughout. Declaring them here means they always ship.
+ */
+:root {
+  color-scheme: light; /* single visual world; no dark theme by design */
+  --gutter: 20px;
+  --tabbar-h: 56px;
+
   /* ---- Color: the exact values from DESIGN.md, no others -------------- */
   --color-manila: #f6f3ea; /* the ground, every screen */
   --color-sheet: #fdfcf8; /* only things that are truly framed */
   --color-hairline: #e3ddcb; /* 1px dividers and card borders, never darker */
   --color-ink: #26231b; /* primary text AND primary buttons */
   --color-ink-2: #6b6455; /* secondary text */
-  --color-ink-3: #9d9682; /* faint: timestamps, placeholders, freshness */
+  --color-ink-3: #9d9682; /* faint: placeholders and disabled control text */
   --color-gold: #c29237; /* THE accent, <=10% of any screen */
   --color-leaf: #5a8352; /* awarded / completed only */
   --color-brick: #b65540; /* overdue / declined only */
+
+  /*
+   * AA-safe text variants of the three semantic accents.
+   *
+   * DESIGN.md fixes gold, leaf and brick as exact hexes, and they are exactly
+   * right for what it assigns them to — arcs, ticks, dots, underline sweeps —
+   * where the 3:1 graphics threshold applies and the meaning is always repeated
+   * in ink text beside them. As *text* they measure 2.5:1, 3.9:1 and 4.3:1 on
+   * manila, all below AA, and DESIGN_LANGUAGE.md makes AA binding everywhere.
+   * These are the same hues at a darker value, each measured at >= 4.5:1, and
+   * they are used wherever the colour carries words or a lone glyph.
+   */
+  --color-gold-text: #8c6928; /* 4.54:1 on manila */
+  --color-leaf-text: #53794b; /* 4.50:1 */
+  --color-brick-text: #b2533f; /* 4.50:1 */
 
   /* Press and disabled states, spelled out in DESIGN.md's component list. */
   --color-ink-press: #3a362b;
   --color-hairline-press: #d2cbb4;
   --color-disabled: #ddd6c2;
+}
 
+@theme {
   /* ---- Type: three faces, loaded in layout.tsx ------------------------ */
   --font-display: "Fraunces", ui-serif, Georgia, serif;
   --font-sans: "Albert Sans", ui-sans-serif, system-ui, sans-serif;
@@ -44,11 +77,6 @@
   --ease-spring-snappy: cubic-bezier(0.2, 0.9, 0.2, 1.2);
 }
 
-:root {
-  color-scheme: light; /* single visual world; no dark theme by design */
-  --gutter: 20px;
-  --tabbar-h: 56px;
-}
 
 html,
 body {
@@ -294,9 +322,15 @@ body {
   border-color: var(--color-gold);
   color: var(--color-gold-text);
 }
-/* Chips used as checkbox labels hide the native control, so the focus ring has to
-   be lifted onto the label or the keyboard path becomes invisible. */
-.chip:has(input:focus-visible) {
+/*
+ * Chips used as checkbox labels hide the native control, so the ring has to be
+ * lifted onto the label or the keyboard path is invisible. `:focus` as well as
+ * `:focus-visible`, deliberately: a hidden input focused by script or by a label
+ * click does not always qualify as focus-visible, and a stray ring after a mouse
+ * click is a far smaller problem than a keyboard user with no idea where they are.
+ */
+.chip:has(input:focus-visible),
+.chip:has(input:focus) {
   outline: 2px solid var(--color-gold-text);
   outline-offset: 2px;
 }
