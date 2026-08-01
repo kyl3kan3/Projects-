@@ -1,33 +1,99 @@
-/**
- * src/app/(crew)/clock/page.tsx
- *
- * The crew home screen: mini-map with the site dot, the hero shift
- * readout, and the one oversized CLOCK IN/OUT control in the thumb zone.
- * Fully bilingual EN/ES per the user's locale; designed for gloves and
- * sunlight (DESIGN.md "Mobile layout: Crew home").
- *
- * TODO:
- * - [ ] Load the crew user's assignments; single-job crews skip the job
- *       picker entirely.
- * - [ ] Geolocation permission flow with honest fallback: denied ->
- *       punch still records as "unavailable", flagged for office review.
- * - [ ] Punch flow: getCurrentPosition (high accuracy, 10s timeout) ->
- *       build PunchEvent with client_event_id -> POST /api/punches/sync,
- *       falling back to the IndexedDB outbox when offline (conflict
- *       rules in src/lib/time-entries reconcileOfflineBatch).
- * - [ ] The geofence ring signature: 1.5px foreman ring draws over 400ms
- *       ease-out-quart on clock-in; un-draws on clock-out; reduced-motion
- *       -> instant filled ring + text state.
- * - [ ] Control states: inside fence / outside fence ("142 m from site --
- *       will be flagged / a 142 m del sitio -- se marcará") / GPS
- *       unavailable -- punches are never blocked, only labeled.
- * - [ ] Live shift readout ("6h 12m") ticking in JetBrains Mono; the
- *       job's labor-cost meter ticks beneath for owners viewing this screen.
- * - [ ] Offline banner: "Saved on phone -- will sync / Guardado en el
- *       teléfono -- se sincronizará".
- * - [ ] Every string through t() -- no hardcoded copy in either language.
- */
+import type { Metadata } from "next";
+import { requireCrew, isOffice } from "@/lib/auth";
+import { activeJobs, jobsForCrew } from "@/lib/jobs";
+import { formatClockTime, t } from "@/lib/i18n";
+import {
+  addDaysToDateKey,
+  localDateKey,
+  weekStartKey,
+} from "@/lib/time";
+import { entriesForUserRange, entrySeconds, openEntryFor } from "@/lib/time-entries";
+import { ClockFace, type ClockJob } from "./ClockFace";
 
-export default function CrewClockPage() {
-  return null; // TODO: implement
+export const metadata: Metadata = { title: "Clock" };
+// A time clock must never be served from a cache.
+export const dynamic = "force-dynamic";
+
+export default async function ClockPage() {
+  const { user, org } = await requireCrew();
+  const locale = user.locale;
+  const now = new Date();
+  const timeZone = org.timezone;
+
+  // Crew punch into what they are assigned to; the owner punches into anything
+  // active, because on a five-person crew the owner is on the tools too.
+  const assigned = isOffice(user.role) ? await activeJobs(org.id) : await jobsForCrew(user.id);
+  const jobs: ClockJob[] = assigned.map(({ job, site }) => ({
+    id: job.id,
+    name: job.name,
+    siteLabel: site?.label ?? null,
+    radiusM: site?.radiusM ?? null,
+  }));
+
+  const open = await openEntryFor(user.id);
+
+  const todayKey = localDateKey(now, timeZone);
+  const weekStart = weekStartKey(now, timeZone, org.weekStartsOn);
+  const todayEntries = await entriesForUserRange(user.id, todayKey, todayKey, timeZone);
+  const weekEntries = await entriesForUserRange(
+    user.id,
+    weekStart,
+    addDaysToDateKey(weekStart, 6),
+    timeZone,
+  );
+  const todaySeconds = todayEntries.reduce((sum, e) => sum + entrySeconds(e, now), 0);
+  const weekSeconds = weekEntries.reduce((sum, e) => sum + entrySeconds(e, now), 0);
+
+  return (
+    <ClockFace
+      jobs={jobs}
+      open={
+        open
+          ? {
+              id: open.id,
+              jobId: open.jobId,
+              clockInAtIso: open.clockInAt.toISOString(),
+              breakSeconds: open.breakSeconds,
+              breakStartedAtIso: open.breakStartedAt?.toISOString() ?? null,
+              fenceStatus: open.geofenceStatusIn,
+              distanceM: open.inDistanceM,
+            }
+          : null
+      }
+      todaySeconds={todaySeconds}
+      weekSeconds={weekSeconds}
+      clockTimeLabel={open ? formatClockTime(open.clockInAt, timeZone, locale) : null}
+      strings={{
+        in: t(locale, "clock.in"),
+        out: t(locale, "clock.out"),
+        punching: t(locale, "clock.punching"),
+        onTheClock: t(locale, "clock.onTheClock"),
+        off: t(locale, "clock.off"),
+        onBreak: t(locale, "clock.onBreak"),
+        shift: t(locale, "clock.shift"),
+        startedAt: t(locale, "clock.startedAt"),
+        breakStart: t(locale, "clock.break.start"),
+        breakEnd: t(locale, "clock.break.end"),
+        pickJob: t(locale, "clock.pickJob"),
+        noJobs: t(locale, "clock.noJobs"),
+        noJobsHelp: t(locale, "clock.noJobsHelp"),
+        locating: t(locale, "clock.locating"),
+        fenceInside: t(locale, "clock.fence.inside"),
+        fenceOutside: t(locale, "clock.fence.outside"),
+        fenceUnavailable: t(locale, "clock.fence.unavailable"),
+        fenceLowAccuracy: t(locale, "clock.fence.lowAccuracy"),
+        fenceNoSite: t(locale, "clock.fence.noSite"),
+        fenceRadius: t(locale, "sites.radius"),
+        savedOnPhone: t(locale, "clock.savedOnPhone"),
+        queuedOne: t(locale, "clock.queued.one"),
+        queuedMany: t(locale, "clock.queued.many"),
+        syncNow: t(locale, "clock.syncNow"),
+        today: t(locale, "clock.todayTotal"),
+        week: t(locale, "clock.weekTotal"),
+        confirmIn: t(locale, "clock.confirmInShort"),
+        confirmOut: t(locale, "clock.confirmOut"),
+        retry: t(locale, "common.retry"),
+      }}
+    />
+  );
 }

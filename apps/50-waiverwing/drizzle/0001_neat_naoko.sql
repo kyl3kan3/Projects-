@@ -1,0 +1,1 @@
+CREATE INDEX "participants_last_trgm" ON "participants" USING gin (lower("last_name") gin_trgm_ops);

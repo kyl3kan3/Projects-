@@ -1,36 +1,35 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   DuesDesk — design tokens. Generated from DESIGN.md; edit DESIGN.md first.
-   Obeys DESIGN_LANGUAGE.md: one rationed accent, hairlines not boxes,
-   no gradients or glow on controls, 4px spacing scale, fonts must load.
+   DuesDesk — the redline implementation of DESIGN.md v5.
+   Town-hall stationery, kept by someone careful: linen grounds, civic navy
+   used like a fountain pen, mono figures for money. Obeys DESIGN_LANGUAGE.md
+   v2.1 — no emoji, no gradient or glow on controls, hairlines not borders,
+   space before boxes, the 4px scale, exactly three radii, fonts that load.
    ========================================================================== */
 
 @theme {
-  /* Palette — exact values from DESIGN.md */
-  --color-linen: #f6f7f4; /* The ground. Every screen — cool civic paper */
-  --color-card: #fdfdfb; /* Issue threads, statement panels, document rows' sheet only */
-  --color-hairline: #e2e5de; /* 1px dividers & panel borders — never darker */
-  --color-ink: #1e2732; /* Primary text AND primary button fill */
-  --color-ink-2: #66707c; /* Secondary text */
-  --color-ink-3: #98a1ab; /* Faint (timestamps, placeholders) */
-  --color-navy: #35577d; /* THE accent. ≤10% of any screen: the PAID seal, links, active states, focus rin */
-  --color-green: #38855c; /* Paid / resolved / enrolled only */
-  --color-amber: #b8862f; /* Past due / pending / in progress only */
+  /* Palette — the exact values from DESIGN.md. Nothing else is a colour. */
+  --color-linen: #f6f7f4; /* the ground, every screen */
+  --color-card: #fdfdfb; /* issue threads, statement panels, document sheets */
+  --color-hairline: #e2e5de; /* 1px dividers and panel borders — never darker */
+  --color-ink: #1e2732; /* primary text AND the primary button fill */
+  --color-ink-2: #66707c; /* secondary text */
+  --color-ink-3: #98a1ab; /* faint: timestamps, placeholders */
+  --color-navy: #35577d; /* THE accent, <=10% of any screen */
+  --color-green: #38855c; /* paid / resolved / enrolled only */
+  --color-amber: #b8862f; /* past due / pending / in progress only */
   --color-red: #af4a3d; /* 90+ delinquent / open violation only */
 
-  /* Semantic aliases, so components never hardcode a hue name */
-  --color-bg: #f6f7f4;
-  --color-surface: #fdfdfb;
-  --color-line: #e2e5de;
-  --color-fg: #1e2732;
-  --color-fg-2: #66707c;
-  --color-fg-3: #98a1ab;
-  --color-accent: #35577d;
-  --color-action: #1e2732;
-  --color-ok: #38855c;
-  --color-warn: #b8862f;
-  --color-bad: #af4a3d;
+  /* Press and disabled states, spelled out in DESIGN.md's component section. */
+  --color-ink-press: #2a3440;
+  --color-disabled-fill: #d8dbd4;
+  --color-hairline-press: #cbcfc8;
+
+  /* Radii: exactly three. Controls / panels / sheets. */
+  --radius-control: 8px;
+  --radius-panel: 12px;
+  --radius-sheet: 20px;
 
   --font-display: "Libre Franklin", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-sans: "Libre Franklin", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -38,17 +37,23 @@
 
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+  /* spring-snappy / spring-gentle from DESIGN_LANGUAGE, as CSS approximations. */
+  --ease-spring-snappy: cubic-bezier(0.2, 0.9, 0.2, 1.15);
+  --ease-spring-gentle: cubic-bezier(0.3, 0.8, 0.25, 1);
 }
 
 :root {
+  /* Committed to a single light world — this is stationery, by choice.
+     The member portal shares it exactly: one association, one paper. */
   color-scheme: light;
+  --gutter: 20px;
   --tabbar-h: 56px;
 }
 
 html,
 body {
-  background: var(--color-bg);
-  color: var(--color-fg);
+  background: var(--color-linen);
+  color: var(--color-ink);
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.55;
@@ -56,46 +61,690 @@ body {
   overscroll-behavior-y: none;
 }
 
-* { border-color: var(--color-line); }
-
-/* ---- Type roles (see the specimen table in DESIGN.md) ---- */
-.t-hero { font-family: var(--font-display); font-size: clamp(2rem, 8.5vw, 3.375rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 600; }
-.t-stat { font-family: var(--font-mono); font-size: clamp(2.125rem, 9.5vw, 3.25rem); line-height: 1.05; letter-spacing: -0.01em; font-weight: 500; font-variant-numeric: tabular-nums; }
-.t-h2 { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.01em; font-weight: 600; }
-.t-title { font-size: 1rem; line-height: 1.3; font-weight: 600; }
-.t-body { font-size: 1rem; line-height: 1.55; }
-.t-secondary { font-size: 0.8125rem; line-height: 1.45; color: var(--color-fg-2); }
-.t-label { font-size: 0.6875rem; line-height: 1.2; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-fg-3); }
-.t-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-
-/* ---- Hairline construction: space and rules, never nested boxes ---- */
-.hairline-t { border-top: 1px solid var(--color-line); }
-.hairline-b { border-bottom: 1px solid var(--color-line); }
-
-.card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-line);
-  border-radius: 12px;
+* {
+  border-color: var(--color-hairline);
 }
 
-/* ---- Controls ---- */
+::selection {
+  background: color-mix(in srgb, var(--color-navy) 18%, transparent);
+}
+
+a {
+  color: var(--color-navy);
+  text-decoration: none;
+}
+
+/* ---- Type roles: the exact specimen table from DESIGN.md ---------------- */
+
+.t-display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(32px, 8.5vw, 54px);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+}
+.t-stat {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: clamp(34px, 9.5vw, 52px);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+/* DESIGN.md: cents render at 60% of the hero stat's size. */
+.t-stat-cents {
+  font-size: 0.6em;
+  letter-spacing: 0;
+}
+.t-h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+.t-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+}
+.t-body {
+  font-size: 16px;
+  line-height: 1.55;
+}
+.t-secondary {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-ink-2);
+}
+.t-label {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+/* Every amount, date, unit number and issue number. No exceptions. */
+.t-data {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+/* Issue numbers: mono in navy — the accent's quietest recurring home. */
+.t-number {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-navy);
+}
+
+.ink-2 { color: var(--color-ink-2); }
+.ink-3 { color: var(--color-ink-3); }
+.navy { color: var(--color-navy); }
+.green { color: var(--color-green); }
+.amber { color: var(--color-amber); }
+.red { color: var(--color-red); }
+
+/* ---- Controls ---------------------------------------------------------- */
+
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 48px; padding: 0 20px; border-radius: 10px;
-  font-weight: 600; font-size: 0.9375rem; line-height: 1;
-  transition: transform 120ms var(--ease-out-quart), background-color 120ms linear;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: var(--radius-control);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    transform 120ms var(--ease-out-quart),
+    background-color 120ms linear,
+    border-color 120ms linear;
 }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: var(--color-action); color: var(--color-bg); }
-.btn-secondary { background: transparent; color: var(--color-fg); border: 1px solid var(--color-line); }
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
 
-.focus-ring:focus-visible,
-a:focus-visible,
-button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+/* On these light grounds the only high-emphasis fill is ink. Never navy. */
+.btn-primary {
+  background: var(--color-ink);
+  color: var(--color-linen);
+  border: none;
 }
+.btn-primary:active:not(:disabled) {
+  background: var(--color-ink-press);
+}
+.btn-primary:disabled {
+  background: var(--color-disabled-fill);
+  color: var(--color-ink-3);
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--color-ink);
+  border: 1px solid var(--color-hairline);
+}
+.btn-secondary:active:not(:disabled) {
+  border-color: var(--color-hairline-press);
+}
+.btn-secondary:disabled {
+  color: var(--color-ink-3);
+  cursor: not-allowed;
+}
+
+/* Quiet action: text only, navy, no underline. */
+.btn-quiet {
+  background: none;
+  border: none;
+  padding: 0;
+  height: auto;
+  color: var(--color-navy);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.3;
+  cursor: pointer;
+  text-align: left;
+}
+.btn-quiet:active {
+  opacity: 0.8;
+}
+.btn-quiet:disabled {
+  color: var(--color-ink-3);
+  cursor: not-allowed;
+}
+
+.btn-full {
+  width: 100%;
+}
+.btn-small {
+  height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.input {
+  width: 100%;
+  height: 48px;
+  padding: 0 12px;
+  background: var(--color-card);
+  color: var(--color-ink);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  font-family: inherit;
+  font-size: 16px;
+}
+.input::placeholder {
+  color: var(--color-ink-3);
+}
+.input:focus,
+.input:focus-visible {
+  outline: none;
+  border-color: var(--color-navy);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-navy) 25%, transparent);
+}
+.input-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+textarea.input {
+  height: auto;
+  min-height: 112px;
+  padding: 12px;
+  line-height: 1.5;
+}
+select.input {
+  appearance: none;
+  padding-right: 36px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none' stroke='%2398A1AB' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M6 8l4 4 4-4'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Aging filter chips: All / 30 / 60 / 90+. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-hairline);
+  background: transparent;
+  color: var(--color-ink-2);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.chip[data-active="true"] {
+  border-color: var(--color-navy);
+  color: var(--color-navy);
+}
+
+.chip-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.chip-row::-webkit-scrollbar {
+  display: none;
+}
+
+/* Focus ring: navy, 2px, 2px offset. Designed, not inherited. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-navy);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.toggle {
+  position: relative;
+  width: 44px;
+  height: 28px;
+  border-radius: 14px; /* the documented pill exception */
+  border: 1px solid var(--color-hairline);
+  background: var(--color-card);
+  cursor: pointer;
+  flex: none;
+  transition: background-color 160ms var(--ease-spring-snappy);
+}
+.toggle[aria-checked="true"] {
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+}
+.toggle::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  background: var(--color-ink-3);
+  transition:
+    transform 160ms var(--ease-spring-snappy),
+    background-color 160ms linear;
+}
+.toggle[aria-checked="true"]::after {
+  transform: translateX(16px);
+  background: var(--color-linen);
+}
+
+/* ---- Surfaces: depth is card-on-linen plus hairlines. No elevation. ---- */
+
+.panel {
+  background: var(--color-card);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-panel);
+}
+.sheet {
+  background: var(--color-card);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-sheet);
+}
+.hairline-t {
+  border-top: 1px solid var(--color-hairline);
+}
+.hairline-b {
+  border-bottom: 1px solid var(--color-hairline);
+}
+/* Board-only thread entries: a linen inset, structurally distinct. */
+.inset {
+  background: var(--color-linen);
+  border-radius: var(--radius-control);
+}
+/* The balance rule above an invoice total: 1px ink, not a hairline. */
+.rule-ink {
+  border-top: 1px solid var(--color-ink);
+}
+
+/* Household rows: NO boxes. Full-bleed hairline rows, >=56px, whole row tappable. */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-hairline);
+  color: inherit;
+  text-decoration: none;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+}
+.row:last-child {
+  border-bottom: 0;
+}
+
+/* Aging dot at the row's left edge. Flat, no bloom, no glow. */
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+.dot-current { background: var(--color-green); }
+.dot-30,
+.dot-60 { background: var(--color-amber); }
+.dot-90 { background: var(--color-red); }
+.dot-none { background: var(--color-hairline); }
+
+/* ---- Status pill: 28px, 6px dot + 11px label ---------------------------- */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-hairline);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.pill::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+.pill-good { color: var(--color-green); }
+.pill-warn { color: var(--color-amber); }
+.pill-bad { color: var(--color-red); }
+.pill-quiet { color: var(--color-ink-3); }
+
+/* ---- The PAID seal: the association's rubber stamp ---------------------- */
+
+.seal {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-navy);
+}
+.seal-ring {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+.seal-label {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+/* The signature: the seal stamps in as a payment settles. 1.15 -> 1.0 with the
+   ring drawing 0 -> 360 degrees over 240ms. No confetti, no green flash. */
+.seal[data-stamp="true"] {
+  animation: seal-stamp 240ms var(--ease-spring-snappy) both;
+}
+.seal[data-stamp="true"] .seal-ring circle {
+  stroke-dasharray: 58;
+  animation: seal-ring 240ms var(--ease-out-quart) both;
+}
+@keyframes seal-stamp {
+  from { transform: scale(1.15); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes seal-ring {
+  from { stroke-dashoffset: 58; }
+  to { stroke-dashoffset: 0; }
+}
+
+/* The countdown: the checks-to-chase number rolling down one digit. */
+.roll {
+  display: inline-block;
+  animation: roll-down 300ms var(--ease-spring-gentle) both;
+}
+@keyframes roll-down {
+  from { transform: translateY(-40%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Collected-of-expected: a 4px hairline track filled green. */
+.track {
+  display: flex;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-hairline);
+  overflow: hidden;
+}
+.track > span {
+  display: block;
+  height: 100%;
+}
+.track > span[data-part="collected"] { background: var(--color-green); }
+.track > span[data-part="processing"] { background: var(--color-amber); }
+
+/* ---- Photo thumbnails: 64px, radius 8 ---------------------------------- */
+
+.thumb {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-control);
+  object-fit: cover;
+  border: 1px solid var(--color-hairline);
+  background: var(--color-linen);
+  flex: none;
+}
+
+/* ---- Bottom tab bar ---------------------------------------------------- */
+
+.tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: color-mix(in srgb, var(--color-card) 96%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-hairline);
+  z-index: 40;
+}
+.tabbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-ink-3);
+  text-decoration: none;
+  position: relative;
+}
+.tabbar-item[data-active="true"] {
+  color: var(--color-ink);
+}
+.tabbar-item[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  bottom: 6px;
+  width: 2px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--color-navy);
+}
+
+/* ---- Layout ----------------------------------------------------------- */
+
+.screen {
+  padding: 0 var(--gutter);
+  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 104px);
+  max-width: 1120px;
+  margin: 0 auto;
+}
+.screen-plain {
+  padding: 0 var(--gutter) 64px;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+.thumb-cta {
+  position: fixed;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 16px);
+  z-index: 30;
+  max-width: calc(1120px - 2 * var(--gutter));
+  margin: 0 auto;
+}
+
+/* Rows enter with a 24ms stagger, opacity and a 4px y-slide. Ledgers never bounce. */
+.stagger > * {
+  animation: row-in 200ms var(--ease-out-quart) both;
+}
+.stagger > *:nth-child(1) { animation-delay: 0ms; }
+.stagger > *:nth-child(2) { animation-delay: 24ms; }
+.stagger > *:nth-child(3) { animation-delay: 48ms; }
+.stagger > *:nth-child(4) { animation-delay: 72ms; }
+.stagger > *:nth-child(5) { animation-delay: 96ms; }
+.stagger > *:nth-child(6) { animation-delay: 120ms; }
+.stagger > *:nth-child(7) { animation-delay: 144ms; }
+.stagger > *:nth-child(n + 8) { animation-delay: 168ms; }
+@keyframes row-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Hold-to-confirm: 600ms of fill on board-power and destructive actions. */
+.hold {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.hold::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: color-mix(in srgb, var(--color-navy) 20%, transparent);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+.hold:active::before {
+  animation: hold-fill 600ms linear both;
+}
+.hold[data-armed="true"] {
+  border-color: var(--color-hairline-press);
+}
+@keyframes hold-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* Sheets: a <details> disclosure is the compose/record surface on a phone. */
+.disclosure > summary {
+  list-style: none;
+  cursor: pointer;
+}
+.disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Wide content scrolls inside its own track; the page body never does. */
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* >=768px: wider gutters and the list + detail split. */
+@media (min-width: 768px) {
+  :root {
+    --gutter: 32px;
+  }
+  .split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 360px);
+    gap: 32px;
+    align-items: start;
+  }
+}
+
+/* >=1024px: the left rail replaces the tab bar. */
+@media (min-width: 1024px) {
+  .screen {
+    padding-bottom: 96px;
+  }
+  .thumb-cta {
+    position: static;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    max-width: 320px;
+    margin: 24px 0 0;
+  }
+}
+
+/* ---- Marketing page: exactly four animated beats ----------------------- */
+
+/* Beat 1 — the statement assembling, then the seal landing on it. */
+.beat1-line {
+  animation: row-in 200ms var(--ease-out-quart) both;
+}
+.beat1-seal {
+  display: inline-block;
+  animation: seal-fade 1ms linear 420ms both;
+}
+
+/* Beat 2 — the device: 40 -> 0, the zero rolling into place on entry. */
+.beat2-zero {
+  animation: roll-down 300ms var(--ease-spring-gentle) both;
+}
+
+/* Beats 3 and 4 — the proof and the arithmetic, revealed as they scroll in.
+   Scroll-driven where the browser has it; everywhere else they are simply
+   already there, which is a complete state, not a degraded one. */
+@supports (animation-timeline: view()) {
+  .beat2,
+  .beat3,
+  .beat4 {
+    animation: beat-reveal 320ms var(--ease-out-quart) both;
+    animation-timeline: view();
+    animation-range: entry 10% cover 30%;
+  }
+}
+@keyframes beat-reveal {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* The sticky mobile CTA: the same words, in the thumb zone. */
+.sticky-cta {
+  position: fixed;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: calc(env(safe-area-inset-bottom) + 16px);
+  z-index: 30;
+}
+
+/* ---- Reduced motion: states are never motion-only --------------------- */
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  /* The seal appears complete with a <=100ms fade; the count swaps directly. */
+  .seal[data-stamp="true"] {
+    animation: seal-fade 100ms linear both !important;
+  }
+  .seal[data-stamp="true"] .seal-ring circle {
+    animation: none !important;
+    stroke-dasharray: none;
+  }
+  .roll {
+    animation: none !important;
+  }
+  .stagger > *,
+  .beat1-line,
+  .beat2,
+  .beat2-zero,
+  .beat3,
+  .beat4 {
+    animation: seal-fade 100ms linear both !important;
+    animation-delay: 0ms !important;
+  }
+}
+@keyframes seal-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }

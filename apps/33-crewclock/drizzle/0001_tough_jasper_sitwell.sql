@@ -1,0 +1,2 @@
+ALTER TABLE "time_entries" ADD COLUMN "client_event_id_out" text;--> statement-breakpoint
+CREATE UNIQUE INDEX "time_entries_client_event_out_idx" ON "time_entries" USING btree ("organization_id","client_event_id_out");

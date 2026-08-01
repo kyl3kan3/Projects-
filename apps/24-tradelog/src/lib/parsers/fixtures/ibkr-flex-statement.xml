@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FlexQueryResponse queryName="TradeLog Trades" type="AF">
+<FlexStatements count="1">
+<FlexStatement accountId="U1234567" fromDate="20260112" toDate="20260116" period="LastWeek" whenGenerated="20260117;060501">
+<Trades>
+<Trade accountId="U1234567" currency="USD" assetCategory="STK" symbol="MSFT" description="MICROSOFT CORP" tradeID="881204411" tradeDate="20260113" tradeTime="093104" buySell="BUY" quantity="300" tradePrice="418.22" ibCommission="-1.05" multiplier="1" />
+<Trade accountId="U1234567" currency="USD" assetCategory="STK" symbol="MSFT" description="MICROSOFT CORP" tradeID="881204598" tradeDate="20260113" tradeTime="104512" buySell="SELL" quantity="-300" tradePrice="421.75" ibCommission="-1.05" multiplier="1" />
+<Trade accountId="U1234567" currency="USD" assetCategory="OPT" symbol="SPY   260220P00595000" description="SPY 20FEB26 595.0 P" underlyingSymbol="SPY" expiry="20260220" strike="595" putCall="P" tradeID="881301774" tradeDate="20260114" tradeTime="100322" buySell="SELL" quantity="-2" tradePrice="7.45" ibCommission="-1.30" multiplier="100" />
+<Trade accountId="U1234567" currency="USD" assetCategory="OPT" symbol="SPY   260220P00595000" description="SPY 20FEB26 595.0 P" underlyingSymbol="SPY" expiry="20260220" strike="595" putCall="P" tradeID="881455190" tradeDate="20260116" tradeTime="143008" buySell="BUY" quantity="2" tradePrice="4.20" ibCommission="-1.30" multiplier="100" />
+</Trades>
+</FlexStatement>
+</FlexStatements>
+</FlexQueryResponse>

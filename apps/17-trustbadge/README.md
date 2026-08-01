@@ -4,6 +4,50 @@
 
 ---
 
+## Setup
+
+Needs Node 20+ and a Postgres database. Nothing else is required to boot: every
+integration is optional and the app says so on screen when one is missing.
+
+```bash
+npm install
+cp .env.example .env          # then fill in DATABASE_URL and AUTH_SECRET
+npm run db:migrate            # applies drizzle/ to that database
+npm run dev                   # http://localhost:3000
+```
+
+Sign up, and you land on the install screen with a script tag ready to paste.
+
+**The two variables that are genuinely required** are `DATABASE_URL` (use Neon's
+*pooled* connection string in production) and `AUTH_SECRET`
+(`node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`).
+Everything else degrades honestly:
+
+| Unset | What happens |
+|---|---|
+| `RESEND_API_KEY` | Review requests are logged, not sent, and the request row stays `scheduled` with the reason on it — the funnel never claims a send that did not happen. |
+| `SHOPIFY_API_KEY` / `SECRET` | The Shopify install flow is hidden and the webhook endpoint returns 503. The script-tag install and the generic order webhook still work. |
+| `STRIPE_SECRET_KEY` | Upgrade buttons are hidden; everyone stays on Free. |
+| `S3_*` | Uploaded review photos are stored in Postgres and served from `/api/media/<id>` — fine for development, not for storefront traffic. |
+| `CRON_SECRET` | `/api/cron/tick` refuses every request rather than defaulting to an open trigger. Run `npm run sweep` by hand instead. |
+
+**Scripts**
+
+| Command | Does |
+|---|---|
+| `npm run dev` | Builds the embed, then starts Next on :3000 |
+| `npm run build` | Builds the embed (failing over the 15KB gzip budget), then `next build` |
+| `npm test` | Unit tests via `node --test`; the escaping suite is the important one |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm run sweep` | Sends every review request that is due, from a terminal. `-- --dry` to look without sending |
+| `npm run db:generate` | New migration from the schema |
+
+In production the sweep runs as a cron-triggered route (`vercel.json` points at
+`/api/cron/tick` every 10 minutes, which needs Vercel Pro — Hobby runs cron only
+once per day).
+
+---
+
 ## The Problem
 
 Reviews drive a 15–30% conversion lift for e-commerce stores — this is one of the most consistently replicated findings in CRO. Every merchant knows it. Yet the tooling landscape forces a bad trade-off:

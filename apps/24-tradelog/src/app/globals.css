@@ -1,37 +1,40 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   TradeLog — design tokens. Generated from DESIGN.md; edit DESIGN.md first.
-   Obeys DESIGN_LANGUAGE.md: one rationed accent, hairlines not boxes,
-   no gradients or glow on controls, 4px spacing scale, fonts must load.
+   TradeLog — the redline implementation of DESIGN.md v3.
+   A graphite terminal where numbers are the interface. Profit and loss colour
+   nothing but money; the one act of drama is the leak, named with a figure.
+
+   Obeys DESIGN_LANGUAGE.md v2.1: no emoji, no gradient or glow on controls,
+   one SVG icon set, space before boxes, hairlines not borders, the 4px scale,
+   exactly three radii, real content, fonts that actually load.
    ========================================================================== */
 
 @theme {
-  /* Palette — exact values from DESIGN.md */
-  --color-graphite: #101418; /* The ground. Every screen. */
-  --color-panel: #171c22; /* Cards, sheets, chart wells only */
+  /* ---- Colour: the exact values from DESIGN.md, no others ---- */
+  --color-graphite: #101418; /* the ground, every screen */
+  --color-panel: #171c22; /* cards, sheets, chart wells only */
   --color-hairline: #232b34; /* 1px dividers, table rules, card borders */
-  --color-text: #e6ebf2; /* Primary text */
-  --color-text-2: #8593a6; /* Secondary text */
-  --color-text-3: #4e5a68; /* Faint (placeholders, disabled) */
-  --color-paper: #eff2f6; /* Primary buttons (graphite text on it), key non-money numerals */
-  --color-blue: #4c8dff; /* THE accent. ≤10% of any screen: links, active tab, focus rings, selection, the */
-  --color-profit: #2ebd85; /* Realized gains ONLY (see P/L rules) */
-  --color-loss: #f6465d; /* Realized losses + destructive confirmation ONLY */
-  --color-leak: #ffb020; /* Leak findings semantic only — left rules, the gap fill */
+  --color-text: #e6ebf2;
+  --color-text-2: #8593a6;
+  --color-text-3: #4e5a68;
+  --color-paper: #eff2f6; /* primary buttons, key non-money numerals */
+  --color-blue: #4c8dff; /* THE accent, <=10% of any screen */
+  --color-profit: #2ebd85; /* realised gains ONLY */
+  --color-loss: #f6465d; /* realised losses + destructive confirm ONLY */
+  --color-leak: #ffb020; /* leak findings semantic only */
 
-  /* Semantic aliases, so components never hardcode a hue name */
-  --color-bg: #101418;
-  --color-surface: #171c22;
-  --color-line: #232b34;
-  --color-fg: #e6ebf2;
-  --color-fg-2: #8593a6;
-  --color-fg-3: #4e5a68;
-  --color-accent: #4c8dff;
-  --color-action: #eff2f6;
+  /* Press states, spelled out in DESIGN.md's component section. */
+  --color-paper-press: #dde2e9;
+  --color-hairline-press: #2f3a46;
 
-  --font-display: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Radii: exactly three. Controls / cards & chart wells / sheets. */
+  --radius-control: 6px;
+  --radius-card: 10px;
+  --radius-sheet: 14px;
+
+  --font-display: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
@@ -39,14 +42,18 @@
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: dark; /* one visual world, deliberately — no light theme */
+  --gutter: 20px;
   --tabbar-h: 56px;
+  --dur-micro: 120ms;
+  --dur-standard: 200ms;
+  --dur-emphasis: 320ms;
 }
 
 html,
 body {
-  background: var(--color-bg);
-  color: var(--color-fg);
+  background: var(--color-graphite);
+  color: var(--color-text);
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.55;
@@ -54,46 +61,650 @@ body {
   overscroll-behavior-y: none;
 }
 
-* { border-color: var(--color-line); }
+* {
+  border-color: var(--color-hairline);
+}
 
-/* ---- Type roles (see the specimen table in DESIGN.md) ---- */
-.t-hero { font-family: var(--font-display); font-size: clamp(2rem, 8.5vw, 3.375rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 600; }
-.t-stat { font-family: var(--font-mono); font-size: clamp(2.125rem, 9.5vw, 3.25rem); line-height: 1.05; letter-spacing: -0.01em; font-weight: 500; font-variant-numeric: tabular-nums; }
-.t-h2 { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.01em; font-weight: 600; }
-.t-title { font-size: 1rem; line-height: 1.3; font-weight: 600; }
-.t-body { font-size: 1rem; line-height: 1.55; }
-.t-secondary { font-size: 0.8125rem; line-height: 1.45; color: var(--color-fg-2); }
-.t-label { font-size: 0.6875rem; line-height: 1.2; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-fg-3); }
-.t-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+::selection {
+  background: color-mix(in srgb, var(--color-blue) 30%, transparent);
+  color: var(--color-text);
+}
 
-/* ---- Hairline construction: space and rules, never nested boxes ---- */
-.hairline-t { border-top: 1px solid var(--color-line); }
-.hairline-b { border-bottom: 1px solid var(--color-line); }
+/* ---- Type: the exact specimen table from DESIGN.md --------------------- */
+
+.t-display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(32px, 8.5vw, 56px);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
+.t-h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+/* Stat numeral: mono 600, 28/1.1, tabular. */
+.t-stat {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 28px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+/* The leak's dollar figure: mono 600, 32/1.1. */
+.t-leak-figure {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 32px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+/* The finding sentence: Inter 500, 17/1.45. */
+.t-finding {
+  font-weight: 500;
+  font-size: 17px;
+  line-height: 1.45;
+}
+.t-body {
+  font-size: 16px;
+  line-height: 1.55;
+}
+/* Table cell: mono 400, 13/1.4, tabular. */
+.t-cell {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+.t-secondary {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-text-2);
+}
+.t-label {
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-3);
+}
+.t-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Money and R-multiples only. Never a button, icon, link, tab or win rate. */
+.v-profit {
+  color: var(--color-profit);
+}
+.v-loss {
+  color: var(--color-loss);
+}
+
+/* ---- Controls ---------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: var(--radius-control);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    transform var(--dur-micro) var(--ease-out-quart),
+    background-color var(--dur-micro) linear,
+    border-color var(--dur-micro) linear;
+}
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Primary on a dark ground: paper fill, graphite text. Never blue, never green. */
+.btn-primary {
+  background: var(--color-paper);
+  color: var(--color-graphite);
+  border: none;
+}
+.btn-primary:active:not(:disabled) {
+  background: var(--color-paper-press);
+}
+.btn-primary:disabled {
+  background: var(--color-hairline);
+  color: var(--color-text-3);
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-hairline);
+}
+.btn-secondary:active:not(:disabled) {
+  border-color: var(--color-hairline-press);
+}
+.btn-secondary:disabled {
+  color: var(--color-text-3);
+  cursor: not-allowed;
+}
+
+/* Quiet action: text only, blue, presses to 80%. */
+.btn-quiet {
+  background: none;
+  border: none;
+  padding: 0;
+  height: auto;
+  color: var(--color-blue);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn-quiet:active {
+  opacity: 0.8;
+}
+
+.btn-full {
+  width: 100%;
+}
+
+/* Destructive: hold to confirm. The sweep is a safety, not a decoration, so its
+   timing survives prefers-reduced-motion (a countdown numeral replaces it). */
+.btn-destructive {
+  position: relative;
+  background: transparent;
+  color: var(--color-loss);
+  border: 1px solid color-mix(in srgb, var(--color-loss) 60%, transparent);
+  overflow: hidden;
+}
+.btn-destructive::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1.5px solid var(--color-loss);
+  clip-path: inset(0 100% 0 0);
+  pointer-events: none;
+}
+.btn-destructive[data-holding="true"]::after {
+  animation: sweep 800ms linear forwards;
+}
+@keyframes sweep {
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.input {
+  width: 100%;
+  height: 48px;
+  padding: 0 12px;
+  background: var(--color-graphite);
+  color: var(--color-text);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  font-family: inherit;
+  font-size: 16px; /* 16px keeps iOS from zooming on focus */
+}
+.input-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.input::placeholder {
+  color: var(--color-text-3);
+}
+.input:focus,
+.input:focus-visible {
+  outline: none;
+  border-color: var(--color-blue);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-blue) 25%, transparent);
+}
+textarea.input {
+  height: auto;
+  min-height: 104px;
+  padding: 12px;
+  line-height: 1.55;
+  resize: vertical;
+}
+select.input {
+  appearance: none;
+  padding-right: 32px;
+}
+
+/* Ruled notes: the journal's writing surface, on 24px rules. */
+textarea.ruled {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 23px,
+    var(--color-hairline) 23px,
+    var(--color-hairline) 24px
+  );
+  background-position: 0 11px;
+  line-height: 24px;
+  min-height: 144px;
+}
+
+/* Chips: emotion tags and setups. Height 32, radius 6, hairline, Label text. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-hairline);
+  background: transparent;
+  color: var(--color-text-2);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.chip[aria-pressed="true"],
+.chip[data-active="true"] {
+  border-color: var(--color-blue);
+  color: var(--color-blue);
+}
+.chip-static {
+  cursor: default;
+}
+
+/* Focus ring: 2px blue at 2px offset. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---- Surfaces: depth is panel-on-graphite plus hairlines. No elevation. - */
 
 .card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-line);
-  border-radius: 12px;
+  background: var(--color-panel);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-card);
+}
+.well {
+  background: var(--color-panel);
+  border-radius: var(--radius-card);
+}
+.sheet {
+  background: var(--color-panel);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-sheet);
+}
+.hairline-t {
+  border-top: 1px solid var(--color-hairline);
+}
+.hairline-b {
+  border-bottom: 1px solid var(--color-hairline);
 }
 
-/* ---- Controls ---- */
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 48px; padding: 0 20px; border-radius: 10px;
-  font-weight: 600; font-size: 0.9375rem; line-height: 1;
-  transition: transform 120ms var(--ease-out-quart), background-color 120ms linear;
+/* Rows: no boxes. Full-bleed hairline rows, >=56px, the whole row tappable. */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-hairline);
+  text-decoration: none;
+  color: inherit;
 }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: var(--color-action); color: var(--color-bg); }
-.btn-secondary { background: transparent; color: var(--color-fg); border: 1px solid var(--color-line); }
 
-.focus-ring:focus-visible,
-a:focus-visible,
-button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+/* ---- Stat block: no box. Label over numeral, hairlines between cells. --- */
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
+.stat {
+  padding: 16px 0;
+  border-top: 1px solid var(--color-hairline);
+}
+.stat:nth-child(2n) {
+  padding-left: 20px;
+  border-left: 1px solid var(--color-hairline);
+}
+/* Money stats get a 24px spark underline in the P/L colour. */
+.spark {
+  display: block;
+  width: 24px;
+  height: 2px;
+  margin-top: 8px;
+  border-radius: 1px;
+}
+
+/* ---- Execution table --------------------------------------------------- */
+
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+table.exec {
+  width: 100%;
+  border-collapse: collapse;
+  white-space: nowrap;
+}
+table.exec th {
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-3);
+  text-align: right;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-hairline);
+}
+table.exec th:first-child {
+  text-align: left;
+  padding-left: 0;
+}
+table.exec td {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-hairline);
+  color: var(--color-text);
+}
+table.exec td:first-child {
+  text-align: left;
+  padding-left: 0;
+}
+/* Scaling legs sit under their round-trip parent: 12px indent, hairline spine. */
+tr.leg td:first-child {
+  padding-left: 24px;
+  position: relative;
+}
+tr.leg td:first-child::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--color-hairline);
+}
+
+/* ---- Leak card --------------------------------------------------------- */
+
+.leak-card {
+  background: var(--color-panel);
+  border: 1px solid var(--color-hairline);
+  border-left: 2px solid var(--color-leak);
+  border-radius: var(--radius-card);
+  padding: 20px;
+}
+.leak-card[data-locked="true"] {
+  border-left-color: var(--color-hairline);
+}
+
+/* ---- Calendar heatmap: 4px-radius cells, opacity scaled by the day's P&L */
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+.cal-cell {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 4px;
+  background: var(--color-panel);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-3);
+  border: none;
+  padding: 0;
+  cursor: default;
+  animation: cell-in 200ms var(--ease-out-quart) both;
+}
+.cal-cell[data-has-trades="true"] {
+  color: var(--color-text);
+  cursor: pointer;
+}
+.cal-cell[data-outside="true"] {
+  visibility: hidden;
+}
+@keyframes cell-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---- Bottom tab bar ---------------------------------------------------- */
+
+.tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: color-mix(in srgb, var(--color-panel) 94%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-hairline);
+  z-index: 40;
+}
+.tabbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-weight: 600;
+  font-size: 10px;
+  color: var(--color-text-3);
+  text-decoration: none;
+  position: relative;
+  min-height: 44px;
+}
+.tabbar-item[data-active="true"] {
+  color: var(--color-text);
+}
+.tabbar-item[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  bottom: 6px;
+  width: 2px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--color-blue);
+}
+
+/* ---- Layout ------------------------------------------------------------ */
+
+.screen {
+  padding: 0 var(--gutter);
+  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 40px);
+  max-width: 1280px;
+  margin: 0 auto;
+}
+.screen-cta {
+  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 96px);
+}
+.thumb-cta {
+  position: fixed;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 16px);
+  z-index: 30;
+  max-width: calc(1280px - 2 * var(--gutter));
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: 32px;
+  }
+  /* Dashboard lays the curve beside the stat grid. */
+  .dash-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 32px;
+    align-items: start;
+  }
+}
+
+@media (min-width: 1024px) {
+  /* Journal becomes a film room: chart + table, notes beside them. */
+  .film-room {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: 32px;
+    align-items: start;
+  }
+}
+
+/* ---- The signature: the counterfactual gap ----------------------------- */
+
+.curve-base {
+  stroke-dasharray: var(--len);
+  stroke-dashoffset: var(--len);
+  animation: draw 600ms var(--ease-out-quart) forwards;
+}
+.curve-counterfactual {
+  stroke-dasharray: var(--len);
+  stroke-dashoffset: var(--len);
+  animation: draw 600ms var(--ease-out-quart) 800ms forwards;
+}
+.curve-gap {
+  clip-path: inset(0 0 100% 0);
+  animation: reveal-down 400ms var(--ease-out-quart) 1400ms forwards;
+}
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes reveal-down {
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+.endpoint-dot {
+  opacity: 0;
+  animation: fade-in 200ms linear 600ms forwards;
+}
+@keyframes fade-in {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Entry/exit pins drop 120ms apart; the R bracket draws between them. */
+.pin {
+  animation: pin-drop 200ms var(--ease-out-quart) both;
+}
+@keyframes pin-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.bracket {
+  stroke-dasharray: var(--len);
+  stroke-dashoffset: var(--len);
+  animation: draw 300ms var(--ease-out-quart) 320ms forwards;
+}
+
+/* Import rows stream in, 20ms stagger, capped at 8 (choreography rule). */
+.stream-row {
+  animation: row-in 200ms var(--ease-out-quart) both;
+}
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* The weekly review's discipline ring: blue, sober, one segment per answer. */
+.ring-track {
+  stroke: var(--color-hairline);
+}
+.ring-fill {
+  stroke: var(--color-blue);
+  transition: stroke-dashoffset var(--dur-emphasis) var(--ease-out-quart);
+}
+.stamp {
+  animation: stamp-press 250ms var(--ease-out-quart) both;
+}
+@keyframes stamp-press {
+  from {
+    opacity: 0;
+    transform: scale(1.12);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ---- Reduced motion: every insight stays fully readable ---------------- */
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  /* Curves appear drawn, the gap pre-filled, the cells already in place. */
+  .curve-base,
+  .curve-counterfactual {
+    stroke-dashoffset: 0;
+  }
+  .curve-gap {
+    clip-path: inset(0 0 0 0);
+  }
+  .endpoint-dot {
+    opacity: 1;
+  }
+  .bracket {
+    stroke-dashoffset: 0;
+  }
+  /* Hold-to-confirm keeps its 800ms — it is a safety. A countdown numeral
+     replaces the sweep; see components/HoldToConfirm.tsx. */
+  .btn-destructive[data-holding="true"]::after {
+    animation: none;
+    clip-path: inset(0 100% 0 0);
+  }
 }

@@ -71,3 +71,62 @@ Free-tier badge on hosted pages is the acquisition engine — it must stay.
 - **Structural churn:** users launch and cancel. Counters: multi-list accounts (serial builders), post-launch mode (convert waitlist to newsletter/changelog audience), annual plans discounted hard.
 - **Email deliverability:** blasts from shared infrastructure risk spam-foldering; require domain verification (DKIM/SPF) for custom-domain senders and isolate sending pools by reputation.
 - **Fraud/gaming:** referral rewards invite fake signups; heuristics + review queue at MVP, device fingerprinting only if abuse warrants (privacy trade-off).
+
+---
+
+## Setup
+
+Requirements: Node 22, Postgres 16, and nothing else. Redis is optional (see
+below).
+
+```bash
+cp .env.example .env.local          # fill in DATABASE_URL and AUTH_SECRET
+npm install
+npm run db:migrate                  # applies drizzle/ against DATABASE_URL
+npm run dev                         # http://localhost:3015
+```
+
+Then sign up at `/signup`, name your product, and your launch page is live at
+`/l/{slug}`.
+
+**Without `RESEND_API_KEY` nobody can complete a signup** — confirmation emails
+are written to the server log instead of being delivered, and the link in that
+log entry is how you confirm one by hand. Every dashboard screen that depends on
+sending says so.
+
+### Commands
+
+| Command | What it does |
+|---|---|
+| `npm run dev` | Builds the embed widget, then starts Next on 3015 |
+| `npm run build` | Widget bundle + production build |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm test` | Domain-logic unit tests (node:test via tsx) |
+| `npm run db:generate` | New migration from `src/db/schema.ts` |
+| `npm run db:migrate` | Apply migrations |
+| `npm run worker` | Long-lived blast/webhook worker (needs `REDIS_URL`) |
+
+### Background work
+
+Blast sending and webhook delivery need something to run them. Two options,
+pick one:
+
+- **Cron route** (`/api/cron/tick`) — the Vercel default. `vercel.json`
+  schedules it every 5 minutes; it does the work inline with a 45-second budget
+  and a resumable cursor, so an interrupted blast continues rather than
+  restarting. Requires `CRON_SECRET`. Note that Vercel's **Hobby plan runs cron
+  only once per day** — a launch-day blast wants Pro, or the worker below.
+- **Worker** (`npm run worker`) — for a host that can run a process. Same work
+  on a 5-second loop. It takes a Redis lock per cycle, so if you run both the
+  worker and the cron route they cannot double-send; disable the cron anyway.
+
+### Hosted page addresses
+
+A launch page is reachable three ways, all serving the same page:
+
+1. `{APP_URL}/l/{slug}` — always works, no DNS needed.
+2. `{slug}.{NEXT_PUBLIC_PAGES_DOMAIN}` — needs a wildcard DNS record and a
+   wildcard domain on the host.
+3. A founder's own domain (Growth) — CNAME to the app, then the domain has to be
+   attached at the host for TLS. Until it is verified in list settings the page
+   keeps serving from address 1, so nothing breaks while DNS propagates.

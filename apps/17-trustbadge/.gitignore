@@ -1,6 +1,7 @@
 node_modules/
 .next/
 dist/
+/public/widget/
 build/
 coverage/
 .env

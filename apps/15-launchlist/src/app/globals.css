@@ -1,52 +1,58 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   LaunchList — design tokens. Generated from DESIGN.md; edit DESIGN.md first.
-   Obeys DESIGN_LANGUAGE.md: one rationed accent, hairlines not boxes,
-   no gradients or glow on controls, 4px spacing scale, fonts must load.
+   LaunchList — redline implementation of DESIGN.md v3.
+   Anticipation with taste. One accent (flare) rationed to ≤10% of a screen,
+   hairlines instead of boxes, no gradient or glow on any control, three radii,
+   4px spacing scale. The signature is the position roll and nothing else.
    ========================================================================== */
 
 @theme {
-  /* Palette — exact values from DESIGN.md */
-  --color-night: #0a0e1f; /* The ground. Hosted pages and dashboard. */
-  --color-panel: #141a33; /* Framed objects only: the reward-gate card, builder preview frame */
-  --color-hairline: #232b4d; /* 1px dividers & card borders — never brighter */
-  --color-text: #eef1fb; /* Primary text */
-  --color-text-2: #8c93b8; /* Secondary text */
-  --color-text-3: #585f88; /* Faint (locked gates, placeholders) */
-  --color-paper: #f2f4fc; /* Primary buttons (ink #0A0E1F text), the position numeral */
-  --color-flare: #e8654f; /* THE accent. ≤10% of any screen: brand mark, active states, the roll's delta fl */
-  --color-mint: #4bd8be; /* Semantic: success only (signup confirmed, reward unlocked) */
-  --color-red: #e5484d; /* Semantic: errors only (invalid email, fraud flag) */
+  /* Color — the exact table in DESIGN.md. */
+  --color-night: #0a0e1f; /* the ground: hosted pages and dashboard */
+  --color-panel: #141a33; /* framed objects only: reward gates, preview frame */
+  --color-hairline: #232b4d; /* 1px dividers and card borders — never brighter */
+  --color-text: #eef1fb;
+  --color-text-2: #8c93b8;
+  --color-text-3: #585f88;
+  --color-paper: #f2f4fc; /* primary buttons and the position numeral */
+  --color-flare: #e8654f; /* THE accent */
+  --color-mint: #4bd8be; /* success only */
+  --color-red: #e5484d; /* errors only */
 
-  /* Semantic aliases, so components never hardcode a hue name */
-  --color-bg: #0a0e1f;
-  --color-surface: #141a33;
-  --color-line: #232b4d;
-  --color-fg: #eef1fb;
-  --color-fg-2: #8c93b8;
-  --color-fg-3: #585f88;
-  --color-accent: #e8654f;
-  --color-action: #f2f4fc;
-  --color-bad: #e5484d;
+  /* Press and disabled states, spelled out in DESIGN.md's component section. */
+  --color-paper-press: #dfe3f1;
+  --color-disabled-fill: #262e52;
+  --color-hairline-press: #2e3760;
 
-  --font-display: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Radii: exactly three — controls, framed cards, sheets. */
+  --radius-control: 10px;
+  --radius-card: 14px;
+  --radius-sheet: 20px;
 
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring-gentle: cubic-bezier(0.24, 1.2, 0.32, 1);
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: dark; /* one visual world, deliberately */
+  --gutter: 20px;
   --tabbar-h: 56px;
+  /* A hosted page overrides these two from the founder's theme; everything
+     else on the page, including the button construction, stays fixed. */
+  --page-ground: #0a0e1f;
+  --page-accent: #e8654f;
 }
 
 html,
 body {
-  background: var(--color-bg);
-  color: var(--color-fg);
+  background: var(--color-night);
+  color: var(--color-text);
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.55;
@@ -54,46 +60,575 @@ body {
   overscroll-behavior-y: none;
 }
 
-* { border-color: var(--color-line); }
-
-/* ---- Type roles (see the specimen table in DESIGN.md) ---- */
-.t-hero { font-family: var(--font-display); font-size: clamp(2rem, 8.5vw, 3.375rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 600; }
-.t-stat { font-family: var(--font-mono); font-size: clamp(2.125rem, 9.5vw, 3.25rem); line-height: 1.05; letter-spacing: -0.01em; font-weight: 500; font-variant-numeric: tabular-nums; }
-.t-h2 { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.01em; font-weight: 600; }
-.t-title { font-size: 1rem; line-height: 1.3; font-weight: 600; }
-.t-body { font-size: 1rem; line-height: 1.55; }
-.t-secondary { font-size: 0.8125rem; line-height: 1.45; color: var(--color-fg-2); }
-.t-label { font-size: 0.6875rem; line-height: 1.2; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-fg-3); }
-.t-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-
-/* ---- Hairline construction: space and rules, never nested boxes ---- */
-.hairline-t { border-top: 1px solid var(--color-line); }
-.hairline-b { border-bottom: 1px solid var(--color-line); }
-
-.card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-line);
-  border-radius: 12px;
+* {
+  border-color: var(--color-hairline);
 }
 
-/* ---- Controls ---- */
+::selection {
+  background: color-mix(in srgb, var(--page-accent) 30%, transparent);
+  color: var(--color-text);
+}
+
+a {
+  color: var(--page-accent);
+  text-decoration: none;
+}
+
+/* ---- Type roles: the specimen table, exactly ---------------------------- */
+
+.t-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(32px, 9vw, 56px);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+}
+.t-numeral {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(64px, 18vw, 96px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.t-h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+.t-title {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+}
+.t-body {
+  font-size: 16px;
+  line-height: 1.55;
+}
+.t-secondary {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-text-2);
+}
+.t-label {
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-3);
+}
+/* Every count, countdown and K-factor. No exceptions. */
+.t-data {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+/* The one big stat on the founder overview: SG 700 at 40. */
+.t-stat {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 40px;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Controls ----------------------------------------------------------- */
+
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 48px; padding: 0 20px; border-radius: 10px;
-  font-weight: 600; font-size: 0.9375rem; line-height: 1;
-  transition: transform 120ms var(--ease-out-quart), background-color 120ms linear;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 52px;
+  padding: 0 20px;
+  border-radius: var(--radius-control);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    transform 120ms var(--ease-out-quart),
+    background-color 120ms linear,
+    border-color 120ms linear;
 }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: var(--color-action); color: var(--color-bg); }
-.btn-secondary { background: transparent; color: var(--color-fg); border: 1px solid var(--color-line); }
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
 
-.focus-ring:focus-visible,
-a:focus-visible,
-button:focus-visible {
-  outline: 2px solid var(--color-accent);
+/* Off-white fill, ink text. Never flare-filled, never a gradient — on every
+   founder theme (DESIGN.md, non-negotiable). */
+.btn-primary {
+  background: var(--color-paper);
+  color: var(--color-night);
+  border: none;
+}
+.btn-primary:active:not(:disabled) {
+  background: var(--color-paper-press);
+}
+.btn-primary:disabled {
+  background: var(--color-disabled-fill);
+  color: var(--color-text-3);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-hairline);
+}
+.btn-secondary:active:not(:disabled) {
+  border-color: var(--color-hairline-press);
+}
+
+/* Quiet action: text only, in the accent. */
+.btn-quiet {
+  background: none;
+  border: none;
+  padding: 0;
+  height: auto;
+  color: var(--page-accent);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+}
+.btn-quiet:active {
+  opacity: 0.8;
+}
+
+.btn-full {
+  width: 100%;
+}
+
+/* The email input — the product's most important control. */
+.input {
+  width: 100%;
+  height: 52px;
+  padding: 0 14px;
+  background: var(--page-ground);
+  color: var(--color-text);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  font-size: 16px; /* 16px prevents iOS zoom-on-focus */
+  font-family: inherit;
+}
+.input::placeholder {
+  color: var(--color-text-3);
+}
+.input:focus,
+.input:focus-visible {
+  outline: none;
+  border-color: var(--page-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--page-accent) 25%, transparent);
+}
+.input-mono {
+  font-family: var(--font-mono);
+  font-size: 15px;
+}
+textarea.input {
+  height: auto;
+  min-height: 140px;
+  padding: 12px 14px;
+  line-height: 1.55;
+}
+select.input {
+  appearance: none;
+  padding-right: 36px;
+}
+
+/* The ignite underline: a 2px rule beneath the email field that runs
+   left → right in the accent as the form is submitted. */
+.ignite {
+  position: relative;
+}
+.ignite::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--page-accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  border-radius: 1px;
+}
+.ignite[data-igniting="true"]::after {
+  animation: ignite 300ms var(--ease-out-quart) forwards;
+}
+@keyframes ignite {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Chips: template pickers, segment pickers, theme swatches. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-hairline);
+  background: transparent;
+  color: var(--color-text-2);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.chip[aria-pressed="true"],
+.chip[data-active="true"] {
+  border-color: var(--page-accent);
+  color: var(--color-text);
+}
+
+/* Share-link chip: 44 high, mono URL truncated in the middle, copy glyph. */
+.share-chip {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text-2);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+}
+.share-chip[data-copied="true"] {
+  color: var(--color-mint);
+  border-color: color-mix(in srgb, var(--color-mint) 45%, var(--color-hairline));
+}
+/* The URL lifts 8px and fades as the check lands. */
+.share-chip-url {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  transition:
+    transform 240ms var(--ease-out-quart),
+    opacity 240ms linear;
+}
+.share-chip[data-copied="true"] .share-chip-url {
+  transform: translateY(-8px);
+  opacity: 0;
+}
+.share-chip-copied {
+  position: absolute;
+  left: 12px;
+  opacity: 0;
+  transition: opacity 240ms linear;
+}
+.share-chip[data-copied="true"] .share-chip-copied {
+  opacity: 1;
+}
+
+/* Focus ring: 2px in the accent, 2px offset. Designed, not inherited. */
+:where(a, button, [tabindex], input, textarea, select):focus-visible {
+  outline: 2px solid var(--page-accent);
   outline-offset: 2px;
 }
 
+/* ---- Surfaces: depth is panel vs night plus hairlines. No elevation. ---- */
+
+.panel {
+  background: var(--color-panel);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-card);
+}
+.sheet {
+  background: var(--color-panel);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+}
+.hairline-t {
+  border-top: 1px solid var(--color-hairline);
+}
+.hairline-b {
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+/* Leaderboard and signup rows: NO boxes. Full-bleed hairline rows, 56px. */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-hairline);
+  color: inherit;
+}
+
+/* ---- Reward gates: the app's framed objects ----------------------------- */
+
+.gate {
+  background: var(--color-panel);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-card);
+  padding: 16px;
+}
+.gate[data-locked="true"] {
+  color: var(--color-text-3);
+}
+.gate-track {
+  height: 2px;
+  border-radius: 1px;
+  background: var(--color-hairline);
+  overflow: hidden;
+}
+.gate-fill {
+  display: block;
+  height: 100%;
+  background: var(--page-accent);
+  border-radius: 1px;
+  transition: width 320ms var(--ease-out-quart);
+}
+.gate[data-unlocked="true"] .gate-fill {
+  background: var(--color-mint);
+}
+/* Gates enter with a 12px rise, gentle spring, 30ms stagger, ≤4 at once. */
+.gate-enter {
+  animation: gate-rise 320ms var(--ease-spring-gentle) both;
+}
+@keyframes gate-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* The lock → unlock stroke draw, 200ms. */
+.stroke-draw {
+  stroke-dasharray: 40;
+  stroke-dashoffset: 40;
+  animation: stroke-draw 200ms var(--ease-out-quart) forwards;
+}
+@keyframes stroke-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ---- The signature: the position roll ---------------------------------- */
+
+.roll {
+  display: inline-flex;
+  align-items: baseline;
+  color: var(--color-paper);
+  transition: color 300ms linear;
+}
+.roll[data-rolling="true"] {
+  color: var(--page-accent);
+}
+.roll-digit {
+  display: inline-block;
+  overflow: hidden;
+  height: 1em;
+  line-height: 1;
+}
+.roll-digit > span {
+  display: block;
+  transition: transform 500ms var(--ease-out-quart);
+}
+/* The delta chip: no fill, accent text, 1.2s. */
+.delta-chip {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--page-accent);
+  animation: delta-in 1200ms var(--ease-out-quart) forwards;
+}
+@keyframes delta-in {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  15%,
+  70% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+/* One 1.75px ring expands from the numeral's baseline at landing. */
+.landing-ring {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 64px;
+  height: 64px;
+  margin-left: -32px;
+  border: 1.75px solid var(--page-accent);
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+}
+.landing-ring[data-active="true"] {
+  animation: ring-expand 500ms var(--ease-out-quart) forwards;
+}
+@keyframes ring-expand {
+  from {
+    transform: scale(0.4);
+    opacity: 0.5;
+  }
+  to {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+/* Reduced motion swaps the numeral with a single mint flash instead. */
+.mint-flash {
+  animation: mint-flash 100ms linear;
+}
+@keyframes mint-flash {
+  from {
+    color: var(--color-mint);
+  }
+  to {
+    color: var(--color-paper);
+  }
+}
+
+/* ---- Founder tab bar --------------------------------------------------- */
+
+.tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: color-mix(in srgb, var(--color-night) 94%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-hairline);
+  z-index: 40;
+}
+.tabbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-3);
+  position: relative;
+}
+.tabbar-item[data-active="true"] {
+  color: var(--color-text);
+}
+.tabbar-item[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  bottom: 5px;
+  width: 2px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--color-flare);
+}
+
+/* ---- Layout ------------------------------------------------------------ */
+
+.screen {
+  padding: 0 var(--gutter);
+  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 96px);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+/* A hosted page is a centered single column at every size — it has to look
+   composed in a tweet screenshot. */
+.page-column {
+  padding: 0 var(--gutter);
+  max-width: 640px;
+  margin: 0 auto;
+}
+.thumb-cta {
+  position: fixed;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 16px);
+  z-index: 30;
+  max-width: calc(1200px - 2 * var(--gutter));
+  margin: 0 auto;
+}
+
+/* Bottom sheet: the builder's token controls. */
+.sheet-grab {
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-hairline);
+  margin: 0 auto;
+}
+
+/* The desktop-only enhancement: a receding shaft of hairline ticks behind the
+   numeral. Static SVG, never on the mobile path. */
+.shaft {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .shaft {
+    display: block;
+    position: absolute;
+    inset: 0;
+    opacity: 0.55;
+    pointer-events: none;
+  }
+  :root {
+    --gutter: 32px;
+  }
+}
+
+/* Wide content scrolls inside itself; the page body never scrolls sideways. */
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ---- Reduced motion ---------------------------------------------------- */
+
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  /* The roll becomes an instant swap; the delta stays as text, and all the
+     position maths is present in prose regardless (DESIGN.md). */
+  .roll-digit > span {
+    transition: none !important;
+  }
+  .landing-ring {
+    display: none;
+  }
+  .delta-chip {
+    animation: none;
+    opacity: 1;
+  }
 }

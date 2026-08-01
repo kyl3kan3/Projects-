@@ -1,19 +1,51 @@
 /**
  * src/db/index.ts
  *
- * Database client singleton. Wraps postgres.js + drizzle with the schema
- * from ./schema. Imported across app routes (no worker process at MVP).
+ * Database client (lazy singleton). The connection is created on first use so
+ * importing this module during `next build` (no DATABASE_URL) never opens a
+ * socket or throws.
  *
- * TODO:
- * - [ ] Create postgres.js client from DATABASE_URL (pooled URL in app,
- *       direct URL for drizzle-kit migrations).
- * - [ ] Export `db = drizzle(client, { schema })`.
- * - [ ] Guard against multiple clients during Next.js dev hot-reload
- *       (globalThis caching pattern).
- * - [ ] Fail fast with a clear error when DATABASE_URL is unset.
- * - [ ] Migration enabling pg_trgm + the trigram indexes search relies on.
+ * Serverless note: on Vercel every warm function instance keeps its own pool,
+ * so a generous `max` multiplies into Neon's connection ceiling fast. There the
+ * pool is one connection with a short idle timeout. `prepare: false` is
+ * required either way — Neon's pooled endpoint runs PgBouncer in transaction
+ * mode, which cannot carry prepared statements across connections.
  */
 
-export function getDb(): never {
-  throw new Error("Not implemented");
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
+import { env } from "@/lib/env";
+import * as schema from "./schema";
+
+type Db = ReturnType<typeof drizzle<typeof schema>>;
+
+let _client: ReturnType<typeof postgres> | null = null;
+let _db: Db | null = null;
+
+export function getDb(): Db {
+  if (!_db) {
+    _client = postgres(env.databaseUrl, {
+      max: process.env.VERCEL ? 1 : 10,
+      idle_timeout: process.env.VERCEL ? 20 : undefined,
+      connect_timeout: 10,
+      prepare: false,
+    });
+    _db = drizzle(_client, { schema, casing: "snake_case" });
+  }
+  return _db;
 }
+
+/** Raw postgres.js handle, for the one search query that needs pg_trgm SQL. */
+export function getSql(): ReturnType<typeof postgres> {
+  getDb();
+  return _client!;
+}
+
+/** Close the pool — used by scripts and tests on shutdown. */
+export async function closeDb(): Promise<void> {
+  await _client?.end({ timeout: 5 });
+  _client = null;
+  _db = null;
+}
+
+export { schema };

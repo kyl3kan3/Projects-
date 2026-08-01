@@ -1,51 +1,55 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   TrustBadge — design tokens. Generated from DESIGN.md; edit DESIGN.md first.
-   Obeys DESIGN_LANGUAGE.md: one rationed accent, hairlines not boxes,
-   no gradients or glow on controls, 4px spacing scale, fonts must load.
+   TrustBadge design system — redline implementation of DESIGN.md v3.
+   Social proof rendered with a jeweler's restraint: daylight ground, gold only
+   inside star glyphs, hairlines instead of borders, cards reserved for the two
+   things that are genuinely framed objects (reviews and widget instances).
+   Obeys DESIGN_LANGUAGE.md v2.1 — no emoji, no gradient or glow on controls,
+   space before boxes, 4px spacing scale, at most three radii, fonts must load.
    ========================================================================== */
 
 @theme {
-  /* Palette — exact values from DESIGN.md */
-  --color-daylight: #fdfbf7; /* The ground. Every dashboard screen. */
-  --color-card: #ffffff; /* Review cards and widget instances only — they are the framed objects */
-  --color-hairline: #eae4d7; /* 1px dividers & card borders — never darker */
-  --color-ink: #221c13; /* Primary text; primary button fill */
-  --color-text-2: #8c8577; /* Secondary text, dates */
-  --color-text-3: #bdb6a6; /* Faint (empty star tracks, placeholders) */
-  --color-gold: #e09112; /* THE accent. ≤10% of any screen: filled stars, active states, links, the brand  */
-  --color-leaf: #3b9e6b; /* Semantic: verified-buyer check and approve only */
-  --color-red: #c4453c; /* Semantic: reject/spam flag only */
+  /* Color — the exact table from DESIGN.md. */
+  --color-daylight: #fdfbf7; /* the ground, every dashboard screen */
+  --color-card: #ffffff; /* review cards and widget instances only */
+  --color-hairline: #eae4d7; /* 1px dividers and card borders — never darker */
+  --color-ink: #221c13; /* primary text; primary button fill */
+  --color-text-2: #8c8577; /* secondary text, dates */
+  --color-text-3: #bdb6a6; /* faint: empty star tracks, placeholders */
+  --color-gold: #e09112; /* THE accent, <=10% of any screen */
+  --color-leaf: #3b9e6b; /* verified-buyer check and approve only */
+  --color-red: #c4453c; /* reject / spam flag only */
 
-  /* Semantic aliases, so components never hardcode a hue name */
-  --color-bg: #fdfbf7;
-  --color-surface: #ffffff;
-  --color-line: #eae4d7;
-  --color-fg: #221c13;
-  --color-fg-2: #8c8577;
-  --color-fg-3: #bdb6a6;
-  --color-accent: #e09112;
-  --color-action: #221c13;
-  --color-bad: #c4453c;
+  /* Press and disabled states, spelled out in DESIGN.md's component section. */
+  --color-ink-press: #3a3226;
+  --color-hairline-press: #d8d0be;
+  --color-disabled: #e2dccd;
+
+  /* Radii: exactly three. Controls / cards / sheets. */
+  --radius-control: 10px;
+  --radius-card: 12px;
+  --radius-sheet: 20px;
 
   --font-display: "Fraunces", ui-serif, Georgia, serif;
-  --font-sans: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring-gentle: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 :root {
-  color-scheme: light;
+  color-scheme: light; /* one visual world: a shopkeeper's daylight */
+  --gutter: 20px;
   --tabbar-h: 56px;
 }
 
 html,
 body {
-  background: var(--color-bg);
-  color: var(--color-fg);
+  background: var(--color-daylight);
+  color: var(--color-ink);
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.55;
@@ -53,46 +57,504 @@ body {
   overscroll-behavior-y: none;
 }
 
-* { border-color: var(--color-line); }
+* {
+  border-color: var(--color-hairline);
+}
 
-/* ---- Type roles (see the specimen table in DESIGN.md) ---- */
-.t-hero { font-family: var(--font-display); font-size: clamp(2rem, 8.5vw, 3.375rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 600; }
-.t-stat { font-family: var(--font-mono); font-size: clamp(2.125rem, 9.5vw, 3.25rem); line-height: 1.05; letter-spacing: -0.01em; font-weight: 500; font-variant-numeric: tabular-nums; }
-.t-h2 { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.01em; font-weight: 600; }
-.t-title { font-size: 1rem; line-height: 1.3; font-weight: 600; }
-.t-body { font-size: 1rem; line-height: 1.55; }
-.t-secondary { font-size: 0.8125rem; line-height: 1.45; color: var(--color-fg-2); }
-.t-label { font-size: 0.6875rem; line-height: 1.2; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-fg-3); }
-.t-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+::selection {
+  background: color-mix(in srgb, var(--color-gold) 22%, transparent);
+}
 
-/* ---- Hairline construction: space and rules, never nested boxes ---- */
-.hairline-t { border-top: 1px solid var(--color-line); }
-.hairline-b { border-bottom: 1px solid var(--color-line); }
+/* ---- Type roles: the exact specimen table from DESIGN.md ---------------- */
 
+.t-display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(28px, 8vw, 40px);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+.t-hero {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(32px, 9vw, 52px);
+  line-height: 1.06;
+  letter-spacing: -0.015em;
+}
+.t-h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+.t-title {
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.35;
+}
+.t-body {
+  font-size: 16px;
+  line-height: 1.55;
+}
+.t-secondary {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-text-2);
+}
+.t-label {
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-2);
+}
+/* Every rating, count and spec — mono, tabular, no exceptions. */
+.t-data {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Hairline construction: space and rules, never nested boxes --------- */
+
+.hairline-t {
+  border-top: 1px solid var(--color-hairline);
+}
+.hairline-b {
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+/* The only shadow in the product, besides the sheet scrim. */
 .card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-line);
-  border-radius: 12px;
+  background: var(--color-card);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-card);
+  box-shadow: 0 1px 2px rgba(34, 28, 19, 0.06);
+}
+.sheet {
+  background: var(--color-card);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-sheet);
 }
 
-/* ---- Controls ---- */
+/* Settings and lists are hairline rows, >=56px, the whole row tappable. */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-hairline);
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Funnel rows on Home: NOT boxes. Label left, Fraunces count right. */
+.funnel-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 56px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-hairline);
+  text-decoration: none;
+  color: inherit;
+}
+.funnel-count {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(28px, 8vw, 40px);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Controls ----------------------------------------------------------- */
+
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 48px; padding: 0 20px; border-radius: 10px;
-  font-weight: 600; font-size: 0.9375rem; line-height: 1;
-  transition: transform 120ms var(--ease-out-quart), background-color 120ms linear;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: var(--radius-control);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    transform 120ms var(--ease-out-quart),
+    background-color 120ms linear,
+    border-color 120ms linear;
 }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: var(--color-action); color: var(--color-bg); }
-.btn-secondary { background: transparent; color: var(--color-fg); border: 1px solid var(--color-line); }
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+/* Ink is the only high-emphasis fill; gold never fills a button. */
+.btn-primary {
+  background: var(--color-ink);
+  color: var(--color-daylight);
+  border: none;
+}
+.btn-primary:active:not(:disabled) {
+  background: var(--color-ink-press);
+}
+.btn-primary:disabled {
+  background: var(--color-disabled);
+  color: var(--color-text-3);
+  cursor: not-allowed;
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--color-ink);
+  border: 1px solid var(--color-hairline);
+}
+.btn-secondary:active:not(:disabled) {
+  border-color: var(--color-hairline-press);
+}
+.btn-secondary:disabled {
+  color: var(--color-text-3);
+  cursor: not-allowed;
+}
+/* Quiet action: text only, gold, no underline. */
+.btn-quiet {
+  background: none;
+  border: none;
+  padding: 0;
+  height: auto;
+  color: var(--color-gold);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+}
+.btn-quiet:active {
+  opacity: 0.8;
+}
+.btn-danger {
+  background: transparent;
+  color: var(--color-red);
+  border: 1px solid var(--color-hairline);
+}
+.btn-full {
+  width: 100%;
+}
 
-.focus-ring:focus-visible,
-a:focus-visible,
-button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+.input {
+  width: 100%;
+  height: 48px;
+  padding: 0 12px;
+  background: var(--color-card);
+  color: var(--color-ink);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  font-size: 16px;
+  font-family: inherit;
 }
+.input-mono {
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+.input::placeholder {
+  color: var(--color-text-3);
+}
+.input:focus,
+.input:focus-visible {
+  outline: none;
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-gold) 25%, transparent);
+}
+textarea.input {
+  height: auto;
+  min-height: 120px;
+  padding: 12px;
+  line-height: 1.55;
+  resize: vertical;
+}
+select.input {
+  appearance: none;
+  padding-right: 32px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-hairline);
+  background: transparent;
+  color: var(--color-text-2);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.chip[aria-pressed="true"],
+.chip[data-active="true"] {
+  border-color: var(--color-gold);
+  color: var(--color-ink);
+}
+
+/* Focus ring: gold, 2px offset. Designed, not inherited. */
+:where(a, button, [tabindex], input, select, textarea):focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---- Star rows: the brand glyph ---------------------------------------- */
+
+.stars {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+  height: var(--star, 16px);
+  flex: none;
+}
+.stars-row {
+  display: flex;
+  gap: 4px;
+  width: max-content;
+}
+.stars-row svg {
+  width: var(--star, 16px);
+  height: var(--star, 16px);
+  display: block;
+}
+.stars-track {
+  color: var(--color-text-3);
+  display: block;
+}
+/* A 4.8 clips the last star at 80% and holds there. */
+.stars-clip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  overflow: hidden;
+  width: var(--fill, 0%);
+  color: var(--color-gold);
+  display: block;
+}
+
+/* Star input on the shopper form: 44px tap zones, gold ring pulse on select. */
+.star-input {
+  display: flex;
+  gap: 8px;
+}
+.star-btn {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--color-text-3);
+  cursor: pointer;
+  border-radius: var(--radius-control);
+}
+.star-btn svg {
+  width: 32px;
+  height: 32px;
+}
+.star-btn[data-on="true"] {
+  color: var(--color-gold);
+}
+.star-btn[data-picked="true"] {
+  animation: ring-pulse 200ms var(--ease-out-quart);
+}
+@keyframes ring-pulse {
+  from {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-gold) 45%, transparent);
+  }
+  to {
+    box-shadow: 0 0 0 6px transparent;
+  }
+}
+
+/* ---- Verified mark: it never animates. Verification just is. ------------ */
+
+.verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-leaf);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ---- Moderation stack -------------------------------------------------- */
+
+.stack-card {
+  animation: card-rise 240ms var(--ease-out-quart) both;
+}
+@keyframes card-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---- Bottom tab bar ---------------------------------------------------- */
+
+.tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: color-mix(in srgb, var(--color-daylight) 96%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-hairline);
+  z-index: 40;
+}
+.tabbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-3);
+  text-decoration: none;
+  position: relative;
+}
+.tabbar-item[data-active="true"] {
+  color: var(--color-ink);
+}
+/* Active gets a 2px gold dot — the accent's whole appearance in the chrome. */
+.tabbar-item[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  bottom: 6px;
+  width: 2px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--color-gold);
+}
+
+/* ---- Layout ------------------------------------------------------------ */
+
+.screen {
+  padding: 0 var(--gutter);
+  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 96px);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.screen-plain {
+  padding: 0 var(--gutter);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.thumb-cta {
+  position: fixed;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 16px);
+  z-index: 30;
+  max-width: calc(1200px - 2 * var(--gutter));
+  margin: 0 auto;
+}
+
+/* >=768px: the funnel goes horizontal, review lists gain a second column. */
+@media (min-width: 768px) {
+  :root {
+    --gutter: 32px;
+  }
+  .funnel {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border-top: 1px solid var(--color-hairline);
+  }
+  .funnel .funnel-row {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 4px;
+    border-bottom: none;
+    border-right: 1px solid var(--color-hairline);
+    padding: 20px;
+  }
+  .funnel .funnel-row:last-child {
+    border-right: none;
+  }
+  .review-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    align-items: start;
+  }
+}
+@media (min-width: 1024px) {
+  .review-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Code chips: the embed snippet, scrolling inside its own track. */
+.code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  background: var(--color-card);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  padding: 12px;
+  overflow-x: auto;
+  white-space: pre;
+  color: var(--color-ink);
+}
+
+/* The meter under the order count: a hairline track, ink fill, no gradient. */
+.meter {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-hairline);
+  overflow: hidden;
+}
+.meter-fill {
+  height: 100%;
+  background: var(--color-ink);
+}
+.meter-fill[data-over="true"] {
+  background: var(--color-red);
+}
+
+/* ---- Reduced motion: every state is complete without animation --------- */
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .stack-card {
+    opacity: 1;
+    transform: none;
+  }
+  .star-btn[data-picked="true"] {
+    animation: none;
+  }
 }

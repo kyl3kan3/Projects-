@@ -1,35 +1,37 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   CrewClock — design tokens. Generated from DESIGN.md; edit DESIGN.md first.
-   Obeys DESIGN_LANGUAGE.md: one rationed accent, hairlines not boxes,
-   no gradients or glow on controls, 4px spacing scale, fonts must load.
+   CrewClock — the redline implementation of DESIGN.md v3.
+   A stamped brass timeclock reborn as software: punches that feel physical,
+   figures you would defend in an argument.
+
+   Obeys DESIGN_LANGUAGE.md v2.1 — no emoji, no gradient or glow on controls,
+   hairlines not borders, space before boxes, the 4px scale, exactly three
+   radii, one accent rationed to <=10% of a screen.
    ========================================================================== */
 
 @theme {
-  /* Palette — exact values from DESIGN.md */
-  --color-iron: #12161a; /* The ground. Every dark screen. Cool iron with a faint green lean. */
-  --color-slate: #1a2124; /* Sheets, grouped stat panels, job cards only */
-  --color-hairline: #26302e; /* 1px dividers & panel borders — never brighter */
-  --color-text: #edf2ee; /* Primary text */
-  --color-text-2: #8fa096; /* Secondary text */
-  --color-text-3: #59665e; /* Faint (timestamps, placeholders, GPS accuracy notes) */
-  --color-paper: #f2f5f1; /* Primary buttons (iron text on it), hero clock numerals */
-  --color-foreman: #3e7d54; /* THE accent. ≤10% of any screen: the geofence ring, on-the-clock states, links, */
-  --color-amber: #d9a13f; /* Approaching OT / outside fence / unapproved edits only */
-  --color-red: #c9564a; /* Over budget / missed punch / OT crossed only */
+  /* Palette — the exact values from DESIGN.md's table. */
+  --color-iron: #12161a; /* the ground, every dark screen */
+  --color-slate: #1a2124; /* sheets, grouped stat panels, job cards only */
+  --color-hairline: #26302e; /* 1px dividers and panel borders, never brighter */
+  --color-text: #edf2ee;
+  --color-text-2: #8fa096;
+  --color-text-3: #59665e;
+  --color-paper: #f2f5f1; /* the only high-emphasis fill */
+  --color-foreman: #3e7d54; /* THE accent: rings, dots, links, hairline fills */
+  --color-amber: #d9a13f; /* approaching OT / outside fence / unapproved */
+  --color-red: #c9564a; /* over budget / missed punch / OT crossed */
 
-  /* Semantic aliases, so components never hardcode a hue name */
-  --color-bg: #12161a;
-  --color-surface: #1a2124;
-  --color-line: #26302e;
-  --color-fg: #edf2ee;
-  --color-fg-2: #8fa096;
-  --color-fg-3: #59665e;
-  --color-accent: #3e7d54;
-  --color-action: #f2f5f1;
-  --color-warn: #d9a13f;
-  --color-bad: #c9564a;
+  /* Press and disabled states, spelled out in DESIGN.md's component section. */
+  --color-paper-press: #e2e7e1;
+  --color-disabled-fill: #2a3330;
+  --color-hairline-press: #2f3a36;
+
+  /* Radii: exactly three. Controls / panels / sheets. */
+  --radius-control: 10px;
+  --radius-panel: 14px;
+  --radius-sheet: 20px;
 
   --font-display: "Barlow", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-sans: "Barlow", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -39,15 +41,95 @@
   --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
+/* --------------------------------------------------------------- themes --- */
+/* Crews work in sunlight, so the light theme is a first-class world, not an
+   afterthought: ground #F6F8F5, ink text, and primary buttons in ink fill. */
+
 :root {
   color-scheme: dark;
+  --gutter: 20px;
   --tabbar-h: 56px;
+
+  --ground: var(--color-iron);
+  --surface: var(--color-slate);
+  --line: var(--color-hairline);
+  --line-press: var(--color-hairline-press);
+  --fg: var(--color-text);
+  --fg-2: var(--color-text-2);
+  --fg-3: var(--color-text-3);
+  --accent: var(--color-foreman);
+  --warn: var(--color-amber);
+  --bad: var(--color-red);
+
+  /* The primary fill and the text that sits on it. */
+  --action: var(--color-paper);
+  --action-press: var(--color-paper-press);
+  --on-action: var(--color-iron);
+  --disabled-fill: var(--color-disabled-fill);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+    --ground: #f6f8f5;
+    --surface: #ffffff;
+    --line: #dfe5df;
+    --line-press: #cdd6cd;
+    --fg: #1a2124;
+    --fg-2: #55635b;
+    --fg-3: #7d8a82;
+    --accent: #2f6a44; /* the same foreman green, darkened for AA on paper */
+    --warn: #9a6a12;
+    --bad: #a83f34;
+
+    --action: #1a2124; /* ink fill on a light ground */
+    --action-press: #2b3438;
+    --on-action: #f6f8f5;
+    --disabled-fill: #e4e9e4;
+  }
+}
+
+/* The viewer's explicit choice always wins over the system preference. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: var(--color-iron);
+  --surface: var(--color-slate);
+  --line: var(--color-hairline);
+  --line-press: var(--color-hairline-press);
+  --fg: var(--color-text);
+  --fg-2: var(--color-text-2);
+  --fg-3: var(--color-text-3);
+  --accent: var(--color-foreman);
+  --warn: var(--color-amber);
+  --bad: var(--color-red);
+  --action: var(--color-paper);
+  --action-press: var(--color-paper-press);
+  --on-action: var(--color-iron);
+  --disabled-fill: var(--color-disabled-fill);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --ground: #f6f8f5;
+  --surface: #ffffff;
+  --line: #dfe5df;
+  --line-press: #cdd6cd;
+  --fg: #1a2124;
+  --fg-2: #55635b;
+  --fg-3: #7d8a82;
+  --accent: #2f6a44;
+  --warn: #9a6a12;
+  --bad: #a83f34;
+  --action: #1a2124;
+  --action-press: #2b3438;
+  --on-action: #f6f8f5;
+  --disabled-fill: #e4e9e4;
 }
 
 html,
 body {
-  background: var(--color-bg);
-  color: var(--color-fg);
+  background: var(--ground);
+  color: var(--fg);
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.55;
@@ -55,46 +137,668 @@ body {
   overscroll-behavior-y: none;
 }
 
-* { border-color: var(--color-line); }
-
-/* ---- Type roles (see the specimen table in DESIGN.md) ---- */
-.t-hero { font-family: var(--font-display); font-size: clamp(2rem, 8.5vw, 3.375rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 600; }
-.t-stat { font-family: var(--font-mono); font-size: clamp(2.125rem, 9.5vw, 3.25rem); line-height: 1.05; letter-spacing: -0.01em; font-weight: 500; font-variant-numeric: tabular-nums; }
-.t-h2 { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.01em; font-weight: 600; }
-.t-title { font-size: 1rem; line-height: 1.3; font-weight: 600; }
-.t-body { font-size: 1rem; line-height: 1.55; }
-.t-secondary { font-size: 0.8125rem; line-height: 1.45; color: var(--color-fg-2); }
-.t-label { font-size: 0.6875rem; line-height: 1.2; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-fg-3); }
-.t-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-
-/* ---- Hairline construction: space and rules, never nested boxes ---- */
-.hairline-t { border-top: 1px solid var(--color-line); }
-.hairline-b { border-bottom: 1px solid var(--color-line); }
-
-.card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-line);
-  border-radius: 12px;
+* {
+  border-color: var(--line);
 }
 
-/* ---- Controls ---- */
+::selection {
+  background: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+/* ---- Type roles: the exact specimen table from DESIGN.md ---------------- */
+
+.t-display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(32px, 8.5vw, 56px);
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+}
+/* The hero: the clock readout. Mono, tabular, always. */
+.t-stat {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: clamp(44px, 12vw, 68px);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.t-h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+.t-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+}
+.t-body {
+  font-size: 16px;
+  line-height: 1.55;
+}
+.t-secondary {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--fg-2);
+}
+.t-label {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+/* Every hour and every dollar. No exceptions. */
+.t-data {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.t-data-lg {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Layout ------------------------------------------------------------ */
+
+.screen {
+  padding: 0 var(--gutter);
+  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 32px);
+  max-width: 1120px;
+  margin: 0 auto;
+}
+/* The crew face stays phone-first at every size (DESIGN.md responsive). */
+.screen-crew {
+  max-width: 480px;
+}
+.thumb-zone {
+  position: fixed;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 16px);
+  z-index: 30;
+  max-width: calc(480px - 2 * var(--gutter));
+  margin: 0 auto;
+}
+
+/* ---- Controls ---------------------------------------------------------- */
+
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 48px; padding: 0 20px; border-radius: 10px;
-  font-weight: 600; font-size: 0.9375rem; line-height: 1;
-  transition: transform 120ms var(--ease-out-quart), background-color 120ms linear;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: var(--radius-control);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    transform 120ms var(--ease-out-quart),
+    background-color 120ms linear,
+    border-color 120ms linear;
 }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: var(--color-action); color: var(--color-bg); }
-.btn-secondary { background: transparent; color: var(--color-fg); border: 1px solid var(--color-line); }
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.btn-primary {
+  background: var(--action);
+  color: var(--on-action);
+  border: none;
+}
+.btn-primary:active:not(:disabled) {
+  background: var(--action-press);
+}
+.btn-primary:disabled {
+  background: var(--disabled-fill);
+  color: var(--fg-3);
+  cursor: not-allowed;
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid var(--line);
+}
+.btn-secondary:active:not(:disabled) {
+  border-color: var(--line-press);
+}
+.btn-quiet {
+  background: none;
+  border: none;
+  padding: 0;
+  height: auto;
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+}
+.btn-quiet:active {
+  opacity: 0.8;
+}
+.btn-full {
+  width: 100%;
+}
+.btn-danger {
+  background: transparent;
+  color: var(--bad);
+  border: 1px solid color-mix(in srgb, var(--bad) 45%, transparent);
+}
 
-.focus-ring:focus-visible,
-a:focus-visible,
-button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+/* THE control. One oversized button in the thumb zone, 64px tall. */
+.clock-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 64px;
+  border-radius: var(--radius-control);
+  background: var(--action);
+  color: var(--on-action);
+  border: none;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 17px;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition:
+    transform 120ms var(--ease-out-quart),
+    background-color 120ms linear;
 }
+.clock-btn:active:not(:disabled) {
+  transform: scale(0.98);
+  background: var(--action-press);
+}
+.clock-btn:disabled {
+  background: var(--disabled-fill);
+  color: var(--fg-3);
+  cursor: progress;
+}
+/* On the clock, it inverts: hairline border, transparent fill. */
+.clock-btn[data-on="true"] {
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid var(--line);
+}
+.clock-btn[data-on="true"]:active:not(:disabled) {
+  background: transparent;
+  border-color: var(--line-press);
+}
+
+.input,
+select.input,
+textarea.input {
+  width: 100%;
+  height: 48px;
+  padding: 0 12px;
+  background: var(--ground);
+  color: var(--fg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  font-family: inherit;
+  font-size: 16px;
+}
+.input::placeholder {
+  color: var(--fg-3);
+}
+.input:focus,
+.input:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+.input-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+/* The PIN pad field: four big digits, spaced for gloves. */
+.input-pin {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  letter-spacing: 0.5em;
+  text-align: center;
+  height: 64px;
+}
+textarea.input {
+  height: auto;
+  min-height: 88px;
+  padding: 12px;
+  line-height: 1.5;
+}
+select.input {
+  appearance: none;
+  padding-right: 36px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--fg-3) 50%),
+    linear-gradient(135deg, var(--fg-3) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) calc(50% + 2px),
+    calc(100% - 13px) calc(50% + 2px);
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Chips: job and period filters. Active = foreman hairline + foreman text. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--fg-2);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.chip[data-active="true"] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* The EN/ES pill pair. Never buried in settings. */
+.lang-pill {
+  display: inline-flex;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  overflow: hidden;
+}
+.lang-pill button {
+  min-width: 56px;
+  padding: 0 14px;
+  background: transparent;
+  border: none;
+  color: var(--fg-3);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+.lang-pill button[data-active="true"] {
+  background: var(--surface);
+  color: var(--fg);
+}
+
+:where(a, button, [tabindex], input, select, textarea):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---- Surfaces: depth is slate vs iron plus hairlines. No elevation. ---- */
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+}
+.sheet {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sheet);
+}
+.hairline-t {
+  border-top: 1px solid var(--line);
+}
+.hairline-b {
+  border-bottom: 1px solid var(--line);
+}
+
+/* Rows: NO boxes. Full-bleed, hairline between, whole row tappable. */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  text-decoration: none;
+  color: inherit;
+  width: 100%;
+  background: none;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  text-align: left;
+  font: inherit;
+}
+
+/* ---- Fence dots: flat, 6px, no glow ----------------------------------- */
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex: none;
+}
+.dot[data-fence="inside"] {
+  background: var(--accent);
+}
+.dot[data-fence="outside"] {
+  background: var(--warn);
+}
+.dot[data-fence="unavailable"] {
+  background: transparent;
+  border: 1px solid var(--fg-3);
+}
+
+/* ---- Status pills ----------------------------------------------------- */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--line);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  white-space: nowrap;
+}
+.pill[data-tone="on"] {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.pill[data-tone="warn"] {
+  color: var(--warn);
+  border-color: color-mix(in srgb, var(--warn) 40%, transparent);
+}
+.pill[data-tone="bad"] {
+  color: var(--bad);
+  border-color: color-mix(in srgb, var(--bad) 40%, transparent);
+}
+.pill .dot {
+  background: currentColor;
+  border: none;
+}
+
+/* ---- The job cost bar: the ONE place semantic colour fills width ------ */
+
+.costbar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+  overflow: hidden;
+}
+.costbar > span {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--accent);
+  transform-origin: left center;
+  animation: costbar-fill 300ms var(--ease-out-quart) both;
+}
+.costbar > span[data-state="warning"] {
+  background: var(--warn);
+}
+.costbar > span[data-state="over"] {
+  background: var(--bad);
+}
+@keyframes costbar-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* ---- The signature: the geofence ring -------------------------------- */
+
+.minimap {
+  position: relative;
+  border-radius: var(--radius-sheet);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+}
+/* A quiet plotted ground, not a photo: 20px grid at 5% ink, the site dot
+   centred. Works with no Mapbox token and never blocks first paint. */
+.minimap-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--fg) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--fg) 5%, transparent) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+.ring-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.ring-path {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+/* Draws itself once per punch — never looping, never pulsing on the clock. */
+.ring-path[data-draw="true"] {
+  stroke-dasharray: 302;
+  stroke-dashoffset: 302;
+  animation: ring-draw 400ms var(--ease-out-quart) forwards;
+}
+.ring-path[data-draw="undraw"] {
+  stroke-dasharray: 302;
+  animation: ring-undraw 300ms var(--ease-out-quart) forwards;
+}
+@keyframes ring-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes ring-undraw {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: 302;
+  }
+}
+.site-dot {
+  fill: var(--accent);
+}
+
+/* ---- Hold-to-confirm: 600ms radial fill ------------------------------ */
+
+.hold {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.hold::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+.hold[data-holding="true"]::before {
+  animation: hold-fill 600ms linear forwards;
+}
+@keyframes hold-fill {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* ---- Bottom tab bar -------------------------------------------------- */
+
+.tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  display: grid;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--line);
+  z-index: 40;
+}
+.tabbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--fg-3);
+  text-decoration: none;
+  position: relative;
+}
+.tabbar-item[data-active="true"] {
+  color: var(--fg);
+}
+.tabbar-item[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  bottom: 6px;
+  width: 2px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--accent);
+}
+
+/* The offline strip: a hairline-top band, never a coloured banner. */
+.offline-strip {
+  border-top: 1px solid var(--line);
+  padding: 12px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Wide content scrolls in its own track; the page never moves sideways. */
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.scroll-x table {
+  min-width: 640px;
+  width: 100%;
+  border-collapse: collapse;
+}
+.scroll-x th {
+  text-align: left;
+  white-space: nowrap;
+}
+.scroll-x td,
+.scroll-x th {
+  padding: 10px 12px 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+/* Rows enter with a 24ms stagger: opacity plus a 4px slide, nothing else. */
+.stagger > * {
+  animation: row-in 200ms var(--ease-out-quart) both;
+}
+.stagger > *:nth-child(1) { animation-delay: 0ms; }
+.stagger > *:nth-child(2) { animation-delay: 24ms; }
+.stagger > *:nth-child(3) { animation-delay: 48ms; }
+.stagger > *:nth-child(4) { animation-delay: 72ms; }
+.stagger > *:nth-child(5) { animation-delay: 96ms; }
+.stagger > *:nth-child(6) { animation-delay: 120ms; }
+.stagger > *:nth-child(7) { animation-delay: 144ms; }
+.stagger > *:nth-child(n + 8) { animation-delay: 168ms; }
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translateX(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---- Responsive: >=768px gains tables and two columns, gutters 32 ---- */
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: 32px;
+  }
+  .grid-jobs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 32px;
+  }
+}
+@media (min-width: 1024px) {
+  .screen {
+    padding-bottom: 40px;
+  }
+}
+
+/* ---- Reduced motion -------------------------------------------------- */
+/* Every animated signal is also plain text in the row, so collapsing motion
+   loses nothing: the ring becomes a filled ring, bars appear filled. */
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .ring-path[data-draw="true"] {
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+  .ring-path[data-draw="undraw"] {
+    animation: none;
+    opacity: 0;
+  }
+  .costbar > span {
+    animation: none;
+    transform: none;
+  }
+  .hold[data-holding="true"]::before {
+    animation: none;
+    transform: scaleX(1);
+  }
 }

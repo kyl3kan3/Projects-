@@ -22,8 +22,12 @@ build/
 coverage/
 .nyc_output/
 
-# Drizzle
-drizzle/meta/
+# Drizzle: migrations and their journal ARE committed — a fresh clone needs them
+# to run `npm run db:migrate`. Only local backup artefacts are ignored.
+drizzle/meta/*.bak
+
+# Local object storage (the storage adapter's filesystem driver)
+.data/
 
 # TypeScript
 *.tsbuildinfo

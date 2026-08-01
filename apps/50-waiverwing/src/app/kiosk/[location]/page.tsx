@@ -1,28 +1,91 @@
-/**
- * src/app/kiosk/[location]/page.tsx
- *
- * Kiosk mode -- the counter tablet PWA (DESIGN.md "Kiosk attract
- * screen"). PIN-gated, full-screen, offline-tolerant, never shows the
- * previous signer's data.
- *
- * TODO:
- * - [ ] PIN entry against locations.kiosk_pin; kiosk session holds a
- *       location-scoped token only (no staff session, no dashboard
- *       access).
- * - [ ] Attract screen per DESIGN.md: slab card, venue name Display,
- *       "Tap to sign the waiver", the trail blaze at 48px, mono sync
- *       indicator (`SYNCED · 09:41` / `3 QUEUED` + wifi-off).
- * - [ ] Launch signing sessions into the /sign flow (kiosk variant:
- *       56px targets, 18px body).
- * - [ ] Auto-reset 8s after the blaze (any tap cancels); hard-clear all
- *       form state between signers (walk-through test in ROADMAP).
- * - [ ] Service worker + IndexedDB outbox: queue completed signings
- *       offline with offline_key; sync on reconnect; surface queue
- *       depth honestly.
- * - [ ] Wake-lock + fullscreen requests where supported; degrade
- *       gracefully.
- */
+import type { Metadata } from "next";
+import { getKioskSession, locationForKiosk } from "@/lib/auth";
+import { resolveSignToken } from "@/lib/qr";
+import { expiryRuleLabel, signatureConfig } from "@/lib/waivers";
+import { todayBoard } from "@/lib/checkin";
+import { KioskShell } from "@/components/KioskShell";
+import { KioskUnlock } from "./KioskUnlock";
+import { Blaze } from "@/components/Blaze";
+import { getDb } from "@/db";
+import { accounts } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { featureAllowed } from "@/lib/plans";
 
-export default function KioskPage() {
-  return null; // TODO: implement
+export const metadata: Metadata = {
+  title: "Kiosk",
+  robots: { index: false, follow: false },
+};
+export const dynamic = "force-dynamic";
+
+export default async function KioskPage({ params }: { params: Promise<{ location: string }> }) {
+  const { location: locationId } = await params;
+  const location = await locationForKiosk(locationId);
+
+  if (!location) {
+    return (
+      <main className="mx-auto flex min-h-dvh w-full max-w-[420px] flex-col justify-center px-5">
+        <Blaze size={40} draw={false} />
+        <h1 className="t-h2 mt-6">That kiosk address is not in use.</h1>
+        <p className="t-body mt-3" style={{ color: "var(--color-text-2)" }}>
+          Open Settings on the staff dashboard and use the kiosk link for this location.
+        </p>
+      </main>
+    );
+  }
+
+  const session = await getKioskSession(location.id);
+  if (!session) {
+    return <KioskUnlock locationId={location.id} venueName={location.name} />;
+  }
+
+  const db = getDb();
+  const [account] = await db.select().from(accounts).where(eq(accounts.id, location.accountId));
+  if (account && !featureAllowed(account, "kiosk")) {
+    return (
+      <main className="mx-auto flex min-h-dvh w-full max-w-[480px] flex-col justify-center px-5">
+        <Blaze size={40} draw={false} />
+        <h1 className="t-h2 mt-6">Kiosk mode is part of Front Desk.</h1>
+        <p className="t-body mt-3" style={{ color: "var(--color-text-2)" }}>
+          The QR poster works on every plan — customers can still sign on their own phones at the
+          counter while you decide.
+        </p>
+      </main>
+    );
+  }
+
+  const resolved = await resolveSignToken(location.qrToken);
+  if (resolved.kind !== "ok") {
+    return (
+      <main className="mx-auto flex min-h-dvh w-full max-w-[480px] flex-col justify-center px-5">
+        <Blaze size={40} draw={false} />
+        <h1 className="t-h2 mt-6">No waiver is published for this location.</h1>
+        <p className="t-body mt-3" style={{ color: "var(--color-text-2)" }}>
+          Publish one from the Waivers screen and reload this tablet.
+        </p>
+      </main>
+    );
+  }
+
+  const version = resolved.version;
+  const sigConfig = signatureConfig(version.bodyBlocks);
+  const board = await todayBoard(location);
+
+  return (
+    <KioskShell
+      signedToday={board.signedCount}
+      signProps={{
+        token: location.qrToken,
+        versionId: version.id,
+        venueName: location.name,
+        waiverTitle: version.title,
+        waiverVersion: version.version,
+        blocks: version.bodyBlocks,
+        disclosure: sigConfig.disclosure,
+        allowDrawn: sigConfig.allowDrawn,
+        ageOfMajority: version.minorRule.ageOfMajority,
+        relationshipOptions: version.minorRule.relationshipOptions,
+        expiryLabel: expiryRuleLabel(version.expiryRule),
+      }}
+    />
+  );
 }

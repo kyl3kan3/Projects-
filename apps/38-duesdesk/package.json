@@ -4,11 +4,12 @@
   "private": true,
   "description": "Operations for small HOAs, clubs, and leagues: dues invoicing with Stripe autopay, member roster, violations log with photo threads, and email/SMS announcements",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3038",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 3038",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "test": "tsx --test src/**/*.test.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"

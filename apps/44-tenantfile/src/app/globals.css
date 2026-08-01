@@ -1,53 +1,55 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   TenantFile — design tokens. Generated from DESIGN.md; edit DESIGN.md first.
-   Obeys DESIGN_LANGUAGE.md: one rationed accent, hairlines not boxes,
-   no gradients or glow on controls, 4px spacing scale, fonts must load.
+   TenantFile — the redline implementation of DESIGN.md v5.
+   Warm daylight paper, plain-spoken type, one front-door blue where action
+   lives. Obeys DESIGN_LANGUAGE.md v2.1: no emoji, no gradient or glow on
+   controls, hairlines not borders, space before boxes, a 4px scale, exactly
+   three radii, one accent rationed to <=10% of a screen.
    ========================================================================== */
 
 @theme {
-  /* Palette — exact values from DESIGN.md */
-  --color-porch: #f5f6f2; /* The ground. Every screen — soft warm gray-green daylight */
-  --color-card: #ffffff; /* Framed objects only: photo threads, the lease sheet, listing preview */
-  --color-hairline: #e2e4dd; /* 1px dividers & card borders — never darker */
-  --color-ink: #22282b; /* Primary text and primary buttons (porch text on them) */
-  --color-text-2: #6c7377; /* Secondary text */
-  --color-text-3: #9ca29f; /* Faint (timestamps, placeholders) */
-  --color-frontdoor: #3f6e9e; /* THE accent. ≤10% of any screen: active states, links, the file-line, focus rin */
-  --color-rent-green: #3e7d53; /* Paid / signed / screened-clear states only */
-  --color-amber: #c2903a; /* Due soon / pending signature / open request only */
-  --color-red: #ae4b3c; /* Late / broken / flagged-report states only */
+  /* Palette — the exact values from DESIGN.md. */
+  --color-porch: #f5f6f2; /* the ground, every screen */
+  --color-card: #ffffff; /* framed objects only */
+  --color-hairline: #e2e4dd; /* 1px dividers and card borders, never darker */
+  --color-ink: #22282b; /* primary text and primary buttons */
+  --color-text-2: #6c7377;
+  --color-text-3: #9ca29f;
+  --color-frontdoor: #3f6e9e; /* THE accent */
+  --color-rent-green: #3e7d53; /* paid / signed only */
+  --color-amber: #c2903a; /* due soon / pending only */
+  --color-red: #ae4b3c; /* late / broken only */
 
-  /* Semantic aliases, so components never hardcode a hue name */
-  --color-bg: #f5f6f2;
-  --color-surface: #ffffff;
-  --color-line: #e2e4dd;
-  --color-fg: #22282b;
-  --color-fg-2: #6c7377;
-  --color-fg-3: #9ca29f;
-  --color-accent: #3f6e9e;
-  --color-action: #22282b;
-  --color-warn: #c2903a;
-  --color-bad: #ae4b3c;
+  /* Press states, spelled out in DESIGN.md's component section. */
+  --color-ink-press: #2e3538;
+  --color-disabled-fill: #d7dad3;
+  --color-hairline-press: #cbcfc7;
 
   --font-display: "Hanken Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
+  /* Exactly three radii: controls / cards / sheets. */
+  --radius-control: 10px;
+  --radius-card: 14px;
+  --radius-sheet: 20px;
+
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring-gentle: cubic-bezier(0.22, 1.2, 0.36, 1);
 }
 
 :root {
-  color-scheme: light;
+  color-scheme: light; /* one light world, deliberately */
+  --gutter: 20px;
   --tabbar-h: 56px;
 }
 
 html,
 body {
-  background: var(--color-bg);
-  color: var(--color-fg);
+  background: var(--color-porch);
+  color: var(--color-ink);
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.55;
@@ -55,46 +57,569 @@ body {
   overscroll-behavior-y: none;
 }
 
-* { border-color: var(--color-line); }
+* {
+  border-color: var(--color-hairline);
+}
 
-/* ---- Type roles (see the specimen table in DESIGN.md) ---- */
-.t-hero { font-family: var(--font-display); font-size: clamp(2rem, 8.5vw, 3.375rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 600; }
-.t-stat { font-family: var(--font-mono); font-size: clamp(2.125rem, 9.5vw, 3.25rem); line-height: 1.05; letter-spacing: -0.01em; font-weight: 500; font-variant-numeric: tabular-nums; }
-.t-h2 { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.01em; font-weight: 600; }
-.t-title { font-size: 1rem; line-height: 1.3; font-weight: 600; }
-.t-body { font-size: 1rem; line-height: 1.55; }
-.t-secondary { font-size: 0.8125rem; line-height: 1.45; color: var(--color-fg-2); }
-.t-label { font-size: 0.6875rem; line-height: 1.2; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-fg-3); }
-.t-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+::selection {
+  background: color-mix(in srgb, var(--color-frontdoor) 22%, transparent);
+}
 
-/* ---- Hairline construction: space and rules, never nested boxes ---- */
-.hairline-t { border-top: 1px solid var(--color-line); }
-.hairline-b { border-bottom: 1px solid var(--color-line); }
+/* ---- Type roles: the specimen table from DESIGN.md ---------------------- */
+
+.t-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(30px, 8vw, 46px);
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+}
+.t-stat {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: clamp(32px, 8.5vw, 46px);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.t-h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+.t-title {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+}
+.t-body {
+  font-size: 16px;
+  line-height: 1.55;
+}
+.t-secondary {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-text-2);
+}
+.t-label {
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-3);
+}
+/* Every amount, date and unit label. No exceptions. */
+.t-data {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Layout ------------------------------------------------------------ */
+
+.screen {
+  padding-left: var(--gutter);
+  padding-right: var(--gutter);
+  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 32px);
+}
+@media (min-width: 768px) {
+  :root {
+    --gutter: 32px;
+  }
+}
+@media (min-width: 1024px) {
+  .screen {
+    padding-bottom: 56px;
+  }
+}
+
+/* ---- Controls ---------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: var(--radius-control);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    transform 120ms var(--ease-out-quart),
+    background-color 120ms linear,
+    border-color 120ms linear;
+}
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+/* On a light ground the primary is ink fill with porch text. Never the accent. */
+.btn-primary {
+  background: var(--color-ink);
+  color: var(--color-porch);
+  border: none;
+}
+.btn-primary:active:not(:disabled) {
+  background: var(--color-ink-press);
+}
+.btn-primary:disabled {
+  background: var(--color-disabled-fill);
+  color: var(--color-text-3);
+  cursor: not-allowed;
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--color-ink);
+  border: 1px solid var(--color-hairline);
+}
+.btn-secondary:active:not(:disabled) {
+  border-color: var(--color-hairline-press);
+}
+.btn-secondary:disabled {
+  color: var(--color-text-3);
+  cursor: not-allowed;
+}
+/* Quiet action: text only, front-door blue, no underline. */
+.btn-quiet {
+  background: none;
+  border: none;
+  padding: 0;
+  height: auto;
+  color: var(--color-frontdoor);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.3;
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn-quiet:active {
+  opacity: 0.8;
+}
+.btn-quiet:disabled {
+  color: var(--color-text-3);
+  cursor: not-allowed;
+}
+.btn-danger {
+  background: transparent;
+  color: var(--color-red);
+  border: 1px solid color-mix(in srgb, var(--color-red) 35%, var(--color-hairline));
+}
+.btn-full {
+  width: 100%;
+}
+
+.input {
+  width: 100%;
+  height: 48px;
+  padding: 0 12px;
+  background: var(--color-card);
+  color: var(--color-ink);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  font-family: inherit;
+  font-size: 16px; /* 16 keeps iOS from zooming on focus */
+}
+.input::placeholder {
+  color: var(--color-text-3);
+}
+.input:focus,
+.input:focus-visible {
+  outline: none;
+  border-color: var(--color-frontdoor);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-frontdoor) 25%, transparent);
+}
+.input-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+textarea.input {
+  height: auto;
+  min-height: 104px;
+  padding: 12px;
+  line-height: 1.5;
+  resize: vertical;
+}
+select.input {
+  appearance: none;
+  padding-right: 32px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-hairline);
+  background: transparent;
+  color: var(--color-text-2);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.chip[data-active="true"] {
+  border-color: var(--color-frontdoor);
+  color: var(--color-frontdoor);
+}
+
+:where(a, button, [tabindex], input, select, textarea):focus-visible {
+  outline: 2px solid var(--color-frontdoor);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---- Surfaces: card on porch plus hairlines. No elevation anywhere. ---- */
 
 .card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-line);
-  border-radius: 12px;
+  background: var(--color-card);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-card);
+}
+.sheet {
+  background: var(--color-card);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-sheet);
+}
+.hairline-t {
+  border-top: 1px solid var(--color-hairline);
+}
+.hairline-b {
+  border-bottom: 1px solid var(--color-hairline);
 }
 
-/* ---- Controls ---- */
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 48px; padding: 0 20px; border-radius: 10px;
-  font-weight: 600; font-size: 0.9375rem; line-height: 1;
-  transition: transform 120ms var(--ease-out-quart), background-color 120ms linear;
+/* Rows are NOT boxes: full-bleed, hairline-divided, whole row tappable. */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-hairline);
+  text-decoration: none;
+  color: inherit;
+  width: 100%;
+  text-align: left;
+  background: none;
 }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: var(--color-action); color: var(--color-bg); }
-.btn-secondary { background: transparent; color: var(--color-fg); border: 1px solid var(--color-line); }
 
-.focus-ring:focus-visible,
-a:focus-visible,
-button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+/* 6px status dot, left of a row. Semantic colour only. */
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  flex: none;
+  background: var(--color-text-3);
+  transition: background-color 300ms linear;
 }
+.dot[data-state="paid"],
+.dot[data-state="signed"],
+.dot[data-state="occupied"] {
+  background: var(--color-rent-green);
+}
+.dot[data-state="due"],
+.dot[data-state="pending"],
+.dot[data-state="open"],
+.dot[data-state="listed"] {
+  background: var(--color-amber);
+}
+.dot[data-state="late"],
+.dot[data-state="broken"] {
+  background: var(--color-red);
+}
+.dot[data-state="accent"] {
+  background: var(--color-frontdoor);
+}
+
+/* Status pill: 28px tall, 6px dot plus an 11px label. */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-hairline);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-2);
+  white-space: nowrap;
+}
+.pill[data-tone="green"] {
+  color: var(--color-rent-green);
+  border-color: color-mix(in srgb, var(--color-rent-green) 35%, var(--color-hairline));
+}
+.pill[data-tone="amber"] {
+  color: var(--color-amber);
+  border-color: color-mix(in srgb, var(--color-amber) 35%, var(--color-hairline));
+}
+.pill[data-tone="red"] {
+  color: var(--color-red);
+  border-color: color-mix(in srgb, var(--color-red) 35%, var(--color-hairline));
+}
+.pill[data-tone="accent"] {
+  color: var(--color-frontdoor);
+  border-color: color-mix(in srgb, var(--color-frontdoor) 35%, var(--color-hairline));
+}
+
+/* ---- The rent ledger strip: 12 month cells, height 32, radius 6 -------- */
+
+.strip {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 2px;
+}
+.strip-cell {
+  height: 32px;
+  border-radius: 6px;
+  background: var(--color-porch);
+  border: 1px solid var(--color-hairline);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: transparent;
+}
+.strip-cell[data-state="paid"] {
+  background: var(--color-rent-green);
+  border-color: var(--color-rent-green);
+  color: var(--color-porch);
+}
+.strip-cell[data-state="partial"] {
+  background: color-mix(in srgb, var(--color-rent-green) 40%, var(--color-porch));
+  border-color: var(--color-rent-green);
+}
+.strip-cell[data-state="due"] {
+  border-color: var(--color-amber);
+  border-width: 2px;
+}
+.strip-cell[data-state="late"] {
+  background: color-mix(in srgb, var(--color-red) 85%, var(--color-porch));
+  border-color: var(--color-red);
+}
+.strip-cell[data-state="waived"] {
+  background: repeating-linear-gradient(
+    135deg,
+    var(--color-porch),
+    var(--color-porch) 3px,
+    var(--color-hairline) 3px,
+    var(--color-hairline) 4px
+  );
+}
+.strip-labels {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 2px;
+  margin-top: 4px;
+}
+.strip-labels span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-align: center;
+  color: var(--color-text-3);
+}
+
+/* ---- The File timeline: the front-door line, and its stitch ------------ */
+
+.fileline {
+  position: relative;
+  padding-left: 24px;
+}
+.fileline::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 6px;
+  bottom: 6px;
+  width: 1.5px;
+  background: var(--color-frontdoor);
+  opacity: 0.5;
+}
+.file-node {
+  position: relative;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-hairline);
+}
+.file-node::before {
+  content: "";
+  position: absolute;
+  left: -24px;
+  top: 20px;
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--color-frontdoor);
+  box-sizing: border-box;
+}
+.file-node:last-child {
+  border-bottom: none;
+}
+
+/* THE signature: a node stitching itself onto the line. */
+@keyframes stitch-node {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes stitch-fade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.file-node[data-stitch="true"]::before {
+  animation: stitch-node 200ms var(--ease-spring-gentle) both;
+  animation-delay: var(--stitch-delay, 0ms);
+}
+.file-node[data-stitch="true"] {
+  animation: stitch-fade 200ms var(--ease-out-quart) both;
+  animation-delay: var(--stitch-delay, 0ms);
+}
+
+/* Rows enter with a 24ms stagger, opacity plus a 4px rise. */
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.stagger > * {
+  animation: row-in 200ms var(--ease-out-quart) both;
+  animation-delay: calc(var(--i, 0) * 24ms);
+}
+
+/* ---- Photo thread ------------------------------------------------------ */
+
+.photo-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.photo-tile {
+  width: 96px;
+  height: 96px;
+  border-radius: 8px;
+  border: 1px solid var(--color-hairline);
+  object-fit: cover;
+  background: var(--color-porch);
+}
+
+/* ---- Bottom tab bar ---------------------------------------------------- */
+
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: color-mix(in srgb, var(--color-porch) 96%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-hairline);
+}
+.tabbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 10px;
+  color: var(--color-text-3);
+  text-decoration: none;
+  position: relative;
+}
+.tabbar-item[data-active="true"] {
+  color: var(--color-ink);
+}
+.tabbar-item[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  bottom: 6px;
+  width: 2px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--color-frontdoor);
+}
+
+/* ---- Utilities used in more than one screen --------------------------- */
+
+.link {
+  color: var(--color-frontdoor);
+  text-decoration: none;
+  font-weight: 600;
+}
+.notice {
+  border: 1px solid var(--color-hairline);
+  border-left: 2px solid var(--color-frontdoor);
+  border-radius: var(--radius-control);
+  background: var(--color-card);
+  padding: 12px 16px;
+}
+.notice[data-tone="warn"] {
+  border-left-color: var(--color-amber);
+}
+.notice[data-tone="bad"] {
+  border-left-color: var(--color-red);
+}
+.notice[data-tone="good"] {
+  border-left-color: var(--color-rent-green);
+}
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ---- Reduced motion: the File is readable with zero motion ------------- */
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 100ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 100ms !important;
+  }
+  .file-node[data-stitch="true"]::before {
+    animation: none;
+  }
+  .stagger > * {
+    animation: stitch-fade 100ms linear both;
+  }
 }

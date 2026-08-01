@@ -1,10 +1,42 @@
 import type { Metadata, Viewport } from "next";
+import { IBM_Plex_Mono, Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
+/**
+ * Three faces, per DESIGN.md: Playfair Display for the client's name and module
+ * titles, Inter for UI, IBM Plex Mono for ledger data. `next/font` self-hosts the
+ * woff2 files and emits the preload links, so there is no silent system-font
+ * fallback — DESIGN.md counts that as a failed build.
+ */
+const display = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["600"],
+  variable: "--font-display-loaded",
+  display: "swap",
+});
+
+const sans = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-sans-loaded",
+  display: "swap",
+});
+
+const mono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["500"],
+  variable: "--font-mono-loaded",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "ClientDock",
+  title: {
+    default: "ClientDock — a client portal with your agency's name on it",
+    template: "%s · ClientDock",
+  },
   description:
-    "A white-label client portal for agencies and freelancers: one branded link where clients see status, files, approvals, and invoices — instead of asking you by email.",
+    "One branded link where your clients see status, files, approvals and invoices — instead of emailing you for an update. Full white-label at $79, priced per business, never per seat.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3028"),
 };
 
 export const viewport: Viewport = {
@@ -18,12 +50,18 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-      </head>
+    <html
+      lang="en"
+      className={`${display.variable} ${sans.variable} ${mono.variable}`}
+      // The loaded faces override the fallback stacks declared in globals.css.
+      style={
+        {
+          "--font-display": "var(--font-display-loaded), ui-serif, Georgia, serif",
+          "--font-sans": "var(--font-sans-loaded), ui-sans-serif, system-ui, sans-serif",
+          "--font-mono": "var(--font-mono-loaded), ui-monospace, Menlo, monospace",
+        } as React.CSSProperties
+      }
+    >
       <body>{children}</body>
     </html>
   );

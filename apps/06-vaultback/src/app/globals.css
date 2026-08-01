@@ -1,51 +1,54 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   VaultBack — design tokens. Generated from DESIGN.md; edit DESIGN.md first.
-   Obeys DESIGN_LANGUAGE.md: one rationed accent, hairlines not boxes,
-   no gradients or glow on controls, 4px spacing scale, fonts must load.
+   VaultBack design system — redline implementation of DESIGN.md v3.
+   Machined steel; brass only on the parts that lock. Green is earned by a
+   passing checksum, never by an attempt. Obeys DESIGN_LANGUAGE.md v2.1:
+   no emoji, no gradient/glow on controls, hairlines not borders, space before
+   boxes, 4px spacing scale, at most three radii.
    ========================================================================== */
 
 @theme {
-  /* Palette — exact values from DESIGN.md */
-  --color-gunmetal: #0f1214; /* The ground. Every screen. */
-  --color-steel: #191e22; /* Sheets, drill-report panels, pipeline strip only */
-  --color-hairline: #252c31; /* 1px dividers & panel borders — never brighter */
-  --color-text: #e9edf0; /* Primary text */
-  --color-text-2: #8a96a0; /* Secondary text */
-  --color-text-3: #525c64; /* Faint (timestamps, placeholders) */
-  --color-paper: #f1f4f6; /* Primary buttons (gunmetal text on it), key figures */
-  --color-brass: #d9a441; /* THE accent. ≤10% of any screen: active tab, the key-turn, lock glyphs, links,  */
-  --color-seal: #4cc38a; /* Verified states ONLY — a backup is never green until its checksum passes */
-  --color-torch: #e5534b; /* Failed / destructive only */
+  /* Color — the exact values from DESIGN.md. */
+  --color-gunmetal: #0f1214; /* the ground, every screen */
+  --color-steel: #191e22; /* sheets, drill reports, pipeline strip only */
+  --color-hairline: #252c31; /* 1px dividers and panel borders — never brighter */
+  --color-text: #e9edf0;
+  --color-text-2: #8a96a0;
+  --color-text-3: #525c64;
+  --color-paper: #f1f4f6; /* primary buttons, key figures */
+  --color-brass: #d9a441; /* THE accent, <=10% of any screen */
+  --color-seal: #4cc38a; /* verified states ONLY */
+  --color-torch: #e5534b; /* failed / destructive only */
 
-  /* Semantic aliases, so components never hardcode a hue name */
-  --color-bg: #0f1214;
-  --color-surface: #191e22;
-  --color-line: #252c31;
-  --color-fg: #e9edf0;
-  --color-fg-2: #8a96a0;
-  --color-fg-3: #525c64;
-  --color-accent: #d9a441;
-  --color-action: #f1f4f6;
+  /* Press states, spelled out in DESIGN.md's component section. */
+  --color-paper-press: #e0e6e9;
+  --color-disabled-fill: #2a3238;
+  --color-hairline-press: #333c42;
 
-  --font-display: "Archivo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-sans: "Archivo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: "Archivo", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Radii: exactly three. Controls / panels / sheets. */
+  --radius-control: 6px;
+  --radius-panel: 10px;
+  --radius-sheet: 16px;
 
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring-snappy: cubic-bezier(0.2, 0.9, 0.2, 1.2);
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: dark; /* one visual world, deliberately — DESIGN.md */
+  --gutter: 20px;
   --tabbar-h: 56px;
 }
 
 html,
 body {
-  background: var(--color-bg);
-  color: var(--color-fg);
+  background: var(--color-gunmetal);
+  color: var(--color-text);
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.55;
@@ -53,46 +56,574 @@ body {
   overscroll-behavior-y: none;
 }
 
-* { border-color: var(--color-line); }
-
-/* ---- Type roles (see the specimen table in DESIGN.md) ---- */
-.t-hero { font-family: var(--font-display); font-size: clamp(2rem, 8.5vw, 3.375rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 600; }
-.t-stat { font-family: var(--font-mono); font-size: clamp(2.125rem, 9.5vw, 3.25rem); line-height: 1.05; letter-spacing: -0.01em; font-weight: 500; font-variant-numeric: tabular-nums; }
-.t-h2 { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.01em; font-weight: 600; }
-.t-title { font-size: 1rem; line-height: 1.3; font-weight: 600; }
-.t-body { font-size: 1rem; line-height: 1.55; }
-.t-secondary { font-size: 0.8125rem; line-height: 1.45; color: var(--color-fg-2); }
-.t-label { font-size: 0.6875rem; line-height: 1.2; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-fg-3); }
-.t-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-
-/* ---- Hairline construction: space and rules, never nested boxes ---- */
-.hairline-t { border-top: 1px solid var(--color-line); }
-.hairline-b { border-bottom: 1px solid var(--color-line); }
-
-.card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-line);
-  border-radius: 12px;
+* {
+  border-color: var(--color-hairline);
 }
 
-/* ---- Controls ---- */
+::selection {
+  background: color-mix(in srgb, var(--color-brass) 30%, transparent);
+  color: var(--color-text);
+}
+
+/* ---- Type roles: the exact specimen table from DESIGN.md ---------------- */
+
+.t-display {
+  font-weight: 700;
+  font-size: clamp(32px, 8.5vw, 56px);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+}
+.t-h2 {
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+.t-title {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+}
+.t-body {
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.55;
+}
+.t-secondary {
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-text-2);
+}
+.t-label {
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-3);
+}
+/* Checksums, byte sizes, timestamps, cron — the evidence the product sells. */
+.t-data {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.t-figure {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: clamp(32px, 9vw, 48px);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-paper);
+}
+
+/* ---- Controls ----------------------------------------------------------- */
+
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 48px; padding: 0 20px; border-radius: 10px;
-  font-weight: 600; font-size: 0.9375rem; line-height: 1;
-  transition: transform 120ms var(--ease-out-quart), background-color 120ms linear;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: var(--radius-control);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 120ms var(--ease-out-quart),
+    background-color 120ms linear,
+    border-color 120ms linear;
 }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: var(--color-action); color: var(--color-bg); }
-.btn-secondary { background: transparent; color: var(--color-fg); border: 1px solid var(--color-line); }
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
 
-.focus-ring:focus-visible,
-a:focus-visible,
-button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+/* Primary on a dark ground: paper fill, gunmetal text. Never brass. */
+.btn-primary {
+  background: var(--color-paper);
+  color: var(--color-gunmetal);
+  border: none;
 }
+.btn-primary:active:not(:disabled) {
+  background: var(--color-paper-press);
+}
+.btn-primary:disabled {
+  background: var(--color-disabled-fill);
+  color: var(--color-text-3);
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-hairline);
+}
+.btn-secondary:active:not(:disabled) {
+  border-color: var(--color-hairline-press);
+}
+.btn-secondary:disabled {
+  color: var(--color-text-3);
+  cursor: not-allowed;
+}
+
+/* Quiet action: text only, brass, no underline. */
+.btn-quiet {
+  background: none;
+  border: none;
+  padding: 0;
+  height: auto;
+  color: var(--color-brass);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+}
+.btn-quiet:active {
+  opacity: 0.8;
+}
+
+.btn-danger {
+  background: transparent;
+  color: var(--color-torch);
+  border: 1px solid color-mix(in srgb, var(--color-torch) 40%, transparent);
+}
+
+.btn-full {
+  width: 100%;
+}
+
+.input {
+  width: 100%;
+  height: 48px;
+  padding: 0 12px;
+  background: var(--color-gunmetal);
+  color: var(--color-text);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  font-size: 16px;
+  font-family: inherit;
+}
+/* Connection strings and cron read as data, so they render in mono. */
+.input-mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+.input::placeholder {
+  color: var(--color-text-3);
+}
+.input:focus,
+.input:focus-visible {
+  outline: none;
+  border-color: var(--color-brass);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-brass) 25%, transparent);
+}
+textarea.input {
+  height: auto;
+  min-height: 96px;
+  padding: 12px;
+  line-height: 1.5;
+}
+select.input {
+  appearance: none;
+  padding-right: 32px;
+}
+
+/* Chips: frequency, retention, drill cadence. Active = brass hairline + text. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-hairline);
+  background: transparent;
+  color: var(--color-text-2);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.chip[aria-pressed="true"],
+.chip[data-active="true"] {
+  border-color: var(--color-brass);
+  color: var(--color-brass);
+}
+.chip:disabled {
+  color: var(--color-text-3);
+  cursor: not-allowed;
+}
+
+/* Focus ring: brass, 2px offset. */
+:where(a, button, [tabindex], input, select, textarea):focus-visible {
+  outline: 2px solid var(--color-brass);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---- Surfaces: depth is steel vs gunmetal plus hairlines. No elevation. -- */
+
+.panel {
+  background: var(--color-steel);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-panel);
+}
+.sheet {
+  background: var(--color-steel);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-sheet);
+}
+.hairline-t {
+  border-top: 1px solid var(--color-hairline);
+}
+.hairline-b {
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+/* Database and snapshot rows: NO boxes. Full-bleed hairline rows >= 64px. */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-hairline);
+  text-decoration: none;
+  color: inherit;
+  width: 100%;
+  text-align: left;
+  background: none;
+}
+.row-snapshot {
+  min-height: 56px;
+  padding-left: 10px;
+  border-left: 2px solid transparent;
+}
+.row-snapshot[data-selected="true"] {
+  border-left-color: var(--color-brass);
+}
+
+/* Drill report cards: the only framed objects in the product. */
+.report-card {
+  background: var(--color-steel);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-panel);
+  padding: 16px;
+}
+
+/* ---- Status pill: 28px, 6px dot + label -------------------------------- */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-hairline);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.pill::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+.pill[data-state="verified"] {
+  color: var(--color-seal);
+}
+.pill[data-state="running"] {
+  color: var(--color-brass);
+}
+.pill[data-state="failed"] {
+  color: var(--color-torch);
+}
+.pill[data-state="scheduled"],
+.pill[data-state="pending"] {
+  color: var(--color-text-3);
+}
+
+/* ---- Pipeline strip: DUMP -> COMPRESS -> ENCRYPT -> UPLOAD -> VERIFY ---- */
+
+.pipeline {
+  display: flex;
+  align-items: flex-start;
+  overflow-x: auto;
+  padding: 12px 0 4px;
+  scrollbar-width: thin;
+}
+.pipeline-station {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  min-width: 68px;
+}
+.pipeline-node {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-hairline);
+}
+.pipeline-station[data-state="done"] .pipeline-node {
+  background: var(--color-seal);
+}
+.pipeline-station[data-state="active"] .pipeline-node {
+  background: var(--color-brass);
+}
+.pipeline-leg {
+  flex: 1 1 auto;
+  min-width: 16px;
+  height: 1px;
+  margin-top: 23px;
+  background: var(--color-hairline);
+}
+.pipeline-leg[data-state="done"] {
+  background: var(--color-seal);
+}
+/* The one permitted ambient motion, and only during a real backup. */
+.pipeline-leg[data-state="active"] {
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--color-brass) 0 6px,
+    transparent 6px 12px
+  );
+  background-size: 12px 1px;
+  animation: pipeline-travel 1.2s linear infinite;
+}
+@keyframes pipeline-travel {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 12px 0;
+  }
+}
+
+/* ---- The signature: the checksum lock ---------------------------------- */
+
+.checksum-lock {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.checksum-lock .glyph {
+  color: var(--color-seal);
+}
+.checksum-lock[data-locked="false"] .glyph {
+  color: var(--color-text-3);
+}
+/* Each character locks in left to right over 400ms, ease-out-quart. */
+.checksum-char {
+  display: inline-block;
+  opacity: 0;
+  animation: checksum-settle 400ms var(--ease-out-quart) forwards;
+}
+@keyframes checksum-settle {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.seal-draw {
+  stroke-dasharray: 28;
+  stroke-dashoffset: 28;
+  animation: seal-draw 150ms var(--ease-out-quart) 700ms forwards;
+}
+@keyframes seal-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+/* The row's bolt slides 24px right in 200ms as the checksum locks. */
+.bolt-slide {
+  animation: bolt-slide 200ms var(--ease-in-out-soft) 500ms both;
+}
+@keyframes bolt-slide {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(24px);
+  }
+}
+
+/* ---- Key-turn confirm (the restore control) ---------------------------- */
+
+.keyturn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 48px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-steel);
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 15px;
+  overflow: hidden;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+}
+.keyturn:disabled {
+  color: var(--color-text-3);
+  cursor: not-allowed;
+}
+.keyturn-fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  background: color-mix(in srgb, var(--color-brass) 18%, transparent);
+  transform: scaleX(0);
+  transition: transform 120ms linear;
+}
+.keyturn-label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.keyturn-key {
+  color: var(--color-brass);
+  transition: transform 200ms var(--ease-spring-snappy);
+}
+.keyturn[data-armed="true"] .keyturn-key {
+  transform: rotate(90deg);
+}
+
+/* ---- Bottom tab bar ---------------------------------------------------- */
+
+.tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: color-mix(in srgb, var(--color-steel) 94%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-hairline);
+  z-index: 40;
+}
+.tabbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-3);
+  text-decoration: none;
+  position: relative;
+}
+.tabbar-item[data-active="true"] {
+  color: var(--color-text);
+}
+.tabbar-item[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  bottom: 6px;
+  width: 2px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--color-brass);
+}
+
+/* ---- Layout ----------------------------------------------------------- */
+
+.screen {
+  padding: 0 var(--gutter);
+  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 96px);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.thumb-cta {
+  position: fixed;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 16px);
+  z-index: 30;
+  max-width: calc(1200px - 2 * var(--gutter));
+  margin: 0 auto;
+}
+
+/* Wide content (evidence tables, checksums) scrolls in its own track. */
+.scroll-x {
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: 32px;
+  }
+}
+@media (min-width: 1024px) {
+  .two-pane {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 380px);
+    gap: 32px;
+    align-items: start;
+  }
+}
+
+/* Blueprint schematic on the marketing hero — hairlines only, no canvas. */
+.schematic line,
+.schematic path,
+.schematic rect,
+.schematic circle {
+  vector-effect: non-scaling-stroke;
+}
+
+/* ---- Reduced motion --------------------------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  /* The checksum swaps straight to its locked text; the seal is already drawn. */
+  .checksum-char {
+    opacity: 1;
+    animation: none;
+  }
+  .seal-draw {
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+  .bolt-slide {
+    animation: none;
+    transform: translateX(24px);
+  }
+  /* Dashes become a static schematic leg. */
+  .pipeline-leg[data-state="active"] {
+    background-image: none;
+    background: var(--color-brass);
+    animation: none;
+  }
 }

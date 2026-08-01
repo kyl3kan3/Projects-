@@ -6,4 +6,8 @@ coverage/
 .env.local
 *.log
 .DS_Store
-drizzle/meta/
+tsconfig.tsbuildinfo
+# The local file-storage driver's data directory.
+.data/
+# drizzle/meta is deliberately NOT ignored: drizzle-kit needs the journal and
+# snapshots to know which migrations have run, so a fresh clone can migrate.

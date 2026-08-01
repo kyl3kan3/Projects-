@@ -134,3 +134,59 @@ Assumptions: avg customer ≈ 500 orders/mo blended, ~60% get an email request, 
 | **1,000 customers** | ~300k emails (~$90–200) + ~25k SMS (~$200–400) + Postgres at real load ~$200–500 + Vercel ~$100–250 + R2 ~2TB $30 + observability/support tooling ~$200–500 + headroom | **~$1.5k–3k/mo** (vs ~$35k MRR → still >90% margin; email/SMS volume + DB dominate) |
 
 Cost scales sub-linearly with revenue; the only per-unit costs that matter are messages and media storage, and R2's zero egress removes the classic media-serving trap.
+
+---
+
+## Build notes (as implemented)
+
+Where the MVP build departs from the plan above, and why. The spec is unchanged;
+this records the decisions so the next person does not have to re-derive them.
+
+**Shopify without the SDK.** OAuth, webhook verification, and the three Admin API
+calls are implemented with `node:crypto` and `fetch` rather than
+`@shopify/shopify-api`. The parts that must be right are two HMACs and a
+shop-domain check; those are unit-tested exhaustively in `src/lib/shopify.test.ts`,
+which is not possible with the SDK's global singleton — it requires
+`shopifyApi()` to be constructed with real credentials at import time, which
+would make `next build` need Shopify keys. Cost: no App Bridge session-token
+verification (embedded-app UI is post-MVP) and no GDPR-webhook helpers (needed
+for the App Store listing, which is Phase 2).
+
+**esbuild, not Vite, for the widget.** The stack table above already names
+esbuild; the scaffold's `package.json` named Vite. esbuild wins: the widget is one
+entry point with no dev server, and `src/widget/build.ts` enforces the 15KB
+gzipped budget as a build failure and writes the measured size to
+`public/widget/manifest.json`, which the dashboard reads for its speed receipts.
+
+**No queue.** `bullmq` and `ioredis` were dropped from the manifest. The
+scheduler is the DB-backed job table this document specifies, swept by
+`/api/cron/tick`; a Redis queue would add an operational dependency that the
+"cron sweep every 10 min" design explicitly does not need.
+
+**Twilio dropped.** SMS is in the pricing table but not in the MVP feature list.
+`featureAllowed(tier, "smsRequests")` exists so the ladder can be shown honestly,
+and the billing screen labels it "not shipped yet" rather than implying it works.
+
+**Photo upload is a server action, not a presigned PUT.** Flow 2 calls for a
+presigned R2 PUT from the browser. At MVP the file is posted to the server action
+that creates the review, which validates it (declared type *and* header bytes),
+reads its intrinsic dimensions, and stores it. The presigned path is the right
+answer at video-review sizes; for an 8MB photo cap it adds a round trip and a
+second failure mode. Dimensions are stored either way, because the widget cannot
+promise zero CLS without them.
+
+**Imported photos stay remote.** Flow 4 downloads referenced photos into R2.
+The importer stores the source URL instead (scheme-checked with the same
+allow-list the widget uses). Copying is a background job with its own retry story;
+a link that works beats a job that half-runs.
+
+**`Widget` and `WidgetSettings` are separate tables but not versioned.** The
+history the data model mentions is not implemented — settings are overwritten.
+
+**Edge caching is Next's data cache plus CDN headers**, not Cloudflare Workers.
+`/api/w/[publicKey]/reviews` sets `s-maxage=300, stale-while-revalidate=86400` on
+both `Cache-Control` and `CDN-Cache-Control`, and the query behind it is wrapped
+in `unstable_cache` tagged per store. Every moderation action, theme change, and
+store-settings save calls `revalidateTag`, so a hidden review leaves the cache in
+seconds rather than at the end of the window. A Cloudflare layer in front of this
+needs no code change — it obeys the same headers.
