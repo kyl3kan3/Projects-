@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { saveTimezoneAction, type SettingsFormState } from "./actions";
 import { TIMEZONES } from "@/lib/tz";
+import { IconAlert } from "@/components/icons";
 
 export function TimezoneForm({ timezone }: { timezone: string }) {
   const [state, formAction, pending] = useActionState<SettingsFormState, FormData>(
@@ -30,7 +31,8 @@ export function TimezoneForm({ timezone }: { timezone: string }) {
         local time with no offset are read in it. Changing it recomputes every finding.
       </p>
       {state.error ? (
-        <p className="t-secondary" style={{ color: "var(--color-loss)" }} role="alert">
+        <p className="t-secondary flex items-start gap-2" role="alert">
+          <IconAlert size={14} className="mt-1 shrink-0" />
           {state.error}
         </p>
       ) : null}

@@ -72,6 +72,11 @@ export default async function SettingsPage() {
             <span className="t-cell">{formatCents(summary.feesCents)}</span>
           </li>
         </ul>
+        {limits.dataExport ? (
+          <a href="/api/export/trades" className="btn btn-secondary mt-5 no-underline" download>
+            Export every trade as CSV
+          </a>
+        ) : null}
         <p className="t-secondary mt-4">
           Your P&amp;L is intimate data and TradeLog treats it that way: chart snapshots are served
           only to your own session, broker credentials are encrypted at rest, and none of it is sold

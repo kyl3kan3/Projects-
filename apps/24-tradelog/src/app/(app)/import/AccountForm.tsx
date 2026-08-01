@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { createAccountAction, type AccountFormState } from "./actions";
-import { IconPlus } from "@/components/icons";
+import { IconAlert, IconPlus } from "@/components/icons";
 
 export function AccountForm({
   brokers,
@@ -39,7 +39,8 @@ export function AccountForm({
       </label>
 
       {state.error ? (
-        <p className="t-secondary" style={{ color: "var(--color-loss)" }} role="alert">
+        <p className="t-secondary flex items-start gap-2" role="alert">
+          <IconAlert size={14} className="mt-1 shrink-0" />
           {state.error}
         </p>
       ) : null}

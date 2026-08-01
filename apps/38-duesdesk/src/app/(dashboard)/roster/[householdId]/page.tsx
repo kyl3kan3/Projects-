@@ -102,15 +102,15 @@ export default async function RosterHouseholdPage({
                 <div className="hairline-t mt-3 pt-3">
                   <p className="t-label">Payment link</p>
                   <p className="t-secondary mt-1">
-                    {member.portalTokenHash
-                      ? `Live since ${member.portalTokenIssuedAt ? formatIso(member.portalTokenIssuedAt.toISOString().slice(0, 10)) : "issue"}. Issuing a fresh one retires the old link.`
-                      : "No live link. Invoice and reminder emails mint one automatically when they send."}
+                    {member.portalTokenId
+                      ? `Live since ${member.portalTokenIssuedAt ? formatIso(member.portalTokenIssuedAt.toISOString().slice(0, 10)) : "issue"}. Every invoice and reminder email carries this same link, so older emails keep working — issuing a fresh one retires all of them.`
+                      : "No live link yet. The next invoice or reminder email mints one automatically."}
                   </p>
                   {canEdit ? (
                     <div className="mt-3">
                       <PortalLinkControls
                         memberId={member.id}
-                        hasLink={Boolean(member.portalTokenHash)}
+                        hasLink={Boolean(member.portalTokenId)}
                       />
                     </div>
                   ) : null}

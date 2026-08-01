@@ -197,7 +197,7 @@ CREATE TABLE "members" (
 	"is_primary" boolean DEFAULT false NOT NULL,
 	"sms_opt_in" boolean DEFAULT false NOT NULL,
 	"sms_opted_out_at" timestamp with time zone,
-	"portal_token_hash" text,
+	"portal_token_id" text,
 	"portal_token_issued_at" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );

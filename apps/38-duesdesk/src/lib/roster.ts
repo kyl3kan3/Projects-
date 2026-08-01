@@ -391,7 +391,9 @@ export async function issuePortalLink(memberId: string, actor: Actor): Promise<s
     .innerJoin(households, eq(members.householdId, households.id))
     .where(eq(members.id, memberId));
   if (!row) throw new Error("No such member");
-  const link = portalUrl(await mintPortalToken(memberId));
+  // The board pressing "issue a fresh link" is the one place a rotation is
+  // intended: the old link must stop working.
+  const link = portalUrl(await mintPortalToken(memberId, { rotate: true }));
   await audit(
     row.household.associationId,
     actor,

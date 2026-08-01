@@ -53,7 +53,7 @@ export default async function SetupsPage() {
                   <li key={setup.id} className="row items-start">
                     <span
                       aria-hidden="true"
-                      className="mt-1.5"
+                      className="mt-2"
                       style={{
                         width: 10,
                         height: 10,

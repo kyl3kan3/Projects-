@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { addTradeImageAction, deleteTradeImageAction, type TradeFormState } from "../actions";
-import { IconCamera, IconTrash } from "@/components/icons";
+import { IconAlert, IconCamera, IconTrash } from "@/components/icons";
 
 export function ImageForm({
   tradeId,
@@ -60,7 +60,8 @@ export function ImageForm({
           />
           <input className="input" name="caption" placeholder="Caption — what were you looking at?" />
           {state.error ? (
-            <p className="t-secondary" style={{ color: "var(--color-loss)" }} role="alert">
+            <p className="t-secondary flex items-start gap-2" role="alert">
+          <IconAlert size={14} className="mt-1 shrink-0" />
               {state.error}
             </p>
           ) : null}

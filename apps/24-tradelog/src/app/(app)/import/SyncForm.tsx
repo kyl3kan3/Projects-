@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { saveSyncCredentialsAction, syncNowAction, type SyncFormState } from "./actions";
-import { IconArrowRight } from "@/components/icons";
+import { IconAlert, IconArrowRight } from "@/components/icons";
 
 export function SyncForm({
   accountId,
@@ -51,7 +51,8 @@ export function SyncForm({
           statement.
         </p>
         {saveState.error ? (
-          <p className="t-secondary" style={{ color: "var(--color-loss)" }} role="alert">
+          <p className="t-secondary flex items-start gap-2" role="alert">
+          <IconAlert size={14} className="mt-1 shrink-0" />
             {saveState.error}
           </p>
         ) : null}
@@ -73,7 +74,8 @@ export function SyncForm({
             <IconArrowRight size={16} />
           </button>
           {syncState.error ? (
-            <p className="t-secondary mt-2" style={{ color: "var(--color-loss)" }} role="alert">
+            <p className="t-secondary mt-2 flex items-start gap-2" role="alert">
+              <IconAlert size={14} className="mt-1 shrink-0" />
               {syncState.error}
             </p>
           ) : null}

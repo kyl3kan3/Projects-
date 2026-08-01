@@ -106,9 +106,8 @@ export default async function ImportPage({
                     {account.lastSyncError ? (
                       <p
                         className="t-secondary mt-1 flex items-start gap-2"
-                        style={{ color: "var(--color-loss)" }}
                       >
-                        <IconAlert size={14} className="mt-0.5 shrink-0" />
+                        <IconAlert size={14} className="mt-1 shrink-0" />
                         {account.lastSyncError}
                       </p>
                     ) : null}

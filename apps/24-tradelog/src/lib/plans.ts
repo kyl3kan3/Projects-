@@ -29,7 +29,11 @@ export interface Plan {
   chartImages: boolean;
   /** CSV/JSON export of the journal. */
   dataExport: boolean;
-  /** Read-only share link for a mentor or prop firm. */
+  /**
+   * Read-only share link for a mentor or prop firm. ROADMAP phase 3 — the flag
+   * exists so the gate is ready, and it is false everywhere so no surface
+   * advertises a feature that is not built.
+   */
   mentorSharing: boolean;
   /** The one-line reason to move up a tier. */
   pitch: string;
@@ -78,8 +82,8 @@ export const PLANS: Record<PlanId, Plan> = {
     setups: true,
     chartImages: true,
     dataExport: true,
-    mentorSharing: true,
-    pitch: "Several accounts, exports, and a share link for a mentor or prop firm.",
+    mentorSharing: false,
+    pitch: "Several brokerage accounts, and your whole journal exportable as CSV.",
   },
 };
 

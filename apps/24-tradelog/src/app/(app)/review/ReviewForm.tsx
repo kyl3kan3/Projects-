@@ -11,7 +11,7 @@
 import { useActionState, useState } from "react";
 import { REVIEW_PROMPTS } from "@/lib/review-prompts";
 import { saveReviewAction, type ReviewFormState } from "./actions";
-import { IconCheck } from "@/components/icons";
+import { IconAlert, IconCheck } from "@/components/icons";
 
 export function ReviewForm({
   weekStart,
@@ -75,7 +75,8 @@ export function ReviewForm({
       ))}
 
       {state.error ? (
-        <p className="t-secondary" style={{ color: "var(--color-loss)" }} role="alert">
+        <p className="t-secondary flex items-start gap-2" role="alert">
+          <IconAlert size={14} className="mt-1 shrink-0" />
           {state.error}
         </p>
       ) : null}

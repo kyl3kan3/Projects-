@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import Link from "next/link";
 import type { AuthFormState } from "./actions";
 import { TIMEZONES } from "@/lib/tz";
+import { IconAlert } from "@/components/icons";
 
 export function AuthForm({
   mode,
@@ -62,7 +63,8 @@ export function AuthForm({
       ) : null}
 
       {state.error ? (
-        <p className="t-secondary" style={{ color: "var(--color-loss)" }} role="alert">
+        <p className="t-secondary flex items-start gap-2" role="alert">
+          <IconAlert size={14} className="mt-1 shrink-0" />
           {state.error}
         </p>
       ) : null}

@@ -106,12 +106,18 @@ async function main() {
   const t1 = await mintPortalToken(rosa.id);
   const v1 = await verifyPortalToken(t1);
   check("fresh token verifies", v1.ok);
+  // The defect this catches: reminder emails call mintPortalToken on every send.
+  // If each call rotated the token id, the link in an email from three days ago
+  // would tell a member their link had been "replaced" when they never asked.
   const t2 = await mintPortalToken(rosa.id);
+  check("re-minting keeps the earlier link working", (await verifyPortalToken(t1)).ok);
+  check("the re-minted link also works", (await verifyPortalToken(t2)).ok);
+  const t2b = await mintPortalToken(rosa.id, { rotate: true });
   const v1b = await verifyPortalToken(t1);
-  check("re-minting revokes the old link", !v1b.ok && v1b.reason === "revoked", JSON.stringify(v1b));
-  check("new link works", (await verifyPortalToken(t2)).ok);
+  check("a deliberate rotation retires every earlier link", !v1b.ok && v1b.reason === "revoked", JSON.stringify(v1b));
+  check("the rotated link works", (await verifyPortalToken(t2b)).ok);
   await revokePortalToken(rosa.id);
-  const v2 = await verifyPortalToken(t2);
+  const v2 = await verifyPortalToken(t2b);
   check("revoke kills the link", !v2.ok && v2.reason === "revoked");
   check("garbage token rejected", !(await verifyPortalToken("nonsense")).ok);
   const step = await mintStepUpToken(rosa.id);

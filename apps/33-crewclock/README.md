@@ -104,3 +104,57 @@ In priority order:
 4. **Incumbent bundling.** QuickBooks Time rides inside QuickBooks, which most of these businesses already use for accounting. Mitigation: win the crew (QB Time's weakest surface), price under the bundle for small teams, and make the Gusto/ADP CSV so clean that the accounting system doesn't matter.
 5. **Seasonal churn.** Landscapers idle in January; exterior painters pause all winter. Mitigation: an explicit **off-season pause** ($10/mo data-retention state) instead of forcing cancellation — pausing customers return in March; canceled ones re-evaluate the market.
 6. **Payroll-format edge cases.** ADP and Gusto import formats vary by client configuration (earnings codes, OT rules, department mappings). A broken export destroys the core promise. Mitigation: golden-file tests per format, a pre-export validator that flags unmapped workers/codes, and sandbox-verified templates before any customer's first live payroll.
+
+## Running it
+
+Requires Node 20+ and a Postgres database. Nothing else is mandatory — with no
+Stripe keys the billing screen says billing is not configured, and with no Resend
+key alerts are logged instead of sent.
+
+```bash
+cp .env.example .env.local     # fill in DATABASE_URL and AUTH_SECRET at minimum
+npm install
+npm run db:migrate             # applies drizzle/*.sql
+npm run dev                    # http://localhost:3033
+```
+
+Then, in the app:
+
+1. **Sign up** at `/signup` — this creates the company, you as owner, and a
+   30-day trial.
+2. **Add a job site** at `/sites`. Drop a pin in any map app, paste the
+   coordinates, set a fence radius (150 m covers a lot plus the parking). No
+   Mapbox token is needed: the crew's mini-map is a plotted ground that renders
+   with no network.
+3. **Create a job** at `/jobs/new` on that site, with the labor hours and dollars
+   from your bid. (Bids and the cost bar are Company-plan features; the clock
+   works on either plan.)
+4. **Add your crew** at `/crew`. Each person gets a six-character code — read it
+   out at the truck. They open `/join`, type the code, pick a 4-digit PIN, and
+   they are on the clock screen. Assign them to the job from the job's page.
+5. **Review and export** at `/review` and `/export`. Flagged punches sort to the
+   top; approving the period locks it; the export refuses to generate if any
+   worker is missing the mapping their payroll system needs.
+
+### Scheduled work
+
+The overtime projection scan, the 80%/100% budget checks and the
+forgotten-clock-out sweep are one idempotent function, reachable two ways:
+
+- `GET /api/cron/tick` with `Authorization: Bearer $CRON_SECRET` — Vercel Cron is
+  configured for this in `vercel.json`. The route refuses to run when the secret
+  is unset, so it is never an open trigger.
+- `npm run worker` — the same function on an interval, for a host that allows an
+  always-on process.
+
+Running both is harmless: every alert the tick can send is guarded by a unique
+constraint or a `*_sent_at` column.
+
+### Tests
+
+```bash
+npm test        # node:test via tsx — time/pay, geofence, overtime, costing,
+                # plan maths, both CSV formats (golden files), i18n parity
+npm run typecheck
+npm run build
+```

@@ -97,8 +97,8 @@ export function ImportForm({
         </details>
 
         {state.error ? (
-          <p className="t-secondary flex items-start gap-2" style={{ color: "var(--color-loss)" }} role="alert">
-            <IconAlert size={16} className="mt-0.5 shrink-0" />
+          <p className="t-secondary flex items-start gap-2" role="alert">
+            <IconAlert size={16} className="mt-1 shrink-0" />
             {state.error}
           </p>
         ) : null}
@@ -116,8 +116,9 @@ export function ImportForm({
 function Report({ outcome }: { outcome: NonNullable<ImportFormState["outcome"]> }) {
   if (!outcome.ok) {
     return (
-      <section className="card mt-6 p-5" style={{ borderColor: "var(--color-loss)" }}>
-        <p className="t-label" style={{ color: "var(--color-loss)" }}>
+      <section className="card mt-6 p-5">
+        <p className="t-label flex items-center gap-2">
+          <IconAlert size={14} />
           Nothing was imported
         </p>
         <p className="t-finding mt-3">{outcome.refusal}</p>
@@ -170,7 +171,8 @@ function Report({ outcome }: { outcome: NonNullable<ImportFormState["outcome"]> 
 
       {outcome.errors.length ? (
         <div className="mt-5">
-          <p className="t-label" style={{ color: "var(--color-loss)" }}>
+          <p className="t-label flex items-center gap-2">
+            <IconAlert size={14} />
             Rows we could not read
           </p>
           <ul className="mt-2">

@@ -197,8 +197,16 @@ export const members = pgTable(
     isPrimary: boolean("is_primary").notNull().default(false),
     smsOptIn: boolean("sms_opt_in").notNull().default(false),
     smsOptedOutAt: timestamp("sms_opted_out_at", { withTimezone: true }),
-    /** SHA-256 of the live portal token's jti. Revoke by nulling it. */
-    portalTokenHash: text("portal_token_hash"),
+    /**
+     * The live portal token's `jti`.
+     *
+     * Stored, not hashed, and deliberately so: the jti is not a credential on its
+     * own — a token also needs a valid HMAC over its claims with
+     * PORTAL_TOKEN_SECRET — and keeping it lets a later email re-sign the *same*
+     * token id, so the link in an older email keeps working until it expires.
+     * Rotating this value retires every link at once; nulling it revokes them.
+     */
+    portalTokenId: text("portal_token_id"),
     portalTokenIssuedAt: timestamp("portal_token_issued_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },

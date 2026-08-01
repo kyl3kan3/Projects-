@@ -6,9 +6,15 @@
  * inboxes forever):
  *
  *  - **portal** (90 days, rolling): identifies a member. Read balance, pay once,
- *    file a request, read their own issue timelines. Revocable: only the token
- *    whose jti hashes to `members.portal_token_hash` is accepted, so re-minting
- *    a link invalidates the old one and "revoke" is a single UPDATE.
+ *    file a request, read their own issue timelines. Revocable: only a token
+ *    carrying the jti stored on `members.portal_token_id` is accepted, so
+ *    rotating that value retires every link at once and "revoke" is one UPDATE.
+ *
+ *    Minting **reuses** the stored jti unless the caller asks to rotate. That
+ *    matters: every invoice and reminder email carries a link, and if each send
+ *    rotated the id, the link in an email from three days ago would report
+ *    "replaced" to a member who never asked for a new one. The board rotating a
+ *    link is a deliberate act; a reminder going out is not.
  *  - **stepup** (15 minutes, single purpose): proves inbox control. Required
  *    before a payment method may be stored against the household — a forwarded
  *    portal link must never be enough to attach a bank account.
@@ -16,7 +22,7 @@
  *    else, and it is verified fresh on the action that consumes it.
  */
 
-import { createHash, randomBytes } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import { SignJWT, jwtVerify } from "jose";
 import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
@@ -30,10 +36,6 @@ function secretKey(): Uint8Array {
   return new TextEncoder().encode(env.portalTokenSecret);
 }
 
-function hashJti(jti: string): string {
-  return createHash("sha256").update(jti).digest("hex");
-}
-
 export interface PortalClaims {
   memberId: string;
   householdId: string;
@@ -42,11 +44,16 @@ export interface PortalClaims {
 }
 
 /**
- * Mint (or re-mint) a member's portal link. The previous link stops working the
- * moment this returns — that is the revocation story, and it means "resend the
- * link" is also "rotate the link".
+ * Mint a member's portal link.
+ *
+ * By default this reuses the member's existing token id, so links already in
+ * their inbox keep working. Pass `rotate` when the board explicitly reissues, and
+ * every earlier link stops working immediately.
  */
-export async function mintPortalToken(memberId: string): Promise<string> {
+export async function mintPortalToken(
+  memberId: string,
+  options: { rotate?: boolean } = {},
+): Promise<string> {
   const db = getDb();
   const [row] = await db
     .select({ member: members, household: households })
@@ -55,7 +62,8 @@ export async function mintPortalToken(memberId: string): Promise<string> {
     .where(eq(members.id, memberId));
   if (!row) throw new Error("No such member");
 
-  const jti = randomBytes(16).toString("hex");
+  const reuse = !options.rotate && row.member.portalTokenId;
+  const jti = reuse ? row.member.portalTokenId! : randomBytes(16).toString("hex");
   const token = await new SignJWT({
     memberId,
     householdId: row.household.id,
@@ -68,10 +76,12 @@ export async function mintPortalToken(memberId: string): Promise<string> {
     .setExpirationTime(`${PORTAL_TTL_DAYS}d`)
     .sign(secretKey());
 
-  await db
-    .update(members)
-    .set({ portalTokenHash: hashJti(jti), portalTokenIssuedAt: new Date() })
-    .where(eq(members.id, memberId));
+  if (!reuse) {
+    await db
+      .update(members)
+      .set({ portalTokenId: jti, portalTokenIssuedAt: new Date() })
+      .where(eq(members.id, memberId));
+  }
 
   return token;
 }
@@ -83,7 +93,7 @@ export function portalUrl(token: string): string {
 export async function revokePortalToken(memberId: string): Promise<void> {
   await getDb()
     .update(members)
-    .set({ portalTokenHash: null, portalTokenIssuedAt: null })
+    .set({ portalTokenId: null, portalTokenIssuedAt: null })
     .where(eq(members.id, memberId));
 }
 
@@ -95,7 +105,7 @@ export interface PortalSession {
 }
 
 /**
- * Verify a portal token against both the signature and the stored jti hash.
+ * Verify a portal token against both the signature and the stored token id.
  * Returns a discriminated result — an expired link must reach a screen that
  * offers a new one, never a dead end.
  */
@@ -124,8 +134,8 @@ export async function verifyPortalToken(
     .innerJoin(households, eq(members.householdId, households.id))
     .where(and(eq(members.id, claims.memberId), eq(households.id, claims.householdId)));
   if (!row) return { ok: false, reason: "invalid" };
-  if (!row.member.portalTokenHash) return { ok: false, reason: "revoked" };
-  if (row.member.portalTokenHash !== hashJti(claims.jti)) return { ok: false, reason: "revoked" };
+  if (!row.member.portalTokenId) return { ok: false, reason: "revoked" };
+  if (row.member.portalTokenId !== claims.jti) return { ok: false, reason: "revoked" };
 
   return { ok: true, session: { member: row.member, household: row.household } };
 }

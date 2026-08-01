@@ -109,8 +109,9 @@ describe("account and feature gates", () => {
     assert.equal(plan("trader").chartImages, true);
     assert.equal(plan("trader").dataExport, false);
     assert.equal(plan("pro").dataExport, true);
+    // Mentor sharing is ROADMAP phase 3; no tier advertises it yet.
     assert.equal(plan("trader").mentorSharing, false);
-    assert.equal(plan("pro").mentorSharing, true);
+    assert.equal(plan("pro").mentorSharing, false);
     assert.equal(plan("free").segmentAnalytics, false);
     assert.equal(plan("trader").segmentAnalytics, true);
   });

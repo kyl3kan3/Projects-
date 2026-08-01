@@ -319,12 +319,32 @@ textarea.ruled {
   white-space: nowrap;
 }
 .chip[aria-pressed="true"],
-.chip[data-active="true"] {
+.chip[data-active="true"],
+.chip:has(input:checked) {
   border-color: var(--color-blue);
   color: var(--color-blue);
 }
 .chip-static {
   cursor: default;
+}
+
+/* A chip wrapping a real checkbox or radio stays a real form control — the app
+   works with JavaScript off — but the control is reduced to a small square
+   indicator so the chip itself carries the active state, per DESIGN.md. */
+.chip input[type="checkbox"],
+.chip input[type="radio"] {
+  appearance: none;
+  width: 8px;
+  height: 8px;
+  margin: 0;
+  border-radius: 2px;
+  border: 1px solid currentColor;
+  background: transparent;
+  flex: none;
+}
+.chip input:checked {
+  background: var(--color-blue);
+  border-color: var(--color-blue);
 }
 
 /* Focus ring: 2px blue at 2px offset. */

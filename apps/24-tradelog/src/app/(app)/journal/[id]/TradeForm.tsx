@@ -13,6 +13,7 @@
 import { useActionState } from "react";
 import { EMOTION_TAGS } from "@/db/schema";
 import { saveTradeAction, type TradeFormState } from "../actions";
+import { IconAlert } from "@/components/icons";
 
 export function TradeForm({
   tradeId,
@@ -63,7 +64,6 @@ export function TradeForm({
                 name="emotionTags"
                 value={tag}
                 defaultChecked={emotionTags.includes(tag)}
-                className="h-4 w-4 accent-[var(--color-blue)]"
               />
               {tag}
             </label>
@@ -100,7 +100,8 @@ export function TradeForm({
       </label>
 
       {state.error ? (
-        <p className="t-secondary" style={{ color: "var(--color-loss)" }} role="alert">
+        <p className="t-secondary flex items-start gap-2" role="alert">
+          <IconAlert size={14} className="mt-1 shrink-0" />
           {state.error}
         </p>
       ) : null}

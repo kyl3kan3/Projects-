@@ -58,7 +58,7 @@ export function SideRail() {
           <Link
             key={href}
             href={href}
-            className="flex min-h-11 items-center gap-3 rounded-[6px] px-3 py-2.5 text-[15px] font-medium no-underline"
+            className="flex min-h-11 items-center gap-3 rounded-[6px] px-3 py-3 text-[15px] font-medium no-underline"
             style={{
               color: active ? "var(--color-text)" : "var(--color-text-3)",
               background: active ? "var(--color-panel)" : "transparent",
@@ -72,7 +72,7 @@ export function SideRail() {
       })}
       <Link
         href="/review"
-        className="mt-4 flex min-h-11 items-center gap-3 rounded-[6px] px-3 py-2.5 text-[15px] font-medium no-underline"
+        className="mt-4 flex min-h-11 items-center gap-3 rounded-[6px] px-3 py-3 text-[15px] font-medium no-underline"
         style={{
           color: isActive(pathname, "/review") ? "var(--color-text)" : "var(--color-text-3)",
           background: isActive(pathname, "/review") ? "var(--color-panel)" : "transparent",
@@ -83,7 +83,7 @@ export function SideRail() {
       </Link>
       <Link
         href="/settings"
-        className="flex min-h-11 items-center gap-3 rounded-[6px] px-3 py-2.5 text-[15px] font-medium no-underline"
+        className="flex min-h-11 items-center gap-3 rounded-[6px] px-3 py-3 text-[15px] font-medium no-underline"
         style={{
           color: isActive(pathname, "/settings") ? "var(--color-text)" : "var(--color-text-3)",
           background: isActive(pathname, "/settings") ? "var(--color-panel)" : "transparent",
