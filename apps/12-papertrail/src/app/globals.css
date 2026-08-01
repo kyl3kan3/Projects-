@@ -1,50 +1,55 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   PaperTrail — design tokens. Generated from DESIGN.md; edit DESIGN.md first.
-   Obeys DESIGN_LANGUAGE.md: one rationed accent, hairlines not boxes,
-   no gradients or glow on controls, 4px spacing scale, fonts must load.
+   PaperTrail design system — redline implementation of DESIGN.md v3.
+   Fine stationery: ivory paper, ink-navy type, one fountain-blue thread.
+   Obeys DESIGN_LANGUAGE.md v2.1 — no emoji, no gradient/glow on controls,
+   hairlines not borders, space before boxes, 4px spacing scale, three radii,
+   one accent rationed to <=10% of a screen.
    ========================================================================== */
 
 @theme {
-  /* Palette — exact values from DESIGN.md */
-  --color-ivory: #f8f5ef; /* The ground. Every app screen. */
-  --color-sheet: #ffffff; /* Document cards and client-facing pages only — they are literal paper objects */
-  --color-hairline: #e5dfd2; /* 1px dividers & document borders — never darker */
-  --color-ink: #14213d; /* Primary text; primary button fill; the completed thread */
-  --color-text-2: #6e6b60; /* Secondary text, meta */
-  --color-text-3: #a6a192; /* Faint (dotted future thread, placeholders) */
-  --color-fountain: #2d5bff; /* THE accent. ≤10% of any screen: links, active states, focus rings, the live-si */
-  --color-wax: #2e7d5b; /* Semantic: signed / paid only — the seal and PAID stamp */
-  --color-vermilion: #c6432f; /* Semantic: overdue only — marginalia, never body text */
+  /* Color — the exact table in DESIGN.md. */
+  --color-ivory: #f8f5ef; /* the ground, every app screen */
+  --color-sheet: #ffffff; /* document cards and client-facing pages only */
+  --color-hairline: #e5dfd2; /* 1px dividers and document borders — never darker */
+  --color-ink: #14213d; /* primary text; primary button fill; completed thread */
+  --color-text-2: #6e6b60; /* secondary text, meta */
+  --color-text-3: #a6a192; /* faint: dotted future thread, placeholders */
+  --color-fountain: #2d5bff; /* THE accent — links, focus, the live-signing pulse */
+  --color-wax: #2e7d5b; /* semantic: signed / paid only */
+  --color-vermilion: #c6432f; /* semantic: overdue only */
 
-  /* Semantic aliases, so components never hardcode a hue name */
-  --color-bg: #f8f5ef;
-  --color-surface: #ffffff;
-  --color-line: #e5dfd2;
-  --color-fg: #14213d;
-  --color-fg-2: #6e6b60;
-  --color-fg-3: #a6a192;
-  --color-accent: #2d5bff;
-  --color-action: #14213d;
+  /* Press and disabled states, spelled out in DESIGN.md's component section. */
+  --color-ink-press: #0e1830;
+  --color-disabled-fill: #d8d2c4;
+  --color-hairline-press: #cfc7b6;
 
   --font-display: "Source Serif 4", ui-serif, Georgia, serif;
-  --font-sans: "Source Serif 4", ui-serif, Georgia, serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Radii: exactly three. Controls / paper / sheets. */
+  --radius-control: 8px;
+  --radius-paper: 2px;
+  --radius-sheet: 16px;
 
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring-snappy: cubic-bezier(0.2, 0.9, 0.2, 1.2);
 }
 
 :root {
-  color-scheme: light;
+  color-scheme: light; /* one visual world: there is no dark ground in this app */
+  --gutter: 20px;
   --tabbar-h: 56px;
+  --deckle: 0 1px 3px rgba(20, 33, 61, 0.1);
 }
 
 html,
 body {
-  background: var(--color-bg);
-  color: var(--color-fg);
+  background: var(--color-ivory);
+  color: var(--color-ink);
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.55;
@@ -52,46 +57,709 @@ body {
   overscroll-behavior-y: none;
 }
 
-* { border-color: var(--color-line); }
-
-/* ---- Type roles (see the specimen table in DESIGN.md) ---- */
-.t-hero { font-family: var(--font-display); font-size: clamp(2rem, 8.5vw, 3.375rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 600; }
-.t-stat { font-family: var(--font-mono); font-size: clamp(2.125rem, 9.5vw, 3.25rem); line-height: 1.05; letter-spacing: -0.01em; font-weight: 500; font-variant-numeric: tabular-nums; }
-.t-h2 { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.01em; font-weight: 600; }
-.t-title { font-size: 1rem; line-height: 1.3; font-weight: 600; }
-.t-body { font-size: 1rem; line-height: 1.55; }
-.t-secondary { font-size: 0.8125rem; line-height: 1.45; color: var(--color-fg-2); }
-.t-label { font-size: 0.6875rem; line-height: 1.2; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-fg-3); }
-.t-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-
-/* ---- Hairline construction: space and rules, never nested boxes ---- */
-.hairline-t { border-top: 1px solid var(--color-line); }
-.hairline-b { border-bottom: 1px solid var(--color-line); }
-
-.card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-line);
-  border-radius: 12px;
+* {
+  border-color: var(--color-hairline);
 }
 
-/* ---- Controls ---- */
+::selection {
+  background: color-mix(in srgb, var(--color-fountain) 18%, transparent);
+  color: var(--color-ink);
+}
+
+/* ---- Type roles: the exact specimen table from DESIGN.md ---------------- */
+
+.t-display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(26px, 7vw, 40px);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+.t-h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+.t-title {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+}
+.t-body {
+  font-size: 16px;
+  line-height: 1.55;
+}
+/* Document bodies are set in the serif — they are paper, not UI. */
+.t-doc {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.t-secondary {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-text-2);
+}
+.t-label {
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-3);
+}
+/* Dashboard money: mono, tabular. Every figure in a list or stat block. */
+.t-money {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.t-stat {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: clamp(28px, 8vw, 36px);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+/* Money inside documents: serif, oldstyle figures — it is typeset, not read off. */
+.t-doc-money {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 1.2;
+  font-variant-numeric: oldstyle-nums;
+}
+.t-meta {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-2);
+}
+
+/* ---- Controls ---------------------------------------------------------- */
+
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 48px; padding: 0 20px; border-radius: 10px;
-  font-weight: 600; font-size: 0.9375rem; line-height: 1;
-  transition: transform 120ms var(--ease-out-quart), background-color 120ms linear;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: var(--radius-control);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    transform 120ms var(--ease-out-quart),
+    background-color 120ms linear,
+    border-color 120ms linear;
 }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: var(--color-action); color: var(--color-bg); }
-.btn-secondary { background: transparent; color: var(--color-fg); border: 1px solid var(--color-line); }
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
 
-.focus-ring:focus-visible,
-a:focus-visible,
-button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+/* Primary on the ivory ground: ink fill, ivory text. Never fountain. */
+.btn-primary {
+  background: var(--color-ink);
+  color: var(--color-ivory);
+  border: none;
 }
+.btn-primary:active:not(:disabled) {
+  background: var(--color-ink-press);
+}
+.btn-primary:disabled {
+  background: var(--color-disabled-fill);
+  color: var(--color-text-3);
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--color-ink);
+  border: 1px solid var(--color-hairline);
+}
+.btn-secondary:active:not(:disabled) {
+  border-color: var(--color-hairline-press);
+}
+.btn-secondary:disabled {
+  color: var(--color-text-3);
+  cursor: not-allowed;
+}
+
+/* Quiet action: fountain text, no underline, dims on press. */
+.btn-quiet {
+  background: none;
+  border: none;
+  padding: 0;
+  height: auto;
+  color: var(--color-fountain);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn-quiet:active {
+  opacity: 0.8;
+}
+.btn-danger {
+  color: var(--color-vermilion);
+}
+
+.btn-full {
+  width: 100%;
+}
+.btn-sm {
+  height: 40px;
+  padding: 0 14px;
+  font-size: 14px;
+}
+
+.input {
+  width: 100%;
+  height: 48px;
+  padding: 0 12px;
+  background: var(--color-sheet);
+  color: var(--color-ink);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  font-family: var(--font-sans);
+  font-size: 16px;
+}
+.input::placeholder {
+  color: var(--color-text-3);
+}
+.input:focus,
+.input:focus-visible {
+  outline: none;
+  border-color: var(--color-fountain);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-fountain) 25%, transparent);
+}
+.input-money {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+textarea.input {
+  height: auto;
+  min-height: 96px;
+  padding: 12px;
+  line-height: 1.5;
+  resize: vertical;
+}
+select.input {
+  appearance: none;
+  padding-right: 32px;
+}
+
+/* Focus ring: fountain, 2px, offset. */
+:where(a, button, [tabindex], input, select, textarea):focus-visible {
+  outline: 2px solid var(--color-fountain);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Chips: document-type filters. Active = ink hairline + ink text. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-hairline);
+  background: transparent;
+  color: var(--color-text-2);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.chip[data-active="true"] {
+  border-color: var(--color-ink);
+  color: var(--color-ink);
+}
+
+/* Toggle: 44x28 track. Wax when on — it means "this will happen". */
+.toggle {
+  position: relative;
+  width: 44px;
+  height: 28px;
+  border-radius: 14px; /* the documented pill exception */
+  border: 1px solid var(--color-hairline);
+  background: transparent;
+  cursor: pointer;
+  flex: none;
+  transition: background-color 160ms var(--ease-spring-snappy);
+}
+.toggle[aria-checked="true"] {
+  background: var(--color-wax);
+  border-color: var(--color-wax);
+}
+.toggle::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  background: var(--color-text-3);
+  transition:
+    transform 160ms var(--ease-spring-snappy),
+    background-color 160ms linear;
+}
+.toggle[aria-checked="true"]::after {
+  transform: translateX(16px);
+  background: var(--color-sheet);
+}
+
+/* Add-on checkbox on the client sheet: a 24px square, ink tick when chosen. */
+.tickbox {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border: 1px solid var(--color-hairline);
+  border-radius: 4px;
+  background: var(--color-sheet);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: transparent;
+  cursor: pointer;
+}
+.tickbox[aria-checked="true"] {
+  border-color: var(--color-ink);
+  color: var(--color-ink);
+}
+
+/* ---- Seal chip: status, always carried by its own words ---------------- */
+
+.seal {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: var(--radius-control);
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.seal::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+.seal[data-variant="draft"] {
+  border: 1px solid var(--color-hairline);
+  color: var(--color-text-2);
+}
+.seal[data-variant="sent"] {
+  border: 1px solid var(--color-ink);
+  color: var(--color-ink);
+}
+.seal[data-variant="signed"] {
+  border: 1px solid color-mix(in srgb, var(--color-wax) 40%, transparent);
+  color: var(--color-wax);
+}
+.seal[data-variant="paid"] {
+  background: color-mix(in srgb, var(--color-wax) 12%, transparent);
+  color: var(--color-wax);
+}
+.seal[data-variant="overdue"] {
+  border: 1px solid color-mix(in srgb, var(--color-vermilion) 40%, transparent);
+  color: var(--color-vermilion);
+}
+.seal[data-variant="void"] {
+  border: 1px solid var(--color-hairline);
+  color: var(--color-text-3);
+  text-decoration: line-through;
+}
+
+/* The seal pressing in when a contract is signed. */
+.seal-press {
+  animation: seal-press 260ms var(--ease-spring-snappy);
+}
+.seal[data-variant="signed"].seal-press,
+.seal[data-variant="paid"].seal-press {
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+@keyframes seal-press {
+  from {
+    transform: scale(1.15);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+/* ---- Paper: the only framed objects in the app ------------------------- */
+
+.paper {
+  background: var(--color-sheet);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-paper);
+  box-shadow: var(--deckle);
+  padding: 16px;
+}
+.sheet {
+  background: var(--color-sheet);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-sheet);
+}
+.hairline-t {
+  border-top: 1px solid var(--color-hairline);
+}
+.hairline-b {
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+/* List rows: no boxes. Full-bleed, >=56px, hairline between, whole row tappable. */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-hairline);
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ---- The chain thread ------------------------------------------------- */
+
+.thread {
+  position: relative;
+  padding-left: 36px; /* 16px thread + 20px breathing room */
+}
+.thread-rail {
+  position: absolute;
+  left: 16px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  overflow: visible;
+}
+.thread-node {
+  position: absolute;
+  left: 12px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-ink);
+}
+.thread-node[data-future="true"] {
+  background: var(--color-text-3);
+}
+.thread-stitch {
+  animation: stitch-in 120ms var(--ease-out-quart);
+}
+@keyframes stitch-in {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+.card-stitch {
+  animation: card-up 240ms var(--ease-out-quart);
+}
+@keyframes card-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* The segment drawing taut when a signature lands. */
+.thread-draw {
+  stroke-dasharray: 200;
+  animation: thread-draw 200ms var(--ease-out-quart) forwards;
+}
+@keyframes thread-draw {
+  from {
+    stroke-dashoffset: 200;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* The PAID stamp on a settled invoice sheet. */
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 2px solid var(--color-wax);
+  border-radius: var(--radius-control);
+  color: var(--color-wax);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  transform: rotate(-3deg);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
+  animation: stamp-in 260ms var(--ease-spring-snappy);
+}
+@keyframes stamp-in {
+  from {
+    transform: rotate(-3deg) scale(1.2);
+  }
+  to {
+    transform: rotate(-3deg) scale(1);
+  }
+}
+
+/* Signature replay: the client's stroke drawing itself once, in ink. */
+.sig-replay path {
+  stroke-dasharray: 1400;
+  animation: sig-draw 600ms var(--ease-out-quart) forwards;
+}
+@keyframes sig-draw {
+  from {
+    stroke-dashoffset: 1400;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+/* Audit lines printing one by one beneath the signature. */
+.audit-line {
+  animation: audit-in 200ms var(--ease-out-quart) both;
+}
+@keyframes audit-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---- Bottom tab bar --------------------------------------------------- */
+
+.tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: color-mix(in srgb, var(--color-ivory) 96%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-hairline);
+  z-index: 40;
+}
+.tabbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-3);
+  text-decoration: none;
+  position: relative;
+}
+.tabbar-item[data-active="true"] {
+  color: var(--color-ink);
+}
+.tabbar-item[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  bottom: 6px;
+  width: 2px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--color-fountain);
+}
+
+/* ---- Layout ----------------------------------------------------------- */
+
+.screen {
+  padding: 0 var(--gutter);
+  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 96px);
+  max-width: 1080px;
+  margin: 0 auto;
+}
+.thumb-cta {
+  position: fixed;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 16px);
+  z-index: 30;
+  max-width: calc(1080px - 2 * var(--gutter));
+  margin: 0 auto;
+}
+/* Bottom sheet: radius 16, grab handle 40x4. */
+.bottom-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  background: var(--color-sheet);
+  border-top-left-radius: var(--radius-sheet);
+  border-top-right-radius: var(--radius-sheet);
+  border-top: 1px solid var(--color-hairline);
+  padding: 12px var(--gutter) calc(env(safe-area-inset-bottom) + 20px);
+  animation: sheet-up 320ms var(--ease-out-quart);
+}
+@keyframes sheet-up {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.grab-handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-hairline);
+  margin: 0 auto 12px;
+}
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(20, 33, 61, 0.18);
+}
+
+/* The client-facing document: a literal sheet of paper, true aspect. */
+.doc-sheet {
+  background: var(--color-sheet);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-paper);
+  box-shadow: var(--deckle);
+  padding: 24px 20px 32px;
+}
+.doc-rule {
+  height: 2px;
+  background: var(--color-ink);
+  width: 40px;
+}
+
+/* Income: month spines, own horizontal scroll container. */
+.spine-track {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scrollbar-width: thin;
+}
+.spine {
+  width: 24px;
+  flex: none;
+  background: var(--color-ink);
+  border-radius: 1px;
+}
+.overdue-underline {
+  border-bottom: 2px solid var(--color-vermilion);
+  padding-bottom: 2px;
+}
+
+/* Table-shaped content scrolls in its own container, never the page body. */
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: 32px;
+  }
+  /* >=768px the chain runs horizontally, thread through the cards. */
+  .chain-h {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(240px, 1fr);
+    gap: 24px;
+    align-items: start;
+  }
+}
+
+/* ---- Reduced motion: final states, instantly ------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .sig-replay path {
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
+  }
+  .thread-draw {
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
+  }
+  .card-stitch,
+  .thread-stitch,
+  .stamp,
+  .seal-press,
+  .audit-line {
+    animation: fade-only 100ms linear both;
+  }
+  @keyframes fade-only {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+/* ---- Print: the sheet is the record ---------------------------------- */
+
+@media print {
+  .tabbar,
+  .thumb-cta,
+  .no-print {
+    display: none !important;
+  }
+  html,
+  body {
+    background: #ffffff;
+  }
+  .doc-sheet {
+    border: none;
+    box-shadow: none;
+    padding: 0;
+  }
+  .screen {
+    padding-bottom: 0;
+  }
 }
