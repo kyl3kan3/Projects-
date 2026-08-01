@@ -14,7 +14,7 @@ run, a referral queue that deadlocked under launch-day load, magic-link login
 broken outright, certificate-expiry alerts that fired once and then went quiet
 forever. All were found by running the thing.
 
-## Verified working (15 of 74)
+## Verified working (16 of 74)
 
 Each was re-checked here after its build agent reported: line count, absence of
 unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
@@ -33,19 +33,13 @@ unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
 | 24 | tradelog | 10,789 | 102 | 197 |
 | 28 | clientdock | 9,273 | 84 | 66 |
 | 33 | crewclock | 9,707 | 78 | 139 |
+| 38 | duesdesk | 14,295 | 94 | 102 |
 | 44 | tenantfile | 12,027 | 100 | 101 |
 | 50 | waiverwing | 10,452 | 87 | 87 |
 | 51 | menocompass | 2,298 | 25 | — |
 
 Apps 01–04 and 51 predate this process and have no test suites; they are counted
 as working on the strength of having no unimplemented stubs, not on verification.
-
-## Built but not yet verified (1)
-
-Code is present and committed, the agent has not reported, and none of the gates
-have been re-run here. **Treat as unfinished.**
-
-`38-duesdesk`
 
 ## Not built (58)
 
