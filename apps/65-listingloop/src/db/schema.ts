@@ -8,6 +8,7 @@
 
 import {
   boolean,
+  customType,
   date,
   index,
   integer,
@@ -104,29 +105,37 @@ export const deals = pgTable(
   (t) => [index("deals_account_status_idx").on(t.accountId, t.status)],
 );
 
-export const parties = pgTable("parties", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  dealId: uuid("deal_id").notNull().references(() => deals.id),
-  role: text("role", {
-    enum: [
-      "buyer",
-      "seller",
-      "buyer_agent",
-      "listing_agent",
-      "lender",
-      "title",
-      "hoa",
-      "tc",
-      "other",
-    ],
-  }).notNull(),
-  name: text("name").notNull(),
-  email: text("email"),
-  phone: text("phone"),
-  portalTokenHash: text("portal_token_hash"),
-  notify: boolean("notify").notNull().default(true),
-  ...timestamps,
-});
+export const parties = pgTable(
+  "parties",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    dealId: uuid("deal_id").notNull().references(() => deals.id),
+    role: text("role", {
+      enum: [
+        "buyer",
+        "seller",
+        "buyer_agent",
+        "listing_agent",
+        "lender",
+        "title",
+        "hoa",
+        "tc",
+        "other",
+      ],
+    }).notNull(),
+    name: text("name").notNull(),
+    email: text("email"),
+    phone: text("phone"),
+    portalTokenHash: text("portal_token_hash"),
+    notify: boolean("notify").notNull().default(true),
+    ...timestamps,
+  },
+  (t) => [
+    index("parties_deal_idx").on(t.dealId),
+    // The portal looks a party up by the hash of the token it was handed.
+    uniqueIndex("parties_portal_token_idx").on(t.portalTokenHash),
+  ],
+);
 
 export const tasks = pgTable("tasks", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -192,28 +201,65 @@ export const reminders = pgTable(
   (t) => [uniqueIndex("reminders_date_offset_idx").on(t.criticalDateId, t.offsetDays)],
 );
 
-export const documents = pgTable("documents", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  dealId: uuid("deal_id").notNull().references(() => deals.id),
-  taskId: uuid("task_id").references(() => tasks.id),
-  label: text("label").notNull(),
-  r2Key: text("r2_key").notNull(),
-  filename: text("filename").notNull(),
-  version: integer("version").notNull().default(1),
-  uploadedBy: text("uploaded_by").notNull(),
-  uploadedAt: timestamp("uploaded_at", { withTimezone: true }).notNull().defaultNow(),
+export const documents = pgTable(
+  "documents",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    dealId: uuid("deal_id").notNull().references(() => deals.id),
+    taskId: uuid("task_id").references(() => tasks.id),
+    label: text("label").notNull(),
+    r2Key: text("r2_key").notNull(),
+    filename: text("filename").notNull(),
+    contentType: text("content_type").notNull().default("application/octet-stream"),
+    byteSize: integer("byte_size").notNull().default(0),
+    version: integer("version").notNull().default(1),
+    uploadedBy: text("uploaded_by").notNull(),
+    uploadedAt: timestamp("uploaded_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("documents_deal_label_idx").on(t.dealId, t.label),
+    // Version history is append-only, and two uploads racing the same label must
+    // not both claim version 3.
+    uniqueIndex("documents_deal_label_version_idx").on(t.dealId, t.label, t.version),
+  ],
+);
+
+const bytea = customType<{ data: Buffer; notNull: true; default: false }>({
+  dataType() {
+    return "bytea";
+  },
 });
 
-/** The file's memory. */
-export const activityLog = pgTable("activity_log", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  dealId: uuid("deal_id").notNull().references(() => deals.id),
-  actor: text("actor").notNull(),
-  action: text("action").notNull(),
-  target: text("target").notNull(),
-  metadata: jsonb("metadata").notNull().default({}),
-  occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
+/**
+ * Document bytes, when object storage is not configured.
+ *
+ * Not in ARCHITECTURE.md's table, and added deliberately: an uploaded EMD
+ * receipt has to land somewhere durable even in a bare deployment, and a party
+ * whose upload silently vanished is the exact failure this product exists to
+ * remove. With R2 configured, `documents.r2Key` points at the bucket and no row
+ * is written here.
+ */
+export const documentBlobs = pgTable("document_blobs", {
+  documentId: uuid("document_id")
+    .primaryKey()
+    .references(() => documents.id, { onDelete: "cascade" }),
+  bytes: bytea("bytes").notNull(),
 });
+
+/** The file's memory. Deal notes are rows here too, with action = "note". */
+export const activityLog = pgTable(
+  "activity_log",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    dealId: uuid("deal_id").notNull().references(() => deals.id),
+    actor: text("actor").notNull(),
+    action: text("action").notNull(),
+    target: text("target").notNull(),
+    metadata: jsonb("metadata").notNull().default({}),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("activity_log_deal_time_idx").on(t.dealId, t.occurredAt)],
+);
 
 export const webhookEvents = pgTable(
   "webhook_events",
@@ -238,3 +284,24 @@ export const auditLog = pgTable("audit_log", {
   metadata: jsonb("metadata").notNull().default({}),
   ...timestamps,
 });
+
+/* --------------------------------------------------------------------- types */
+
+export type Account = typeof accounts.$inferSelect;
+export type User = typeof users.$inferSelect;
+export type Holiday = typeof holidays.$inferSelect;
+export type ChecklistTemplate = typeof checklistTemplates.$inferSelect;
+export type Deal = typeof deals.$inferSelect;
+export type Party = typeof parties.$inferSelect;
+export type Task = typeof tasks.$inferSelect;
+export type CriticalDate = typeof criticalDates.$inferSelect;
+export type DateRecompute = typeof dateRecomputes.$inferSelect;
+export type Reminder = typeof reminders.$inferSelect;
+export type DocumentRow = typeof documents.$inferSelect;
+export type ActivityRow = typeof activityLog.$inferSelect;
+
+export type Plan = Account["plan"];
+export type DealStatus = Deal["status"];
+export type ContractType = Deal["contractType"];
+export type PartyRole = Party["role"];
+export type TaskStatus = Task["status"];

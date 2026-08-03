@@ -1,97 +1,879 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   ListingLoop — design tokens. Generated from DESIGN.md; edit DESIGN.md first.
-   Obeys DESIGN_LANGUAGE.md: one rationed accent, hairlines not boxes,
-   no gradients or glow on controls, 4px spacing scale, fonts must load.
+   ListingLoop — "The Closing File". The redline implementation of DESIGN.md:
+   manila folder stock, typewritten labels, one keybox-maroon accent like the
+   stamp on a recorded deed.
+
+   Obeys DESIGN_LANGUAGE.md v2.1: no emoji, no gradient or glow on controls,
+   hairlines not borders, space before boxes, the 4px scale, exactly three
+   radii, one accent rationed to <=10% of a screen. Light only, on purpose —
+   closing files live on desks (DESIGN.md).
+
+   ---------------------------------------------------------------------------
+   CONTRAST, measured against the `manila` ground (#F5F1E6, relative luminance
+   0.880). Three of DESIGN.md's colours needed a decision under the brief's one
+   documented exception — where a specified value fails WCAG AA at the size it
+   is actually used, DESIGN_LANGUAGE's AA floor wins. The hue is held in every
+   case; only lightness moves.
+
+     ink        #26231C  13.9:1  AAA. Body, headings, the primary button fill.
+     dim        #6F6A5B   4.8:1  AA at 13px. Secondary text, and tertiary too.
+     faint      #A49E8B   2.4:1  FAILS. Kept ONLY for disabled controls and
+                                 decorative rules — never for text that
+                                 carries meaning. Tertiary text uses `dim`.
+     keybox     #8C3B4A   6.6:1  AA/AAA. The accent: today, at-risk, MISSED,
+                                 focus rings.
+     cedar      #5E7F5A   4.0:1  Passes the 3:1 non-text floor, so it is kept
+                                 exactly as specified for the filled timeline
+                                 node — a shape, never a word.
+     cedar-str  #4F6C4C   5.2:1  RAISED from cedar for the MET placard and any
+                                 cedar-coloured text. Hue held (113.5 -> 114.4).
+     amberline  #A97E2F   3.3:1  FAILS at the 11px placard and the "needs a
+                                 date" sentence where DESIGN.md uses it.
+     amber-str  #8A6421   4.7:1  RAISED replacement used for all amberline
+                                 TEXT. Hue held (38.9 -> 38.3). The unraised
+                                 value is kept for the 2px underline rule only.
    ========================================================================== */
 
 @theme {
-  /* Palette — exact values from DESIGN.md */
+  /* Palette — DESIGN.md's table, with the AA corrections noted above. */
   --color-manila: #f5f1e6; /* App ground (folder stock) */
   --color-sheet: #fcfaf3; /* Cards, panels */
   --color-line: #e2dcc9; /* Hairlines, timeline rules */
   --color-ink: #26231c; /* Primary text; primary button fill */
   --color-dim: #6f6a5b; /* Secondary text */
-  --color-faint: #a49e8b; /* Tertiary, disabled */
-  --color-keybox: #8c3b4a; /* THE accent: the today marker, at-risk dates, active states (≤10%) */
-  --color-cedar: #5e7f5a; /* Semantic: met / clear-to-close only */
-  --color-amberline: #a97e2f; /* Semantic: waiting / needs-doc only */
+  --color-faint: #a49e8b; /* Disabled controls and decorative rules ONLY */
+  --color-keybox: #8c3b4a; /* THE accent: today, at-risk, missed, focus (<=10%) */
+  --color-cedar: #5e7f5a; /* Met node fill / clear-to-close mark */
+  --color-cedar-strong: #4f6c4c; /* Met text (AA) */
+  --color-amberline: #a97e2f; /* Waiting rule / needs-doc underline */
+  --color-amber-strong: #8a6421; /* Waiting text (AA) */
 
-  /* Semantic aliases, so components never hardcode a hue name */
-  --color-bg: #f5f1e6;
-  --color-surface: #fcfaf3;
-  --color-line: #e2dcc9;
-  --color-fg: #26231c;
-  --color-fg-2: #6f6a5b;
-  --color-fg-3: #a49e8b;
-  --color-accent: #8c3b4a;
-  --color-action: #26231c;
+  /* Press states, so no component invents its own. */
+  --color-ink-press: #332f26;
+  --color-line-press: #cfc7ae;
+  --color-disabled: #ebe6d6;
 
-  --font-display: "Source Serif 4", ui-serif, Georgia, serif;
-  --font-sans: "Source Serif 4", ui-serif, Georgia, serif;
+  --font-display: "Source Serif 4", ui-serif, Georgia, "Times New Roman", serif;
+  --font-sans: "Public Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Exactly three radii: cards/inputs, chips, timeline nodes (DESIGN.md). */
+  --radius-card: 8px;
+  --radius-chip: 6px;
+  --radius-node: 2px;
 
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 :root {
-  color-scheme: light;
+  color-scheme: light; /* one visual world; there is no dark theme */
+  --gutter: 20px;
   --tabbar-h: 56px;
 }
 
 html,
 body {
-  background: var(--color-bg);
-  color: var(--color-fg);
+  background: var(--color-manila);
+  color: var(--color-ink);
   font-family: var(--font-sans);
   font-size: 16px;
-  line-height: 1.55;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
 }
 
-* { border-color: var(--color-line); }
+body {
+  min-height: 100dvh;
+}
 
-/* ---- Type roles (see the specimen table in DESIGN.md) ---- */
-.t-hero { font-family: var(--font-display); font-size: clamp(2rem, 8.5vw, 3.375rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 600; }
-.t-stat { font-family: var(--font-mono); font-size: clamp(2.125rem, 9.5vw, 3.25rem); line-height: 1.05; letter-spacing: -0.01em; font-weight: 500; font-variant-numeric: tabular-nums; }
-.t-h2 { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.01em; font-weight: 600; }
-.t-title { font-size: 1rem; line-height: 1.3; font-weight: 600; }
-.t-body { font-size: 1rem; line-height: 1.55; }
-.t-secondary { font-size: 0.8125rem; line-height: 1.45; color: var(--color-fg-2); }
-.t-label { font-size: 0.6875rem; line-height: 1.2; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-fg-3); }
-.t-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+* {
+  border-color: var(--color-line);
+}
 
-/* ---- Hairline construction: space and rules, never nested boxes ---- */
-.hairline-t { border-top: 1px solid var(--color-line); }
-.hairline-b { border-bottom: 1px solid var(--color-line); }
+::selection {
+  background: color-mix(in srgb, var(--color-keybox) 22%, transparent);
+  color: var(--color-ink);
+}
 
-.card {
-  background: var(--color-surface);
+/* ---- Type roles: DESIGN.md's specimen table, exactly ------------------- */
+
+.t-display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(30px, 6.6vw, 40px);
+  line-height: 1.2;
+  letter-spacing: -0.005em;
+}
+.t-hero {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(32px, 8.4vw, 56px);
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+}
+.t-h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.273;
+}
+.t-title {
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.375;
+}
+.t-body {
+  font-size: 16px;
+  line-height: 1.5;
+}
+.t-secondary {
+  font-size: 13px;
+  line-height: 1.385;
+  color: var(--color-dim);
+}
+/* Placards are the status. 11/14, +0.08em, uppercase — never bolded body. */
+.t-placard {
+  font-weight: 500;
+  font-size: 11px;
+  line-height: 1.273;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.t-label {
+  font-weight: 500;
+  font-size: 11px;
+  line-height: 1.273;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-dim);
+}
+/* Every date, price and file number. No exceptions. */
+.t-mono {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+.t-mono-lg {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+.t-stat {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: clamp(26px, 7.4vw, 34px);
+  line-height: 1.06;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Structure: space and rules first; a box only for a framed thing ---- */
+
+.hairline-t {
+  border-top: 1px solid var(--color-line);
+}
+.hairline-b {
+  border-bottom: 1px solid var(--color-line);
+}
+
+.panel {
+  background: var(--color-sheet);
   border: 1px solid var(--color-line);
-  border-radius: 12px;
+  border-radius: var(--radius-card);
 }
 
-/* ---- Controls ---- */
+/* A list is hairline-divided rows, never a stack of boxes. */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-line);
+  background: none;
+  text-align: left;
+  text-decoration: none;
+  color: inherit;
+  font-family: inherit;
+}
+a.row,
+button.row {
+  cursor: pointer;
+}
+a.row:hover,
+button.row:hover {
+  background: var(--color-sheet);
+}
+.row:last-child {
+  border-bottom: 0;
+}
+
+/* ---- Controls ---------------------------------------------------------- */
+
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 48px; padding: 0 20px; border-radius: 10px;
-  font-weight: 600; font-size: 0.9375rem; line-height: 1;
-  transition: transform 120ms var(--ease-out-quart), background-color 120ms linear;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: var(--radius-card);
+  font-family: inherit;
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  transition:
+    transform 120ms var(--ease-out-quart),
+    background-color 120ms linear,
+    border-color 120ms linear;
 }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: var(--color-action); color: var(--color-bg); }
-.btn-secondary { background: transparent; color: var(--color-fg); border: 1px solid var(--color-line); }
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+/* Ink fill with manila text. The accent never fills a button (DESIGN.md). */
+.btn-primary {
+  background: var(--color-ink);
+  color: var(--color-manila);
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-ink-press);
+}
+.btn-primary:disabled {
+  background: var(--color-disabled);
+  color: var(--color-dim);
+  cursor: not-allowed;
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--color-ink);
+  border-color: var(--color-line);
+}
+.btn-secondary:hover:not(:disabled) {
+  border-color: var(--color-line-press);
+  background: var(--color-sheet);
+}
+.btn-secondary:disabled {
+  color: var(--color-dim);
+  border-color: var(--color-disabled);
+  cursor: not-allowed;
+}
+.btn-danger {
+  background: transparent;
+  color: var(--color-keybox);
+  border-color: var(--color-line);
+}
+.btn-full {
+  width: 100%;
+}
+.btn-sm {
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
+}
 
-.focus-ring:focus-visible,
-a:focus-visible,
-button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+/**
+ * Quiet action: text only. A 15px line is 18px tall, so the 44px touch target
+ * comes from a pseudo-element and the text stays where the layout put it.
+ */
+.btn-quiet {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-ink);
+  font-family: inherit;
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 1.2;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--color-line-press);
+  text-underline-offset: 3px;
 }
+.btn-quiet::after {
+  content: "";
+  position: absolute;
+  inset: -13px -8px;
+}
+.btn-quiet:hover {
+  text-decoration-color: var(--color-ink);
+}
+.btn-quiet:disabled {
+  color: var(--color-dim);
+  cursor: not-allowed;
+}
+
+.chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: var(--radius-chip);
+  border: 1px solid var(--color-line);
+  background: transparent;
+  color: var(--color-dim);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  transition:
+    color 120ms linear,
+    border-color 120ms linear;
+}
+.chip::after {
+  content: "";
+  position: absolute;
+  inset: -4px 0;
+}
+.chip[data-active="true"] {
+  border-color: var(--color-keybox);
+  color: var(--color-ink);
+}
+.chip-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.chip-row::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---- Inputs ----------------------------------------------------------- */
+
+.input {
+  width: 100%;
+  min-height: 44px;
+  padding: 12px;
+  background: var(--color-sheet);
+  color: var(--color-ink);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  font-family: inherit;
+  font-size: 16px; /* 16px prevents iOS zoom-on-focus */
+  line-height: 1.5;
+}
+.input::placeholder {
+  color: var(--color-dim);
+}
+.input:focus,
+.input:focus-visible {
+  outline: none;
+  border-color: var(--color-keybox);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-keybox) 28%, transparent);
+}
+textarea.input {
+  min-height: 96px;
+}
+select.input {
+  appearance: none;
+  padding-right: 36px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none' stroke='%236F6A5B' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+.input-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.field {
+  display: block;
+  margin-bottom: 16px;
+}
+.field-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-dim);
+}
+.field-help {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.385;
+  color: var(--color-dim);
+}
+.field-error {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.385;
+  color: var(--color-keybox);
+}
+
+.checkline {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: 44px;
+  padding: 10px 0;
+  cursor: pointer;
+}
+.checkline input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  flex: none;
+  accent-color: var(--color-ink);
+}
+
+/* ---- Focus: 2px ring in the accent, offset (DESIGN_LANGUAGE) ---------- */
+
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-keybox);
+  outline-offset: 2px;
+  border-radius: var(--radius-node);
+}
+
+/* ---- Placards: the file states facts, never alarms --------------------- */
+
+.placard {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  font-weight: 500;
+  font-size: 11px;
+  line-height: 1.273;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.placard[data-tone="ink"] {
+  color: var(--color-ink);
+}
+.placard[data-tone="dim"] {
+  color: var(--color-dim);
+}
+.placard[data-tone="keybox"] {
+  color: var(--color-keybox);
+}
+.placard[data-tone="cedar"] {
+  color: var(--color-cedar-strong);
+}
+.placard[data-tone="amber"] {
+  color: var(--color-amber-strong);
+}
+
+/* ==========================================================================
+   THE SIGNATURE DETAIL — the deal line (DESIGN.md)
+
+   One horizontal ruled line. Date nodes are small squares: met is a filled
+   cedar, upcoming an outlined ink, at-risk keybox. Today is a thin keybox
+   vertical. Labels sit beneath in mono. This exact element renders in the
+   pipeline, the deal file, the portal miniature and the landing device.
+   ========================================================================== */
+
+.dealline {
+  position: relative;
+  height: var(--dealline-h, 96px);
+}
+.dealline-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+.dealline-rule {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--dealline-y, 40px);
+  height: 1px;
+  background: var(--color-line);
+}
+.dealline-node {
+  position: absolute;
+  top: calc(var(--dealline-y, 40px) - 4px);
+  width: 9px;
+  height: 9px;
+  margin-left: -4px;
+  border-radius: var(--radius-node);
+  border: 1.5px solid var(--color-ink);
+  background: var(--color-manila);
+  box-sizing: border-box;
+}
+.dealline-node[data-status="met"] {
+  background: var(--color-cedar);
+  border-color: var(--color-cedar);
+}
+.dealline-node[data-status="at_risk"],
+.dealline-node[data-status="missed"] {
+  background: var(--color-keybox);
+  border-color: var(--color-keybox);
+}
+.dealline-node[data-status="waived"] {
+  border-color: var(--color-faint);
+  border-style: dashed;
+}
+/* The ghost of a node about to move, at 40% (DESIGN.md). */
+.dealline-node[data-ghost="true"] {
+  opacity: 0.4;
+  background: var(--color-manila);
+  border-color: var(--color-dim);
+  border-style: dashed;
+}
+.dealline-today {
+  position: absolute;
+  top: calc(var(--dealline-y, 40px) - 16px);
+  width: 1px;
+  height: 32px;
+  background: var(--color-keybox);
+}
+.dealline-today-cap {
+  position: absolute;
+  top: calc(var(--dealline-y, 40px) - 32px);
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--color-keybox);
+  white-space: nowrap;
+}
+.dealline-label {
+  position: absolute;
+  top: calc(var(--dealline-y, 40px) + 12px);
+  transform: translateX(-50%);
+  width: 80px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
+}
+.dealline-label-sub {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-top: 2px;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  line-height: 1.2;
+  letter-spacing: 0;
+  color: var(--color-dim);
+}
+/* The connector between a node and where it is moving to. */
+.dealline-connector {
+  position: absolute;
+  top: var(--dealline-y, 40px);
+  height: 1px;
+  background: var(--color-keybox);
+  opacity: 0.55;
+}
+.dealline-connector::after {
+  content: "";
+  position: absolute;
+  right: -1px;
+  top: -2px;
+  width: 5px;
+  height: 5px;
+  border-top: 1px solid var(--color-keybox);
+  border-right: 1px solid var(--color-keybox);
+  transform: rotate(45deg);
+  transform-origin: center;
+}
+.dealline-connector[data-back="true"]::after {
+  right: auto;
+  left: -1px;
+  transform: rotate(225deg);
+}
+
+/**
+ * THE UNFURL — on deal open the nodes place left to right, 40ms stagger and a
+ * 160ms settle each (DESIGN.md). One property leads: transform.
+ */
+.dealline[data-unfurl="true"] .dealline-node {
+  animation: unfurl-node 160ms var(--ease-out-quart) both;
+  animation-delay: calc(var(--i, 0) * 40ms);
+}
+@keyframes unfurl-node {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.dealline[data-unfurl="true"] .dealline-label {
+  animation: unfurl-label 160ms var(--ease-out-quart) both;
+  animation-delay: calc(var(--i, 0) * 40ms);
+}
+@keyframes unfurl-label {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%);
+  }
+}
+
+/* ---- The diff: the reason sentence, set like a note in the margin ------ */
+
+.diff-row {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-line);
+}
+.diff-move {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
+}
+.diff-reason {
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.385;
+  color: var(--color-dim);
+}
+.needs-date {
+  color: var(--color-amber-strong);
+  border-bottom: 2px solid var(--color-amberline);
+  padding-bottom: 1px;
+}
+
+/* ---- The completeness bar: a ruled measure, not a rounded pill --------- */
+
+.meter {
+  height: 6px;
+  background: var(--color-disabled);
+  border-radius: var(--radius-node);
+  overflow: hidden;
+}
+.meter-fill {
+  height: 100%;
+  background: var(--color-ink);
+}
+.meter-fill[data-tone="cedar"] {
+  background: var(--color-cedar);
+}
+
+/* ---- App shell: tab bar on a phone, left rail from 1024px ------------- */
+
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  align-items: stretch;
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--color-sheet);
+  border-top: 1px solid var(--color-line);
+}
+.tabbar-item {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 44px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  color: var(--color-dim);
+}
+.tabbar-item[data-active="true"] {
+  color: var(--color-ink);
+}
+.tabbar-item[data-active="true"]::before {
+  content: "";
+  position: absolute;
+  top: 5px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-keybox);
+}
+@media (min-width: 1024px) {
+  .tabbar {
+    display: none;
+  }
+}
+
+.rail-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: var(--radius-chip);
+  color: var(--color-dim);
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+}
+.rail-item:hover {
+  background: var(--color-sheet);
+  color: var(--color-ink);
+}
+.rail-item[data-active="true"] {
+  color: var(--color-ink);
+  background: var(--color-sheet);
+  box-shadow: inset 2px 0 0 0 var(--color-keybox);
+}
+
+/* ---- Tables: ruled like a filing form, scrolling in their own box ------ */
+
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.ruled {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.ruled th,
+.ruled td {
+  border-bottom: 1px solid var(--color-line);
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+.ruled th {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-dim);
+  white-space: nowrap;
+}
+.ruled td {
+  font-size: 14px;
+  line-height: 1.4;
+}
+.ruled td.num,
+.ruled th.num {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ---- Skeletons: loading is skeleton lines (DESIGN.md) ------------------ */
+
+.skeleton {
+  background: var(--color-line);
+  border-radius: var(--radius-node);
+  animation: skeleton-pulse 1200ms var(--ease-in-out-soft) infinite;
+}
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.28;
+  }
+}
+
+/* ---- Marketing-only: the four narrative beats ------------------------- */
+
+.beat {
+  animation: beat-in 320ms var(--ease-out-quart) both;
+}
+@keyframes beat-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.typed-date {
+  animation: typed-in 400ms var(--ease-out-quart) both;
+}
+@keyframes typed-in {
+  from {
+    opacity: 0;
+    letter-spacing: 0.3em;
+  }
+  to {
+    opacity: 1;
+    letter-spacing: 0;
+  }
+}
+
+/* ---- Reduced motion: final states, feature-complete ------------------- */
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    /**
+     * The delay has to be zeroed too, and this is not pedantry: the unfurl and
+     * the landing beats stagger with `animation-delay` and `fill-mode: both`,
+     * so during the delay the element is pinned to the keyframe's `from`
+     * state — opacity 0. Without this line, reduced motion shows a blank
+     * timeline.
+     */
+    animation-delay: 0s !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .dealline[data-unfurl="true"] .dealline-node,
+  .beat,
+  .typed-date {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+  .dealline[data-unfurl="true"] .dealline-label {
+    animation: none !important;
+    opacity: 1;
+    transform: translateX(-50%);
+  }
+  .skeleton {
+    opacity: 0.45;
+  }
+}
+
+/* ---- Print: the file is a document ----------------------------------- */
+
+@media print {
+  .tabbar,
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
 }

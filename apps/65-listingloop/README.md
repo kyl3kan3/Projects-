@@ -89,3 +89,58 @@ can self-serve in an afternoon.
   — 2 holidays observed") and a reminder ledger row (demo data,
   labeled).
 - **One CTA phrase, verbatim everywhere:** **"Start free — 14 days"**.
+
+---
+
+## Setup
+
+Node 20+ and a Postgres database are the only hard requirements. Everything else
+degrades honestly and `/settings` says which way.
+
+```bash
+npm install
+cp .env.example .env            # then fill in DATABASE_URL and the two secrets
+npm run db:migrate              # creates the schema
+npm run db:seed                 # loads the holiday calendar + a demo desk
+npm run dev                     # http://localhost:3065
+```
+
+Three variables are required; the rest are optional:
+
+| Variable | Why |
+|---|---|
+| `DATABASE_URL` | Postgres. Use the **direct** (non-pooled) URL for `db:migrate`. |
+| `SESSION_SECRET` | Signs the console session cookie. `openssl rand -base64 32`. |
+| `LINK_TOKEN_SECRET` | Signs party portal links — they are bearer credentials. |
+
+What happens when the optional ones are absent:
+
+- no `RESEND_API_KEY` (or `DRY_RUN=1`) — reminders are recorded in the ledger and
+  logged instead of emailed, so exactly-once behaviour is identical either way;
+- no `R2_*` — uploaded documents are stored as bytes in Postgres;
+- no `STRIPE_*` — the billing screen lists the plans and applies their limits
+  without a checkout;
+- no `REDIS_URL` — recomputes run inline and the nightly reminder pass runs from
+  `GET /api/cron/tick` instead of the worker. That route **refuses to run** when
+  `CRON_SECRET` is unset rather than defaulting to open.
+
+`npm run db:seed` prints the demo login. `SEED_HOLIDAYS_ONLY=1 npm run db:seed`
+loads only the calendar, which is what a real deployment wants — the date engine
+cannot compute a holiday-observing rule without those rows.
+
+### Commands
+
+| Command | What it does |
+|---|---|
+| `npm run dev` / `npm start` | The app on port 3065. |
+| `npm run typecheck` | `tsc --noEmit`. |
+| `npm test` | The date engine, the reminder ladder, the money math, the plan gates. |
+| `npm run craft` | The checks a type-checker cannot make (see `tools/craft-check.mjs`). |
+| `npm run worker` | The BullMQ worker; needs `REDIS_URL`. |
+| `npm run db:generate` / `db:migrate` / `db:seed` | Schema and data. |
+
+### Deploying
+
+Vercel + Neon + Upstash, per `ARCHITECTURE.md`. `vercel.json` registers the daily
+cron that drives the reminder pass, so a deployment with no worker still fans out
+on schedule. Point the Stripe webhook at `/api/webhooks/stripe`.
