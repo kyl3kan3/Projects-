@@ -1,21 +1,27 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   SafetyDeck — design tokens. Generated from DESIGN.md; edit DESIGN.md first.
-   Obeys DESIGN_LANGUAGE.md: one rationed accent, hairlines not boxes,
-   no gradients or glow on controls, 4px spacing scale, fonts must load.
+   SafetyDeck — design tokens, straight from DESIGN.md.
+   A jobsite at 6:40am: warm near-black ground, industrial type, mono
+   timestamps, one hard-hat yellow rationed to the things that keep people
+   safe. Committed to a single dark world by choice — the crew flow runs
+   pre-dawn, and the binder PDFs are the light artifacts.
+
+   Obeys DESIGN_LANGUAGE.md v2.1: no emoji, no gradient or glow on controls,
+   space before boxes, hairlines not borders, the 4px scale, three radii, one
+   accent under 10% of a screen, fonts that actually load.
    ========================================================================== */
 
 @theme {
   /* Palette — exact values from DESIGN.md */
-  --color-tarmac: #17150f; /* The ground. Every screen — warm pre-dawn black */
+  --color-tarmac: #17150f; /* The ground. Every screen */
   --color-panel: #211e15; /* Talk cards, incident sheets, cert matrix frame only */
   --color-hairline: #2d2a1d; /* 1px dividers & card borders — never brighter */
-  --color-text: #f0ede3; /* Primary text */
-  --color-text-2: #a39d8a; /* Secondary text */
-  --color-text-3: #6b665a; /* Faint (timestamps, placeholders) */
+  --color-text: #f0ede3;
+  --color-text-2: #a39d8a;
+  --color-text-3: #6b665a;
   --color-paper: #f4f1e6; /* Primary buttons (tarmac text), key numerals */
-  --color-hardhat: #d9a62e; /* THE accent. ≤10% of any screen: active-talk marker, the signature line, links, */
+  --color-hardhat: #d9a62e; /* THE accent, rationed to <=10% of a screen */
   --color-green: #4e9b6b; /* Signed / compliant / valid only */
   --color-orange: #c4703b; /* Expiring soon / talk missed only */
   --color-red: #c1503f; /* Expired / recordable incident / overdue only */
@@ -24,13 +30,14 @@
   --color-bg: #17150f;
   --color-surface: #211e15;
   --color-line: #2d2a1d;
+  --color-line-press: #3a3624;
   --color-fg: #f0ede3;
   --color-fg-2: #a39d8a;
   --color-fg-3: #6b665a;
   --color-accent: #d9a62e;
   --color-action: #f4f1e6;
-  --color-ok: #4e9b6b;
-  --color-bad: #c1503f;
+  --color-action-press: #e2dfd0;
+  --color-disabled: #2a2718;
 
   --font-display: "Barlow", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-sans: "Barlow", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -43,6 +50,14 @@
 :root {
   color-scheme: dark;
   --tabbar-h: 56px;
+  --gutter: 20px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  border-color: var(--color-line);
 }
 
 html,
@@ -54,48 +69,648 @@ body {
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
+  /* The page body never scrolls sideways; wide content scrolls inside itself. */
+  overflow-x: hidden;
 }
 
-* { border-color: var(--color-line); }
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
 
-/* ---- Type roles (see the specimen table in DESIGN.md) ---- */
-.t-hero { font-family: var(--font-display); font-size: clamp(2rem, 8.5vw, 3.375rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 600; }
-.t-stat { font-family: var(--font-mono); font-size: clamp(2.125rem, 9.5vw, 3.25rem); line-height: 1.05; letter-spacing: -0.01em; font-weight: 500; font-variant-numeric: tabular-nums; }
-.t-h2 { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.01em; font-weight: 600; }
-.t-title { font-size: 1rem; line-height: 1.3; font-weight: 600; }
-.t-body { font-size: 1rem; line-height: 1.55; }
-.t-secondary { font-size: 0.8125rem; line-height: 1.45; color: var(--color-fg-2); }
-.t-label { font-size: 0.6875rem; line-height: 1.2; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-fg-3); }
-.t-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+/* ---- Type roles: the specimen table in DESIGN.md, verbatim ---- */
+.t-hero {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 8.5vw, 56px);
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+.t-stat {
+  font-family: var(--font-mono);
+  font-size: clamp(32px, 9vw, 44px);
+  line-height: 1.05;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.t-h2 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+.t-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+/* Talk body is the one deliberate oversize: it is read aloud in daylight glare. */
+.t-body {
+  font-size: 17px;
+  line-height: 1.6;
+}
+.t-secondary {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-fg-2);
+}
+.t-label {
+  font-family: var(--font-display);
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-fg-3);
+}
+.t-data {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.t-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Layout ---- */
+.screen {
+  padding-inline: var(--gutter);
+  padding-bottom: calc(var(--tabbar-h) + 104px + env(safe-area-inset-bottom));
+  max-width: 720px;
+  margin-inline: auto;
+}
+.screen-plain {
+  padding-inline: var(--gutter);
+  padding-bottom: calc(40px + env(safe-area-inset-bottom));
+  max-width: 720px;
+  margin-inline: auto;
+}
+@media (min-width: 768px) {
+  :root {
+    --gutter: 32px;
+  }
+}
+@media (min-width: 1024px) {
+  .screen {
+    padding-bottom: 96px;
+    max-width: 1120px;
+  }
+}
 
 /* ---- Hairline construction: space and rules, never nested boxes ---- */
-.hairline-t { border-top: 1px solid var(--color-line); }
-.hairline-b { border-bottom: 1px solid var(--color-line); }
+.rule-t {
+  border-top: 1px solid var(--color-line);
+}
+.rule-b {
+  border-bottom: 1px solid var(--color-line);
+}
 
-.card {
+/* A panel frames a genuinely framed object: talk cards, incident sheets, the
+   cert matrix. Never a panel inside a panel. */
+.panel {
   background: var(--color-surface);
   border: 1px solid var(--color-line);
   border-radius: 12px;
 }
+.sheet {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 20px;
+}
 
 /* ---- Controls ---- */
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 48px; padding: 0 20px; border-radius: 10px;
-  font-weight: 600; font-size: 0.9375rem; line-height: 1;
-  transition: transform 120ms var(--ease-out-quart), background-color 120ms linear;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 120ms var(--ease-out-quart),
+    background-color 120ms linear,
+    border-color 120ms linear;
 }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: var(--color-action); color: var(--color-bg); }
-.btn-secondary { background: transparent; color: var(--color-fg); border: 1px solid var(--color-line); }
+/* Crew-flow controls are one size up: gloves, cold hands, no patience. */
+.btn-crew {
+  height: 52px;
+  font-size: 17px;
+}
+.btn-full {
+  width: 100%;
+}
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.btn-primary {
+  background: var(--color-action);
+  color: var(--color-bg);
+  border-color: var(--color-action);
+}
+.btn-primary:active:not(:disabled) {
+  background: var(--color-action-press);
+  border-color: var(--color-action-press);
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--color-fg);
+  border-color: var(--color-line);
+}
+.btn-secondary:active:not(:disabled) {
+  border-color: var(--color-line-press);
+}
+.btn:disabled {
+  background: var(--color-disabled);
+  border-color: var(--color-disabled);
+  color: var(--color-fg-3);
+  cursor: not-allowed;
+}
+/* Quiet action: text only, in the accent, no underline, dims on press. */
+.btn-quiet {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 0;
+  padding: 0;
+  min-height: 44px;
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+}
+.btn-quiet:active {
+  opacity: 0.8;
+}
 
-.focus-ring:focus-visible,
-a:focus-visible,
-button:focus-visible {
+.input {
+  width: 100%;
+  height: 48px;
+  padding: 0 12px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  font-size: 16px;
+}
+.input-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.input::placeholder {
+  color: var(--color-fg-3);
+}
+.input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px rgb(217 166 46 / 0.25);
+}
+textarea.input {
+  height: auto;
+  min-height: 132px;
+  padding: 12px;
+  line-height: 1.5;
+}
+select.input {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--color-fg-3) 50%),
+    linear-gradient(135deg, var(--color-fg-3) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 21px,
+    calc(100% - 13px) 21px;
+  background-size:
+    5px 5px,
+    5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 36px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-line);
+  background: transparent;
+  color: var(--color-fg-2);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color 150ms linear,
+    border-color 150ms linear;
+}
+.chip[data-active="true"] {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+*:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
+  border-radius: 4px;
 }
 
+/* ---- Rows: full-bleed, hairline-divided, never a stack of boxes ---- */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-line);
+  color: inherit;
+  width: 100%;
+  text-align: left;
+  background: none;
+}
+.row-crew {
+  min-height: 64px;
+  padding: 14px 0;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  flex: none;
+}
+.dot-green {
+  background: var(--color-green);
+}
+.dot-orange {
+  background: var(--color-orange);
+}
+.dot-red {
+  background: var(--color-red);
+}
+.dot-faint {
+  background: var(--color-fg-3);
+}
+.dot-hardhat {
+  background: var(--color-hardhat);
+}
+
+/* ---- Status pill: 28px, 6px dot + 11px label ---- */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid var(--color-line);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.pill::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+}
+.pill-green {
+  color: var(--color-green);
+}
+.pill-orange {
+  color: var(--color-orange);
+}
+.pill-red {
+  color: var(--color-red);
+}
+.pill-faint {
+  color: var(--color-fg-3);
+}
+
+/* ---- Bottom tab bar ---- */
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-line);
+}
+.tabbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-fg-3);
+  text-decoration: none;
+  position: relative;
+}
+.tabbar-item[data-active="true"] {
+  color: var(--color-fg);
+}
+.tabbar-item[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  width: 2px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--color-accent);
+}
+
+/* ---- Pinned thumb-zone action ---- */
+.thumb-cta {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  z-index: 20;
+  padding: 12px var(--gutter) 16px;
+  background: linear-gradient(to top, var(--color-bg) 62%, transparent);
+  pointer-events: none;
+}
+.thumb-cta > * {
+  pointer-events: auto;
+  max-width: 680px;
+  margin-inline: auto;
+}
+/* The crew flow has no tab bar — it is a single linear task. */
+.thumb-cta-crew {
+  bottom: 0;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+}
+@media (min-width: 1024px) {
+  .tabbar {
+    display: none;
+  }
+  .thumb-cta:not(.thumb-cta-crew) {
+    position: static;
+    padding: 24px 0 0;
+    background: none;
+  }
+}
+
+/* ---- Offline banner: a normal state here, never a modal and never red ---- */
+.offline-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px var(--gutter);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-line);
+  color: var(--color-fg-2);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* ---- Talk card: the accent's main home is the 2px active marker ---- */
+.talk-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-left: 2px solid var(--color-hardhat);
+  border-radius: 12px;
+  padding: 20px;
+}
+.talk-card-done {
+  border-left-color: var(--color-green);
+}
+/* The completed sweep: the accent border wipes top to bottom, once. */
+@keyframes border-sweep {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+.sweep {
+  position: absolute;
+  left: -2px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--color-green);
+  animation: border-sweep 300ms var(--ease-out-quart) forwards;
+}
+
+/* ---- Signature pad: you sign on the yellow line ---- */
+.sigpad {
+  position: relative;
+  width: 100%;
+  height: 160px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  overflow: hidden;
+  touch-action: none;
+}
+.sigpad-baseline {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 34px;
+  height: 1px;
+  background: var(--color-hardhat);
+}
+.sigpad-name {
+  position: absolute;
+  left: 16px;
+  bottom: 14px;
+}
+.sigpad canvas,
+.sigpad svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* The replay: strokes draw once, then the stamp settles 4px. */
+@keyframes stroke-draw {
+  from {
+    stroke-dashoffset: var(--len);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.stroke-replay {
+  stroke-dasharray: var(--len);
+  animation: stroke-draw 400ms var(--ease-out-quart) forwards;
+}
+@keyframes stamp-settle {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.stamp {
+  animation: stamp-settle 220ms var(--ease-out-quart) both;
+}
+
+/* ---- Row entrance: opacity + 4px, staggered 24ms ---- */
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.row-in {
+  animation: row-in 200ms var(--ease-out-quart) both;
+}
+
+/* ---- Attendance matrix: its own horizontal track ---- */
+.matrix-track {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.matrix-cell {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.matrix-mark {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+}
+.matrix-signed {
+  background: var(--color-green);
+}
+.matrix-absent {
+  border: 1.5px solid var(--color-fg-3);
+}
+.matrix-missed {
+  border: 1.5px solid var(--color-orange);
+}
+.matrix-pending {
+  border: 1.5px dashed var(--color-fg-3);
+}
+.matrix-none {
+  width: 4px;
+  height: 1px;
+  background: var(--color-line);
+  border-radius: 0;
+}
+
+/* ---- Talk body typography (rendered from the Markdown subset) ---- */
+.talk-body h3 {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-hardhat);
+  margin-top: 24px;
+  margin-bottom: 8px;
+}
+.talk-body p {
+  font-size: 17px;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+.talk-body ul,
+.talk-body ol {
+  margin-bottom: 12px;
+  padding-left: 0;
+  list-style: none;
+}
+.talk-body li {
+  font-size: 17px;
+  line-height: 1.6;
+  padding-left: 20px;
+  position: relative;
+  margin-bottom: 8px;
+}
+.talk-body ul li::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 12px;
+  width: 6px;
+  height: 1px;
+  background: var(--color-fg-3);
+}
+.talk-body ol {
+  counter-reset: talkq;
+}
+.talk-body ol li {
+  counter-increment: talkq;
+}
+.talk-body ol li::before {
+  content: counter(talkq);
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-fg-3);
+  line-height: 1.9;
+}
+.talk-body strong {
+  font-weight: 600;
+}
+
+/* ---- Reduced motion: complete, not punitive ---- */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  /* Strokes appear complete rather than drawing; the stamp fades in. */
+  .stroke-replay {
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
+  }
+  .sweep {
+    animation: none;
+    clip-path: none;
+  }
+  .stamp {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
 }

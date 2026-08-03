@@ -111,6 +111,13 @@ export const awsAccounts = pgTable(
     curBucket: text(),
     curPrefix: text(),
     curLastImportedAt: timestamp({ withTimezone: true }),
+    /**
+     * CUR is the accuracy path, so once it has covered an hour it owns that hour:
+     * Cost Explorer rows are deleted from the window on import and the poller
+     * refuses to write anything before this instant. Without it the two sources
+     * would double-count every hour they overlap.
+     */
+    curCoveredThrough: timestamp({ withTimezone: true }),
     backfilledAt: timestamp({ withTimezone: true }),
     lastIngestAt: timestamp({ withTimezone: true }),
     /** Highest fact hour ingested, so the next poll knows where to resume. */
@@ -190,9 +197,15 @@ export const costFacts = pgTable(
 /* ------------------------------------------------------------ baselines */
 
 /**
- * Seasonality-aware baseline: one row per (account, service, day-of-week, hour).
- * A Tuesday 14:00 reading is judged against previous Tuesdays at 14:00, which is
- * what stops a nightly batch job alerting every night.
+ * Seasonality-aware baseline: one row per (account, service, region,
+ * day-of-week, hour). A Tuesday 14:00 reading is judged against previous
+ * Tuesdays at 14:00, which is what stops a nightly batch job alerting every
+ * night.
+ *
+ * ARCHITECTURE.md keys this on (account, service) alone. Region is added because
+ * anomalies are raised per service *and* region ("EC2 — us-east-1"), and judging
+ * one region's spend against the whole service's baseline would both miss real
+ * regional spikes and invent fake ones.
  */
 export const baselines = pgTable(
   "baselines",
@@ -202,6 +215,7 @@ export const baselines = pgTable(
       .notNull()
       .references(() => awsAccounts.id, { onDelete: "cascade" }),
     service: text().notNull(),
+    region: text().notNull().default("global"),
     dow: integer().notNull(),
     hour: integer().notNull(),
     meanMicros: bigint({ mode: "number" }).notNull(),
@@ -209,7 +223,9 @@ export const baselines = pgTable(
     samples: integer().notNull(),
     updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [uniqueIndex("baselines_grain_idx").on(t.accountId, t.service, t.dow, t.hour)],
+  (t) => [
+    uniqueIndex("baselines_grain_idx").on(t.accountId, t.service, t.region, t.dow, t.hour),
+  ],
 );
 
 /* ------------------------------------------------------------ anomalies */

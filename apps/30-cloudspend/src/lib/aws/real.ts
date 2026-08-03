@@ -47,11 +47,12 @@ import type {
   WasteCandidate,
 } from "./provider";
 
+/** Shaped as the SDK's `AwsCredentialIdentity`, plus our own expiry bookkeeping. */
 interface Creds {
   accessKeyId: string;
   secretAccessKey: string;
   sessionToken: string;
-  expiration: number;
+  expiration: Date;
 }
 
 /** Assumed-role credentials, cached until five minutes before expiry. */
@@ -59,7 +60,7 @@ const credCache = new Map<string, Creds>();
 
 async function assume(account: AwsAccount): Promise<Creds> {
   const cached = credCache.get(account.id);
-  if (cached && cached.expiration - Date.now() > 5 * 60_000) return cached;
+  if (cached && cached.expiration.getTime() - Date.now() > 5 * 60_000) return cached;
 
   const sts = new STSClient({ region: env.aws.region });
   const out = await sts.send(
@@ -78,7 +79,7 @@ async function assume(account: AwsAccount): Promise<Creds> {
     accessKeyId: c.AccessKeyId,
     secretAccessKey: c.SecretAccessKey,
     sessionToken: c.SessionToken,
-    expiration: c.Expiration ? c.Expiration.getTime() : Date.now() + 3_000_000,
+    expiration: c.Expiration ?? new Date(Date.now() + 3_000_000),
   };
   credCache.set(account.id, creds);
   return creds;

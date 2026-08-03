@@ -318,6 +318,13 @@ function computeHealth(doc: JsonObject, warnings: Set<string>): SpecHealth {
         warnings.add(
           `${method.toUpperCase()} ${path} declares no responses — nothing to diff for its consumers.`,
         );
+      } else {
+        // Responses exist but none describes a body. This is the single most
+        // common reason a real-world spec produces near-empty diffs, so it has
+        // to be named rather than folded into the score.
+        warnings.add(
+          `${method.toUpperCase()} ${path} declares responses but no response schema — consumers depend on fields SchemaSentry cannot see.`,
+        );
       }
 
       const body = op.requestBody;

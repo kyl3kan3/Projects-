@@ -1,101 +1,685 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   SchemaSentry — design tokens. Generated from DESIGN.md; edit DESIGN.md first.
-   Obeys DESIGN_LANGUAGE.md: one rationed accent, hairlines not boxes,
-   no gradients or glow on controls, 4px spacing scale, fonts must load.
+   SchemaSentry — the redline implementation of DESIGN.md v3.
+
+   A code-review terminal with a conscience: carbon ground, mono type doing the
+   talking, one break-red that appears only where a consumer would feel it.
+
+   Obeys DESIGN_LANGUAGE.md v2.1: no emoji, no gradient or glow on controls,
+   space before boxes, hairlines not borders, the 4px spacing scale, exactly
+   three radii, fonts that actually load.
    ========================================================================== */
 
+/*
+ * The palette lives in a plain `:root`, NOT in `@theme`.
+ *
+ * Tailwind v4 tree-shakes `@theme` custom properties it cannot see used by a
+ * generated utility, and this app styles itself with component classes and
+ * `var(--color-…)` in inline styles rather than colour utilities. Declaring the
+ * values here means they always ship; the same values were silently dropped
+ * from the built stylesheet when they lived under `@theme`.
+ */
+:root {
+  color-scheme: dark; /* a single dark world, by choice — DESIGN.md */
+  --gutter: 20px;
+  --tabbar-h: 56px;
+
+  /* ---- Colour: the exact values from DESIGN.md ------------------------ */
+  --color-carbon: #121417;   /* the ground, every screen */
+  --color-panel: #191c21;    /* diff frames, finding cards, sheets only */
+  --color-hairline: #262b33; /* 1px dividers and frame borders, never brighter */
+  --color-text: #e9ecef;     /* primary text */
+  --color-text-2: #8b94a1;   /* secondary text, meta — 6.0:1 on carbon */
+  --color-text-3: #586170;   /* faint: mini-diff gutter numbers only, see below */
+  --color-paper: #f2f4f6;    /* THE high-emphasis fill: primary buttons */
+  --color-break: #b54834;    /* THE accent, <=10% of any screen */
+  --color-amber: #c99038;    /* RISKY only — 6.6:1 on carbon */
+  --color-green: #4e9b6f;    /* COMPATIBLE / check-passed only — 5.5:1 */
+  --color-diffdim: #3a4250;  /* diff syntax chrome: brackets, rules */
+
+  /*
+   * AA-safe text variants of three fixed hexes.
+   *
+   * DESIGN.md pins `break`, `text-3` and `diffdim` as exact values, and they are
+   * right for what it assigns them to — the strike-draw stroke, a 6px level dot,
+   * a bracket, a focus ring — where the 3:1 graphics threshold applies. Measured
+   * as *text* on carbon they are 3.46:1, 2.96:1 and 1.85:1, all below AA, and
+   * DESIGN_LANGUAGE.md makes AA binding everywhere. These are the same hues at a
+   * lighter value, each measured at >= 4.5:1 on both carbon and panel, and they
+   * are used wherever the colour carries words.
+   */
+  --color-break-text: #ce6650;   /* 4.96:1 on carbon, 4.76:1 on panel */
+  --color-text-3-aa: #777f8c;    /* 4.56:1 on carbon */
+  --color-diffdim-text: #7c8496; /* 4.73:1 on panel */
+
+  /* Press and disabled states, spelled out in DESIGN.md's component list. */
+  --color-paper-press: #dfe3e8;
+  --color-hairline-press: #313845;
+  --color-disabled: #242a33;
+
+  /* Level colours, addressed by name so components never branch on a hue. */
+  --level-breaking: var(--color-break);
+  --level-breaking-text: var(--color-break-text);
+  --level-risky: var(--color-amber);
+  --level-risky-text: var(--color-amber);
+  --level-compatible: var(--color-green);
+  --level-compatible-text: var(--color-green);
+  --level-info: var(--color-text-2);
+  --level-info-text: var(--color-text-2);
+}
+
 @theme {
-  /* Palette — exact values from DESIGN.md */
-  --color-carbon: #121417; /* The ground. Every screen — a single dark world */
-  --color-panel: #191c21; /* Diff frames, finding cards, sheets only */
-  --color-hairline: #262b33; /* 1px dividers & frame borders — never brighter */
-  --color-text: #e9ecef; /* Primary text */
-  --color-text-2: #8b94a1; /* Secondary text, meta */
-  --color-text-3: #586170; /* Faint (timestamps, line numbers) */
-  --color-paper: #f2f4f6; /* Primary buttons (carbon text), key verdict numerals */
-  --color-break: #b54834; /* THE accent. ≤10% of any screen: brand mark, BREAKING findings, the strike-draw */
-  --color-amber: #c99038; /* RISKY findings only */
-  --color-green: #4e9b6f; /* COMPATIBLE / check-passed only */
-  --color-diffdim: #3a4250; /* Diff syntax chrome (pointers, brackets) — data, not accent */
+  /* Two faces, loaded by next/font in layout.tsx. The mono is the voice. */
+  --font-sans: var(--font-sans-loaded), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono-loaded), ui-monospace, "SF Mono", Menlo, monospace;
 
-  /* Semantic aliases, so components never hardcode a hue name */
-  --color-bg: #121417;
-  --color-surface: #191c21;
-  --color-line: #262b33;
-  --color-fg: #e9ecef;
-  --color-fg-2: #8b94a1;
-  --color-fg-3: #586170;
-  --color-accent: #b54834;
-  --color-action: #f2f4f6;
-  --color-ok: #4e9b6f;
-  --color-warn: #c99038;
-
-  --font-display: "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-sans: "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  /* Radii: exactly three, assigned to roles. Nothing else. */
+  --radius-control: 8px; /* buttons, inputs, chips */
+  --radius-card: 12px;   /* diff frames, finding cards */
+  --radius-sheet: 20px;  /* sheets */
 
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring-snappy: cubic-bezier(0.2, 0.9, 0.2, 1.2);
 }
 
-:root {
-  color-scheme: dark;
-  --tabbar-h: 56px;
+*,
+*::before,
+*::after {
+  border-color: var(--color-hairline);
 }
 
-html,
+html {
+  background: var(--color-carbon);
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
-  background: var(--color-bg);
-  color: var(--color-fg);
+  background: var(--color-carbon);
+  color: var(--color-text);
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
+  margin: 0;
 }
 
-* { border-color: var(--color-line); }
+::selection {
+  background: var(--color-break);
+  color: var(--color-paper);
+}
 
-/* ---- Type roles (see the specimen table in DESIGN.md) ---- */
-.t-hero { font-family: var(--font-display); font-size: clamp(2rem, 8.5vw, 3.375rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 600; }
-.t-stat { font-family: var(--font-mono); font-size: clamp(2.125rem, 9.5vw, 3.25rem); line-height: 1.05; letter-spacing: -0.01em; font-weight: 500; font-variant-numeric: tabular-nums; }
-.t-h2 { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.01em; font-weight: 600; }
-.t-title { font-size: 1rem; line-height: 1.3; font-weight: 600; }
-.t-body { font-size: 1rem; line-height: 1.55; }
-.t-secondary { font-size: 0.8125rem; line-height: 1.45; color: var(--color-fg-2); }
-.t-label { font-size: 0.6875rem; line-height: 1.2; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-fg-3); }
-.t-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+/* ---------------------------------------------------------- type specimen --
+   Exact sizes from DESIGN.md's specimen table. Body is 16px on mobile so iOS
+   does not zoom a focused input.                                             */
 
-/* ---- Hairline construction: space and rules, never nested boxes ---- */
-.hairline-t { border-top: 1px solid var(--color-line); }
-.hairline-b { border-bottom: 1px solid var(--color-line); }
+.t-display {
+  font-family: var(--font-mono);
+  font-size: clamp(28px, 8vw, 40px);
+  line-height: 1.05;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
 
+.t-h2 {
+  font-size: 22px;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  font-weight: 700;
+}
+
+.t-title {
+  font-size: 16px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.t-body {
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.t-secondary {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-text-2);
+}
+
+.t-label {
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.t-data {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  font-weight: 400;
+}
+
+.t-diff {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------ layout shell */
+
+.screen {
+  min-height: 100dvh;
+  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 24px);
+}
+
+.gutter {
+  padding-inline: var(--gutter);
+}
+
+.wrap {
+  max-width: 1200px;
+  margin-inline: auto;
+}
+
+/* Wide content scrolls inside its own track; the page body never scrolls
+   sideways (DESIGN_LANGUAGE mobile rule). */
+.xscroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+/* ------------------------------------------------- hairlines, not borders */
+
+.hairline-t { border-top: 1px solid var(--color-hairline); }
+.hairline-b { border-bottom: 1px solid var(--color-hairline); }
+
+/* A hairline-divided list. Rows, not a stack of boxes. */
+.rows > * + * { border-top: 1px solid var(--color-hairline); }
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding-block: 12px;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+}
+
+/* The only framed object: things that are truly cards. Never nested. */
 .card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-line);
-  border-radius: 12px;
+  background: var(--color-panel);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-card);
+  padding: 16px;
 }
 
-/* ---- Controls ---- */
+.sheet {
+  background: var(--color-panel);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+}
+
+/* ----------------------------------------------------------------- controls */
+
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 48px; padding: 0 20px; border-radius: 10px;
-  font-weight: 600; font-size: 0.9375rem; line-height: 1;
-  transition: transform 120ms var(--ease-out-quart), background-color 120ms linear;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding-inline: 20px;
+  border-radius: var(--radius-control);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition:
+    transform 120ms var(--ease-out-quart),
+    background-color 120ms linear,
+    border-color 120ms linear;
 }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: var(--color-action); color: var(--color-bg); }
-.btn-secondary { background: transparent; color: var(--color-fg); border: 1px solid var(--color-line); }
 
-.focus-ring:focus-visible,
-a:focus-visible,
-button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+.btn:active:not(:disabled) { transform: scale(0.98); }
+
+.btn-primary {
+  background: var(--color-paper);
+  color: var(--color-carbon);
 }
+.btn-primary:active:not(:disabled) { background: var(--color-paper-press); }
+.btn-primary:disabled {
+  background: var(--color-disabled);
+  color: var(--color-text-3-aa);
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--color-text);
+  border-color: var(--color-hairline);
+}
+.btn-secondary:active:not(:disabled) { border-color: var(--color-hairline-press); }
+.btn-secondary:disabled { color: var(--color-text-3-aa); cursor: not-allowed; }
+
+/* Quiet action: text-only break, no underline; press dims to 80%. */
+.btn-quiet {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding-inline: 4px;
+  background: none;
+  border: 0;
+  color: var(--color-break-text);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 120ms linear;
+}
+.btn-quiet:active { opacity: 0.8; }
+.btn-quiet:disabled { color: var(--color-text-3-aa); cursor: not-allowed; }
+
+.btn-full { width: 100%; }
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+  background: var(--color-carbon);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  padding: 0 12px;
+  height: 48px;
+  transition: border-color 120ms linear, box-shadow 120ms linear;
+}
+
+.textarea {
+  height: auto;
+  min-height: 96px;
+  padding: 12px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.input-mono,
+.textarea-mono {
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--color-text-3-aa);
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--color-break);
+  box-shadow: 0 0 0 2px rgba(181, 72, 52, 0.25);
+}
+
+.field {
+  display: block;
+}
+.field > .t-label {
+  display: block;
+  color: var(--color-text-2);
+  margin-bottom: 8px;
+}
+.field-hint {
+  display: block;
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-text-2);
+}
+
+/* Chips: never filled. Active is a break border and break text. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding-inline: 12px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-hairline);
+  background: transparent;
+  color: var(--color-text-2);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: border-color 150ms var(--ease-out-quart), color 150ms linear;
+}
+.chip[data-active="true"] {
+  border-color: var(--color-break);
+  color: var(--color-break-text);
+}
+
+.chip-static {
+  cursor: default;
+}
+
+/* Focus: designed, keyboard-complete, 2px offset ring in the accent. */
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-break);
+  outline-offset: 2px;
+  border-radius: var(--radius-control);
+}
+
+a {
+  color: var(--color-break-text);
+  text-decoration: none;
+}
+a:hover { text-decoration: underline; }
+
+/* --------------------------------------------------------- verdict stamp --
+   NOT a card: the top of the diff screen itself.                            */
+
+.stamp-word {
+  display: block;
+}
+.stamp-word[data-level="breaking"] { color: var(--color-break-text); }
+.stamp-word[data-level="risky"] { color: var(--color-amber); }
+.stamp-word[data-level="compatible"] { color: var(--color-green); }
+
+@keyframes stamp-in {
+  from { transform: scale(1.04); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.stamp-animate {
+  animation: stamp-in 160ms var(--ease-spring-snappy) 260ms both;
+}
+
+/* ------------------------------------------------------------ level marks */
+
+.dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  flex: none;
+}
+.dot[data-level="breaking"] { background: var(--color-break); }
+.dot[data-level="risky"] { background: var(--color-amber); }
+.dot[data-level="compatible"] { background: var(--color-green); }
+.dot[data-level="info"] { background: var(--color-text-2); }
+
+.level-label[data-level="breaking"] { color: var(--color-break-text); }
+.level-label[data-level="risky"] { color: var(--color-amber); }
+.level-label[data-level="compatible"] { color: var(--color-green); }
+.level-label[data-level="info"] { color: var(--color-text-2); }
+
+/* --------------------------------------------------------------- mini-diff */
+
+.minidiff {
+  margin-top: 12px;
+  border-top: 1px solid var(--color-hairline);
+  padding-top: 12px;
+}
+
+.minidiff-line {
+  display: flex;
+  gap: 12px;
+  white-space: pre;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.minidiff-no {
+  color: var(--color-text-3);
+  user-select: none;
+  min-width: 2ch;
+  text-align: right;
+  flex: none;
+}
+.minidiff-text[data-kind="ctx"] { color: var(--color-text-2); }
+.minidiff-text[data-kind="add"] { color: color-mix(in srgb, var(--color-green) 90%, transparent); }
+.minidiff-text[data-kind="del"] {
+  color: color-mix(in srgb, var(--color-break-text) 90%, transparent);
+  position: relative;
+}
+
+/* ---------------------------------------------------------- the strike-draw
+   The product's one move: the removed line's text gets a 1.5px break
+   strikethrough drawn left to right in 240ms, then the verdict word stamps in.
+   Pure CSS, one pass per diff view, top three breaking findings only.        */
+
+.strike {
+  position: relative;
+}
+.strike::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  height: 1.5px;
+  width: 100%;
+  background: var(--color-break);
+  transform-origin: left center;
+  transform: scaleX(1);
+}
+.strike-draw::after {
+  animation: strike-draw 240ms var(--ease-out-quart) both;
+  animation-delay: var(--strike-delay, 0ms);
+}
+@keyframes strike-draw {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* Finding cards enter with a 24ms stagger, opacity + 4px rise. Dev tools
+   never bounce. */
+@keyframes settle {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+.settle {
+  animation: settle 200ms var(--ease-out-quart) both;
+  animation-delay: var(--settle-delay, 0ms);
+}
+
+/* Copy actions flash the mono text's background for 120ms. */
+@keyframes copy-flash {
+  from { background: var(--color-panel); }
+  to { background: transparent; }
+}
+.copy-flash {
+  animation: copy-flash 120ms linear;
+}
+
+/* Ack is hold-to-confirm: a 600ms radial fill. */
+@keyframes hold-fill {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+.hold-track {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-control);
+  overflow: hidden;
+  pointer-events: none;
+}
+.hold-fill {
+  height: 100%;
+  background: color-mix(in srgb, var(--color-break) 22%, transparent);
+  width: 0%;
+}
+.hold-active .hold-fill {
+  animation: hold-fill 600ms linear forwards;
+}
+
+/* ---------------------------------------------------------- bottom tab bar */
+
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  display: grid;
+  grid-auto-flow: column;
+  background: color-mix(in srgb, var(--color-panel) 94%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-hairline);
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  height: var(--tabbar-h);
+  color: var(--color-text-3-aa);
+  font-size: 10px;
+  font-weight: 600;
+  text-decoration: none;
+  position: relative;
+}
+.tab[data-active="true"] { color: var(--color-text); }
+.tab[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  right: calc(50% - 14px);
+  width: 2px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--color-break);
+}
+.tab:hover { text-decoration: none; }
+
+/* --------------------------------------------------------- terminal block */
+
+.terminal {
+  background: var(--color-panel);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-card);
+  padding: 16px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-text);
+}
+.terminal-prompt { color: var(--color-diffdim-text); user-select: none; }
+
+/* ------------------------------------------------------- public changelog */
+
+.doc {
+  max-width: 65ch;
+}
+.doc h2 {
+  font-size: 20px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 32px 0 12px;
+}
+.doc h3 {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  margin: 24px 0 8px;
+  color: var(--color-text-2);
+}
+.doc p { margin: 0 0 16px; }
+.doc ul { margin: 0 0 16px; padding-left: 20px; }
+.doc li { margin-bottom: 12px; }
+.doc code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  color: var(--color-text);
+  background: var(--color-panel);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.doc em { color: var(--color-text-2); font-style: italic; }
+
+.entry-breaking {
+  border-left: 2px solid var(--color-break);
+  padding-left: 16px;
+  margin-left: -18px;
+}
+
+/* -------------------------------------------------------- reduced motion --
+   Feature-complete, never punitive: the strike-through and the stamp render
+   complete instantly, the stagger becomes a short fade, and copy confirms in
+   words instead of a flash.                                                 */
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .strike-draw::after { animation: none; transform: scaleX(1); }
+  .stamp-animate { animation: none; opacity: 1; transform: none; }
+  .settle { animation: none; opacity: 1; transform: none; }
+  .hold-active .hold-fill { animation: none; width: 100%; }
+}
+
+/* ------------------------------------------------------------- responsive */
+
+@media (min-width: 768px) {
+  :root { --gutter: 32px; }
+  .screen { padding-bottom: 56px; }
+  .tabbar { display: none; }
+  /* Finding cards go two-column: diff left, impact right. */
+  .finding-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 260px);
+    gap: 20px;
+    align-items: start;
+  }
+}
+
+@media (min-width: 1024px) {
+  .three-pane {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 720px) minmax(0, 300px);
+    gap: 32px;
+    align-items: start;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }

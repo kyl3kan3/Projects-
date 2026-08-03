@@ -115,7 +115,9 @@ export function parseDeployPayload(
         deployedAt: at,
         source: "github",
         repo: p.repository.full_name,
-        commitUrl: p.head_commit?.url ?? `${p.repository.html_url ?? ""}/commit/${p.after}` || null,
+        commitUrl:
+          p.head_commit?.url ??
+          (p.repository.html_url ? `${p.repository.html_url}/commit/${p.after}` : null),
         actor: p.pusher?.name ?? null,
         environment: p.ref?.replace("refs/heads/", "") ?? null,
       },
@@ -141,7 +143,9 @@ export function parseDeployPayload(
         deployedAt: at,
         source: "github",
         repo: p.repository.full_name,
-        commitUrl: `${p.repository.html_url ?? ""}/commit/${p.deployment.sha}` || null,
+        commitUrl: p.repository.html_url
+          ? `${p.repository.html_url}/commit/${p.deployment.sha}`
+          : null,
         actor: p.deployment_status.creator?.login ?? null,
         environment: p.deployment.environment ?? null,
       },

@@ -120,7 +120,10 @@ export async function signup(
     .values({
       name: label,
       slug: await uniqueOrgSlug(label),
-      plan: "solo",
+      // The trial runs on Startup so a new team sees the whole product — deploy
+      // correlation and budgets included — before choosing a tier. Downgrading to
+      // Solo after the trial re-applies those gates.
+      plan: "startup",
       billingStatus: "trialing",
       trialEndsAt: new Date(Date.now() + TRIAL_DAYS * 86_400_000),
       deployWebhookToken: randomBytes(16).toString("hex"),

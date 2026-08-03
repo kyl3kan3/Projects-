@@ -19,10 +19,11 @@ build/
 
 # Testing
 coverage/
-.vitest-cache/
 
 # Drizzle
-drizzle/meta/
+# drizzle/meta/ is NOT ignored: it holds _journal.json, and without it a fresh
+# clone cannot run `npm run db:migrate` — drizzle-kit has no record of which
+# migrations already ran and refuses to start.
 
 # TypeScript
 *.tsbuildinfo

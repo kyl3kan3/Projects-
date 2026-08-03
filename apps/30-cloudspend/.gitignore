@@ -1,9 +1,44 @@
+# Dependencies
 node_modules/
+
+# Next.js
 .next/
+out/
+next-env.d.ts
+
+# Build output
 dist/
-coverage/
+build/
+*.tsbuildinfo
+
+# Environment files — keep .env.example tracked
 .env
-.env.local
+.env.*
+!.env.example
+
+# Drizzle: migrations AND their journal are tracked. `drizzle/meta/` holds
+# `_journal.json`, and without it a fresh clone cannot run `db:migrate` — so it is
+# deliberately NOT ignored.
+
+# Logs
+logs/
 *.log
+npm-debug.log*
+
+# Coverage
+coverage/
+
+# Local pid file from `next start &`
+.server.pid
+
+# Editor / OS
+.vscode/
+.idea/
 .DS_Store
-drizzle/meta/
+
+# Vercel
+.vercel/
+
+# Misc local
+*.local
+.cache/

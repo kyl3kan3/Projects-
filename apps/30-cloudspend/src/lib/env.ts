@@ -44,9 +44,24 @@ export const env = {
       ),
     };
   },
-  /** True when a real AWS credential is present. */
+  /**
+   * True when CloudSpend can actually talk to a customer's AWS account.
+   *
+   * All three are required, not just the credential: without
+   * `CLOUDSPEND_AWS_ACCOUNT_ID` the CloudFormation trust policy has no principal
+   * to name, so the quick-create link cannot produce a role we are allowed to
+   * assume. Treating a half-configured deployment as "AWS ready" is how you get
+   * an onboarding flow that says "connected" and then never ingests anything.
+   *
+   * When this is false the synthetic provider is used and every screen fed by it
+   * is labelled as demo data.
+   */
   get awsConfigured() {
-    return Boolean(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY);
+    return Boolean(
+      process.env.AWS_ACCESS_KEY_ID &&
+        process.env.AWS_SECRET_ACCESS_KEY &&
+        process.env.CLOUDSPEND_AWS_ACCOUNT_ID,
+    );
   },
 
   // --- Slack ---

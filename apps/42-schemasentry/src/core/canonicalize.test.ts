@@ -228,15 +228,21 @@ paths:
                     required: [total]
                     properties: { total: { type: integer } }
 `);
-  const schema = JSON.parse(JSON.stringify(doc)) as {
-    paths: Record<string, Record<string, Record<string, Record<string, Record<string, Record<string, unknown>>>>>>;
-  };
-  const merged = schema.paths["/orders"].get.responses["200"].content["application/json"].schema as {
-    type: string;
-    required: string[];
-    properties: Record<string, unknown>;
-    allOf?: unknown;
-  };
+  const at = (root: unknown, path: string[]): Record<string, unknown> =>
+    path.reduce<Record<string, unknown>>(
+      (node, key) => node[key] as Record<string, unknown>,
+      root as Record<string, unknown>,
+    );
+  const merged = at(doc, [
+    "paths",
+    "/orders",
+    "get",
+    "responses",
+    "200",
+    "content",
+    "application/json",
+    "schema",
+  ]) as { type: string; required: string[]; properties: Record<string, unknown>; allOf?: unknown };
   assert.equal(merged.allOf, undefined);
   assert.deepEqual(merged.required, ["id", "total"]);
   assert.deepEqual(Object.keys(merged.properties).sort(), ["id", "total"]);

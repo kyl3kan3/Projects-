@@ -1,100 +1,673 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   QuoteFox — design tokens. Generated from DESIGN.md; edit DESIGN.md first.
-   Obeys DESIGN_LANGUAGE.md: one rationed accent, hairlines not boxes,
-   no gradients or glow on controls, 4px spacing scale, fonts must load.
+   QuoteFox — the redline implementation of DESIGN.md v3.
+   A jobsite tool: dark iron grounds, big legible figures, one hi-vis orange
+   used the way it is used on a jobsite — to mark where the action is.
+   Obeys DESIGN_LANGUAGE.md v2.1: no emoji, no gradient or glow on controls,
+   hairlines not borders, space before boxes, 4px scale, three radii, one
+   accent rationed to <=10% of a screen, mobile-first at 390px.
    ========================================================================== */
 
 @theme {
-  /* Palette — exact values from DESIGN.md */
-  --color-iron: #16120d; /* The ground. Every dark screen. Warm near-black, mixed toward the accent's worl */
-  --color-toolbox: #211a12; /* Sheets, grouped stat panels, proposal preview card only */
-  --color-hairline: #31281c; /* 1px dividers & panel borders — never brighter */
-  --color-text: #f1ece3; /* Primary text */
-  --color-text-2: #a79b87; /* Secondary text */
-  --color-text-3: #6e6353; /* Faint (timestamps, placeholders, unit labels) */
-  --color-paper: #f4efe6; /* Primary buttons (iron text on it), proposal page ground, hero numerals */
-  --color-hi-vis: #cd7a29; /* THE accent. ≤10% of any screen: the record ring, running total, active states, */
-  --color-amber: #d9a43c; /* Waiting states only: unviewed proposals, needs_pricing rows, upload retries */
-  --color-red: #ce5b45; /* Failed / expired / declined only */
+  /* Palette — the exact table in DESIGN.md. */
+  --color-iron: #16120d; /* the ground, every dark screen */
+  --color-toolbox: #211a12; /* sheets, grouped stat panels, proposal preview */
+  --color-hairline: #31281c; /* 1px dividers and panel borders — never brighter */
+  --color-text: #f1ece3;
+  --color-text-2: #a79b87;
+  /*
+   * text-3, corrected for contrast — the one deliberate divergence from the
+   * palette table, made here rather than worked around per component.
+   *
+   * DESIGN.md specifies #6E6353 for faint text. On the iron ground that measures
+   * 3.1:1, and every use of it in this product is 11–13px content that carries
+   * meaning: timestamps, unit labels, the transcript citation under a line item.
+   * WCAG AA asks 4.5:1 below 24px, so the palette table and DESIGN_LANGUAGE's
+   * "AA minimum everywhere" cannot both hold, and the reader wins. Same hue and
+   * chroma family, lightened only until it passes: 4.6:1.
+   */
+  --color-text-3: #8a7e6c; /* was #6E6353 (3.1:1) */
+  --color-paper: #f4efe6; /* primary buttons, the proposal page ground */
+  --color-hi-vis: #cd7a29; /* THE accent. It marks; it never paints. */
+  --color-amber: #d9a43c; /* waiting only: unviewed, needs pricing, retrying */
+  --color-red: #ce5b45; /* failed / expired / declined only */
 
-  /* Semantic aliases, so components never hardcode a hue name */
-  --color-bg: #16120d;
-  --color-surface: #211a12;
-  --color-line: #31281c;
-  --color-fg: #f1ece3;
-  --color-fg-2: #a79b87;
-  --color-fg-3: #6e6353;
-  --color-accent: #16120d;
-  --color-action: #f4efe6;
-  --color-warn: #d9a43c;
-  --color-bad: #ce5b45;
+  /* Component states spelled out in DESIGN.md. */
+  --color-paper-press: #e4decf;
+  --color-disabled: #2c241a;
+  --color-hairline-press: #3d3324;
 
-  --font-display: "Archivo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-sans: "Archivo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  /* Light theme — the homeowner's proposal page. */
+  --color-ink: #211a12;
+  --color-ink-press: #34291b;
+  --color-paper-line: #e5decf;
+  --color-paper-text-2: #6b6252;
+
+  /* Three radii, assigned to roles. Nothing else. */
+  --radius-control: 8px;
+  --radius-panel: 12px;
+  --radius-sheet: 20px;
 
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+  --spring-gentle: cubic-bezier(0.34, 1.32, 0.64, 1);
 }
 
 :root {
   color-scheme: dark;
+  --gutter: 20px;
   --tabbar-h: 56px;
+
+  --font-display: var(--font-display-loaded), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-display-loaded), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-mono-loaded), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+* {
+  border-color: var(--color-hairline);
 }
 
 html,
 body {
-  background: var(--color-bg);
-  color: var(--color-fg);
+  background: var(--color-iron);
+  color: var(--color-text);
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   overscroll-behavior-y: none;
 }
 
-* { border-color: var(--color-line); }
-
-/* ---- Type roles (see the specimen table in DESIGN.md) ---- */
-.t-hero { font-family: var(--font-display); font-size: clamp(2rem, 8.5vw, 3.375rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 600; }
-.t-stat { font-family: var(--font-mono); font-size: clamp(2.125rem, 9.5vw, 3.25rem); line-height: 1.05; letter-spacing: -0.01em; font-weight: 500; font-variant-numeric: tabular-nums; }
-.t-h2 { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.01em; font-weight: 600; }
-.t-title { font-size: 1rem; line-height: 1.3; font-weight: 600; }
-.t-body { font-size: 1rem; line-height: 1.55; }
-.t-secondary { font-size: 0.8125rem; line-height: 1.45; color: var(--color-fg-2); }
-.t-label { font-size: 0.6875rem; line-height: 1.2; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-fg-3); }
-.t-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-
-/* ---- Hairline construction: space and rules, never nested boxes ---- */
-.hairline-t { border-top: 1px solid var(--color-line); }
-.hairline-b { border-bottom: 1px solid var(--color-line); }
-
-.card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-line);
-  border-radius: 12px;
+body {
+  /* The page body never scrolls sideways; wide content scrolls in its own box. */
+  overflow-x: hidden;
 }
 
-/* ---- Controls ---- */
+p,
+li,
+span,
+td,
+.t-body,
+.t-secondary,
+.t-title {
+  overflow-wrap: anywhere;
+}
+
+/* ---- Type roles: the specimen table, verbatim ------------------------- */
+
+.t-display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(34px, 9vw, 60px);
+  line-height: 1.06;
+  letter-spacing: -0.015em;
+}
+.t-stat {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: clamp(36px, 10vw, 56px);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+/* The running total's cents sit at 60% — DESIGN.md, hero stat. */
+.t-stat .cents {
+  font-size: 0.6em;
+}
+.t-stat .currency {
+  color: var(--color-hi-vis);
+}
+.t-h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+.t-title {
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.3;
+}
+.t-body {
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.55;
+}
+.t-secondary {
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-text-2);
+}
+.t-label {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-3);
+}
+.t-data {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Structure: space and hairlines, never nested boxes --------------- */
+
+.gutter {
+  padding-left: var(--gutter);
+  padding-right: var(--gutter);
+}
+.rule {
+  border-top: 1px solid var(--color-hairline);
+}
+/* Full-bleed rows >=56px with 16px of vertical padding and a hairline between. */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--color-hairline);
+  text-align: left;
+}
+.row:last-child {
+  border-bottom: 0;
+}
+/* A panel is a framed object: grouped stats, photo thumbnails, the sheet. */
+.panel {
+  background: var(--color-toolbox);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-panel);
+}
+.sheet {
+  background: var(--color-toolbox);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-sheet);
+}
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.scroll-x::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---- Controls --------------------------------------------------------- */
+
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 48px; padding: 0 20px; border-radius: 10px;
-  font-weight: 600; font-size: 0.9375rem; line-height: 1;
-  transition: transform 120ms var(--ease-out-quart), background-color 120ms linear;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: var(--radius-control);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1;
+  white-space: nowrap;
+  transition:
+    transform 120ms var(--ease-out-quart),
+    background-color 120ms linear,
+    border-color 120ms linear;
 }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: var(--color-action); color: var(--color-bg); }
-.btn-secondary { background: transparent; color: var(--color-fg); border: 1px solid var(--color-line); }
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.btn-primary {
+  background: var(--color-paper);
+  color: var(--color-iron);
+}
+.btn-primary:active:not(:disabled) {
+  background: var(--color-paper-press);
+}
+.btn-primary:disabled {
+  background: var(--color-disabled);
+  color: var(--color-text-3);
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-hairline);
+}
+.btn-secondary:active:not(:disabled) {
+  border-color: var(--color-hairline-press);
+}
+.btn-secondary:disabled {
+  color: var(--color-text-3);
+}
+/* Quiet action: hi-vis text, no underline, dims on press. */
+.btn-quiet {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 4px;
+  background: none;
+  border: 0;
+  color: var(--color-hi-vis);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+}
+.btn-quiet:active:not(:disabled) {
+  opacity: 0.8;
+}
+.btn-quiet:disabled {
+  color: var(--color-text-3);
+}
+.btn-full {
+  width: 100%;
+}
+.btn-danger {
+  background: transparent;
+  border: 1px solid var(--color-hairline);
+  color: var(--color-red);
+}
 
-.focus-ring:focus-visible,
-a:focus-visible,
-button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+.field {
+  width: 100%;
+  height: 48px;
+  padding: 0 12px;
+  background: var(--color-iron);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 16px; /* 16px prevents iOS zoom-on-focus */
 }
+textarea.field {
+  height: auto;
+  min-height: 96px;
+  padding: 12px;
+  line-height: 1.55;
+  resize: vertical;
+}
+select.field {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--color-text-2) 50%),
+    linear-gradient(135deg, var(--color-text-2) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 21px,
+    calc(100% - 13px) 21px;
+  background-size:
+    5px 5px,
+    5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 36px;
+}
+.field::placeholder {
+  color: var(--color-text-3);
+}
+.field:focus,
+.field:focus-visible {
+  outline: none;
+  border-color: var(--color-hi-vis);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-hi-vis) 25%, transparent);
+}
+.field-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+:where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--color-hi-vis);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Chips: the job filter row. Active = hi-vis border + hi-vis text, never fill. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text-2);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: color 150ms linear, border-color 150ms linear;
+}
+.chip[data-active="true"] {
+  border-color: var(--color-hi-vis);
+  color: var(--color-hi-vis);
+}
+
+/* Status pill: 28px, a 6px dot and a label. */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 2px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  flex: none;
+}
+
+/* The needs-pricing amount: an amber dashed underline, never a filled surface. */
+.needs-pricing {
+  border-bottom: 1px dashed var(--color-amber);
+  color: var(--color-amber);
+  padding-bottom: 2px;
+}
+
+/* ---- The record capsule: the one oversized control -------------------- */
+
+.record-capsule {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-sheet);
+  border: 0;
+  background: var(--color-paper);
+  color: var(--color-iron);
+  transition: background-color 150ms linear, transform 120ms var(--ease-out-quart);
+}
+.record-capsule:active {
+  transform: scale(0.98);
+}
+.record-capsule[data-recording="true"] {
+  background: var(--color-iron);
+  color: var(--color-text);
+  box-shadow: inset 0 0 0 1.75px var(--color-hi-vis);
+  animation: ring-breathe 2s var(--ease-in-out-soft) infinite;
+}
+.record-capsule[data-paused="true"] {
+  background: var(--color-iron);
+  color: var(--color-text);
+  box-shadow: inset 0 0 0 1.75px var(--color-hairline-press);
+  animation: none;
+}
+@keyframes ring-breathe {
+  0%,
+  100% {
+    box-shadow: inset 0 0 0 1.75px color-mix(in srgb, var(--color-hi-vis) 60%, transparent);
+  }
+  50% {
+    box-shadow: inset 0 0 0 1.75px var(--color-hi-vis);
+  }
+}
+.camera-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-hairline);
+  background: transparent;
+  color: var(--color-text);
+}
+/* The live level meter: a 2px hi-vis hairline that widens with input. */
+.level-meter {
+  height: 2px;
+  background: var(--color-hi-vis);
+  border-radius: 2px;
+  transition: width 90ms linear;
+}
+/* Hold-to-end: a radial fill confirm over 600ms. */
+.hold-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-sheet);
+  background: color-mix(in srgb, var(--color-hi-vis) 22%, transparent);
+  transform-origin: center;
+  pointer-events: none;
+  opacity: 0;
+}
+.hold-fill[data-holding="true"] {
+  animation: hold-grow 600ms linear both;
+}
+@keyframes hold-grow {
+  from {
+    opacity: 0.2;
+    clip-path: circle(0% at 50% 50%);
+  }
+  to {
+    opacity: 1;
+    clip-path: circle(75% at 50% 50%);
+  }
+}
+
+/* ---- The signature: the estimate drafting itself ---------------------- */
+
+@keyframes row-type-in {
+  from {
+    opacity: 0;
+    transform: translateX(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes amount-land {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes digit-roll {
+  from {
+    transform: translateY(0.5em);
+    opacity: 0.4;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes send-sweep {
+  0% {
+    transform: scaleX(0);
+    opacity: 1;
+  }
+  40% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+}
+
+/* Rows enter one at a time, 24ms apart, with the amount landing last. */
+.type-in {
+  animation: row-type-in 200ms var(--ease-out-quart) both;
+}
+.type-in .amount {
+  animation: amount-land 160ms var(--ease-out-quart) 120ms both;
+}
+.odometer {
+  display: inline-block;
+  animation: digit-roll 420ms var(--spring-gentle) both;
+}
+.send-sweep {
+  display: block;
+  height: 1.5px;
+  background: var(--color-hi-vis);
+  transform-origin: left center;
+  animation: send-sweep 640ms var(--ease-out-quart) both;
+}
+
+/* ---- Bottom tab bar --------------------------------------------------- */
+
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: color-mix(in srgb, var(--color-toolbox) 94%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-hairline);
+}
+.tabbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 44px;
+  color: var(--color-text-3);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+}
+.tabbar-item[data-active="true"] {
+  color: var(--color-text);
+}
+.tabbar-dot {
+  width: 2px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--color-hi-vis);
+}
+/* The primary action, pinned in the thumb zone above the tab bar. */
+.thumb-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  z-index: 19;
+  padding: 12px var(--gutter);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  background: color-mix(in srgb, var(--color-iron) 94%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-hairline);
+}
+.thumb-bar-plain {
+  bottom: 0;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}
+
+/* ---- The homeowner proposal page: the light theme --------------------- */
+
+.paper-page {
+  color-scheme: light;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  min-height: 100dvh;
+}
+.paper-page * {
+  border-color: var(--color-paper-line);
+}
+.paper-page .t-secondary {
+  color: var(--color-paper-text-2);
+}
+.paper-page .t-label {
+  color: var(--color-paper-text-2);
+}
+.paper-page .row {
+  border-bottom-color: var(--color-paper-line);
+}
+.paper-page .rule {
+  border-top-color: var(--color-paper-line);
+}
+.paper-page .btn-primary {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+.paper-page .btn-primary:active:not(:disabled) {
+  background: var(--color-ink-press);
+}
+.paper-page .btn-primary:disabled {
+  background: #d8d0be;
+  color: #8a8474;
+}
+.paper-page .btn-secondary {
+  color: var(--color-ink);
+  border-color: var(--color-paper-line);
+}
+.paper-page .field {
+  background: #fffdf9;
+  border-color: var(--color-paper-line);
+  color: var(--color-ink);
+}
+.paper-page .field:focus,
+.paper-page .field:focus-visible {
+  border-color: var(--color-ink);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-ink) 18%, transparent);
+}
+.paper-page :where(a, button, input, textarea):focus-visible {
+  outline-color: var(--color-ink);
+}
+.paper-page .panel {
+  background: #fffdf9;
+  border-color: var(--color-paper-line);
+}
+
+/* ---- Reduced motion: feature-complete, never punitive ----------------- */
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 100ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 100ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* Typed-in rows become present immediately, with a single short fade. */
+  .type-in,
+  .type-in .amount {
+    animation: amount-land 100ms linear both !important;
+    animation-delay: 0ms !important;
+  }
+  /* The odometer becomes a direct number swap. */
+  .odometer {
+    animation: none !important;
+  }
+  /* The send sweep becomes a short fade of the same hi-vis rule. */
+  .send-sweep {
+    animation: amount-land 100ms linear both !important;
+  }
+  /* The record ring stops breathing and simply stays on. */
+  .record-capsule[data-recording="true"] {
+    animation: none !important;
+    box-shadow: inset 0 0 0 1.75px var(--color-hi-vis);
+  }
+  .hold-fill[data-holding="true"] {
+    animation-duration: 600ms !important;
+  }
 }

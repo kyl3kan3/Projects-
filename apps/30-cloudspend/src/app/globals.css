@@ -1,54 +1,77 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   CloudSpend — design tokens. Generated from DESIGN.md; edit DESIGN.md first.
-   Obeys DESIGN_LANGUAGE.md: one rationed accent, hairlines not boxes,
-   no gradients or glow on controls, 4px spacing scale, fonts must load.
+   CloudSpend — redline implementation of DESIGN.md v3.
+   A dark observatory: night-sky ground, money as tabular mono telemetry,
+   paper-filled actions, one rationed steel blue, and a signature that draws
+   the deploy-correlation thesis literally.
+
+   Obeys DESIGN_LANGUAGE.md v2.1: no emoji, no gradient or glow on controls,
+   hairlines not borders, space before boxes, 4px scale, exactly three radii,
+   one accent capped at ~10% of a screen, fonts that actually load.
    ========================================================================== */
 
 @theme {
-  /* Palette — exact values from DESIGN.md */
-  --color-night: #0c111c; /* The ground. Every screen */
-  --color-panel: #141b2b; /* Chart frames, alert cards, sheets only */
-  --color-hairline: #232c40; /* 1px dividers & card borders — never brighter */
-  --color-text: #e8edf7; /* Primary text */
-  --color-text-2: #8794ad; /* Secondary text */
-  --color-text-3: #57627a; /* Faint (axis labels, placeholders) */
-  --color-paper: #f1f4f9; /* Primary buttons (night text), key numerals */
-  --color-steel: #4596c7; /* THE accent. ≤10% of any screen: brand mark, now-line, active tab dot, links, f */
-  --color-dusk: #4a5c85; /* Chart series fill/stroke (data, not accent) */
-  --color-amber: #ffb020; /* Anomaly flare + open-anomaly state only */
-  --color-green: #43b588; /* Resolved / savings only */
+  /* Palette — the exact table in DESIGN.md. */
+  --color-night: #0c111c; /* the ground, every screen */
+  --color-panel: #141b2b; /* chart frames, alert cards, sheets only */
+  --color-hairline: #232c40; /* 1px dividers and card borders — never brighter */
+  --color-text: #e8edf7;
+  --color-text-2: #8794ad;
+  /*
+   * The one deliberate divergence from DESIGN.md's palette table, made here
+   * rather than worked around per component.
+   *
+   * DESIGN.md specifies text-3 as #57627a. Measured against the night ground
+   * (#0c111c) that is 3.09:1, and against panel (#141b2b) 2.81:1 — while WCAG AA
+   * asks 4.5:1 for text under 24px. Every use of text-3 in this product is
+   * 11–13px content that carries meaning: Labels, axis dates, timestamps, the
+   * baseline ghost, input placeholders. DESIGN_LANGUAGE.md's "Contrast: AA
+   * minimum everywhere" and the redline hex cannot both hold, and the reader wins.
+   *
+   * This is the same hue and chroma family, lightened only until it passes:
+   * 4.95:1 on night and 4.51:1 on panel. Nothing else in the palette moves, and
+   * text-3 stays visibly quieter than text-2 (6.17:1).
+   */
+  --color-text-3: #75839f;
+  --color-paper: #f1f4f9; /* the only high-emphasis fill */
+  --color-steel: #4596c7; /* THE accent, <=10% of any screen */
+  --color-dusk: #4a5c85; /* chart series — data, not accent */
+  --color-amber: #ffb020; /* anomaly flare and open state only */
+  --color-green: #43b588; /* resolved and savings only */
 
-  /* Semantic aliases, so components never hardcode a hue name */
-  --color-bg: #0c111c;
-  --color-surface: #141b2b;
-  --color-line: #232c40;
-  --color-fg: #e8edf7;
-  --color-fg-2: #8794ad;
-  --color-fg-3: #57627a;
-  --color-accent: #4596c7;
-  --color-action: #f1f4f9;
-  --color-ok: #43b588;
-  --color-warn: #ffb020;
+  /* Component states, spelled out in DESIGN.md's component section. */
+  --color-paper-press: #dfe5ee;
+  --color-disabled: #222b3f;
+  --color-hairline-press: #2e3952;
 
-  --font-display: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  /* Exactly three radii: controls / cards and frames / sheets. */
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-sheet: 20px;
 
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 :root {
+  /* One visual world, deliberately: this product is read at 3am. */
   color-scheme: dark;
+  --gutter: 20px;
   --tabbar-h: 56px;
+
+  --font-sans: var(--font-sans-loaded), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-mono-loaded), ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+* {
+  border-color: var(--color-hairline);
 }
 
 html,
 body {
-  background: var(--color-bg);
-  color: var(--color-fg);
+  background: var(--color-night);
+  color: var(--color-text);
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.55;
@@ -56,46 +79,451 @@ body {
   overscroll-behavior-y: none;
 }
 
-* { border-color: var(--color-line); }
+body {
+  /* The page body never scrolls sideways; wide content scrolls in its own box. */
+  overflow-x: hidden;
+}
 
-/* ---- Type roles (see the specimen table in DESIGN.md) ---- */
-.t-hero { font-family: var(--font-display); font-size: clamp(2rem, 8.5vw, 3.375rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 600; }
-.t-stat { font-family: var(--font-mono); font-size: clamp(2.125rem, 9.5vw, 3.25rem); line-height: 1.05; letter-spacing: -0.01em; font-weight: 500; font-variant-numeric: tabular-nums; }
-.t-h2 { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.01em; font-weight: 600; }
-.t-title { font-size: 1rem; line-height: 1.3; font-weight: 600; }
-.t-body { font-size: 1rem; line-height: 1.55; }
-.t-secondary { font-size: 0.8125rem; line-height: 1.45; color: var(--color-fg-2); }
-.t-label { font-size: 0.6875rem; line-height: 1.2; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-fg-3); }
-.t-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+/* A resource id or an ARN must wrap rather than push the layout at 390px. */
+p,
+li,
+span,
+td,
+.t-body,
+.t-secondary,
+.t-title,
+.t-data {
+  overflow-wrap: anywhere;
+}
 
-/* ---- Hairline construction: space and rules, never nested boxes ---- */
-.hairline-t { border-top: 1px solid var(--color-line); }
-.hairline-b { border-bottom: 1px solid var(--color-line); }
+/* ---- Type roles: the specimen table, verbatim ------------------------- */
 
+.t-display {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: clamp(32px, 8.5vw, 48px);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.t-h2 {
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.15;
+}
+.t-title {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+}
+.t-body {
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.55;
+}
+.t-secondary {
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-text-2);
+}
+.t-label {
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-3);
+}
+.t-data {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.t-data-lg {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 20px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Structure: space and hairlines, never nested boxes --------------- */
+
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.gutter {
+  padding-left: var(--gutter);
+  padding-right: var(--gutter);
+}
+.rule {
+  border-top: 1px solid var(--color-hairline);
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-hairline);
+  text-align: left;
+}
+.row:last-child {
+  border-bottom: 0;
+}
+/* A card frames a genuinely framed object: a chart, an alert, a sheet. */
 .card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-line);
-  border-radius: 12px;
+  background: var(--color-panel);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-card);
+}
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* ---- Controls ---- */
+/* ---- Controls --------------------------------------------------------- */
+
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 48px; padding: 0 20px; border-radius: 10px;
-  font-weight: 600; font-size: 0.9375rem; line-height: 1;
-  transition: transform 120ms var(--ease-out-quart), background-color 120ms linear;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: var(--radius-control);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1;
+  white-space: nowrap;
+  transition:
+    transform 120ms var(--ease-out-quart),
+    background-color 120ms linear,
+    border-color 120ms linear;
 }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: var(--color-action); color: var(--color-bg); }
-.btn-secondary { background: transparent; color: var(--color-fg); border: 1px solid var(--color-line); }
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.btn-primary {
+  background: var(--color-paper);
+  color: var(--color-night);
+}
+.btn-primary:active:not(:disabled) {
+  background: var(--color-paper-press);
+}
+.btn-primary:disabled {
+  background: var(--color-disabled);
+  color: var(--color-text-3);
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-hairline);
+}
+.btn-secondary:active:not(:disabled) {
+  border-color: var(--color-hairline-press);
+}
+.btn-secondary:disabled {
+  color: var(--color-text-3);
+}
+/* Quiet action: text-only steel, no underline, dims on press. */
+.btn-quiet {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 8px;
+  background: none;
+  border: 0;
+  color: var(--color-steel);
+  font-weight: 600;
+  font-size: 15px;
+}
+.btn-quiet:active:not(:disabled) {
+  opacity: 0.8;
+}
+.btn-quiet:disabled {
+  color: var(--color-text-3);
+}
+.btn-full {
+  width: 100%;
+}
 
-.focus-ring:focus-visible,
-a:focus-visible,
-button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+.field {
+  width: 100%;
+  height: 48px;
+  padding: 0 12px;
+  background: var(--color-panel);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 16px; /* 16px prevents iOS zoom-on-focus */
 }
+.field-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+textarea.field {
+  height: auto;
+  min-height: 96px;
+  padding: 12px;
+  line-height: 1.55;
+  resize: vertical;
+}
+select.field {
+  appearance: none;
+  padding-right: 36px;
+}
+.field::placeholder {
+  color: var(--color-text-3);
+}
+.field:focus {
+  outline: none;
+  border-color: var(--color-steel);
+}
+
+:where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--color-steel);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* State labels. Amber = open anomaly, green = resolved or saved. Nothing else. */
+.state-open {
+  color: var(--color-amber);
+}
+.state-acked {
+  color: var(--color-text-2);
+}
+.state-resolved {
+  color: var(--color-green);
+}
+
+/* ---- The burn-rate meter --------------------------------------------- */
+
+.meter {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-hairline);
+  overflow: hidden;
+}
+.meter-fill {
+  height: 100%;
+  background: var(--color-dusk);
+  border-radius: 2px;
+}
+.meter-fill[data-level="warn"],
+.meter-fill[data-level="over"] {
+  background: var(--color-amber);
+}
+
+/* ---- Bottom tab bar -------------------------------------------------- */
+
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: color-mix(in srgb, var(--color-panel) 94%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-hairline);
+}
+.tabbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 44px;
+  color: var(--color-text-3);
+  font-size: 10px;
+  font-weight: 600;
+}
+.tabbar-item[data-active="true"] {
+  color: var(--color-text);
+}
+.tabbar-dot {
+  width: 2px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--color-steel);
+}
+
+/* The thumb-zone bar: the primary action, pinned above the tab bar. */
+.thumb-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  z-index: 19;
+  padding: 12px var(--gutter);
+  background: color-mix(in srgb, var(--color-night) 94%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-hairline);
+}
+
+/* A count badge on the flare glyph in the top bar. */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--color-amber);
+  color: var(--color-night);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+/* ==========================================================================
+   THE SIGNATURE — the flare and the survey line.
+   An amber flare marks the peak of the excess; a 1px amber line draws down
+   from the flare to the correlated deploy pennant; the excess area tints
+   amber at 18%. Pure SVG stroke and opacity, phone-size, 60fps.
+   ========================================================================== */
+
+@keyframes chart-draw {
+  from {
+    stroke-dashoffset: var(--draw-length, 1200);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes flare-ring {
+  from {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.2);
+  }
+}
+@keyframes survey-draw {
+  from {
+    stroke-dashoffset: var(--survey-length, 200);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes tint-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.18;
+  }
+}
+@keyframes pennant-stick {
+  from {
+    transform: translateY(3px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+.chart-series {
+  stroke-dasharray: var(--draw-length, 1200);
+  animation: chart-draw 800ms var(--ease-out-quart) both;
+}
+.flare-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: flare-ring 900ms var(--ease-out-quart) 2 both;
+}
+.survey-line {
+  stroke-dasharray: var(--survey-length, 200);
+  animation: survey-draw 400ms var(--ease-in-out-soft) 300ms both;
+}
+.excess-tint {
+  animation: tint-in 400ms var(--ease-out-quart) 200ms both;
+}
+.pennant {
+  animation: pennant-stick 120ms var(--ease-out-quart) both;
+}
+
+/* ---- Reduced motion: feature-complete, never punitive ---------------- */
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 100ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 100ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* The chart is drawn instantly; every plumb line and figure stays intact. */
+  .chart-series {
+    animation: none !important;
+    stroke-dasharray: none;
+  }
+  /* The flare settles to a steady lamp: no expanding rings at all. */
+  .flare-ring {
+    animation: none !important;
+    display: none;
+  }
+  /* The survey line and the tint are shown complete. */
+  .survey-line {
+    animation: none !important;
+    stroke-dasharray: none;
+  }
+  .excess-tint {
+    animation: none !important;
+    opacity: 0.18;
+  }
+  .pennant {
+    animation: none !important;
+    opacity: 1;
+  }
+}
+
+/* ---- Desktop: the chart grows, the anomaly rail docks right ---------- */
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: 32px;
+  }
+  .watch-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 32px;
+    align-items: start;
+  }
 }
