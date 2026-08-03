@@ -131,8 +131,7 @@ await shot("03-setup");
 step("setup: mint a kiosk link");
 await page.reload({ waitUntil: "networkidle" });
 await page.getByRole("button", { name: /kiosk link/i }).click();
-await page.waitForSelector('[role="status"]', { timeout: 20000 });
-const kioskMsg = (await page.locator('[role="status"]').first().innerText()).trim();
+const kioskMsg = await msg(page, '[role="status"]');
 const kioskToken = kioskMsg.match(/\/kiosk\/([A-Za-z0-9._-]+)/)?.[1];
 console.log("  kiosk token minted:", Boolean(kioskToken));
 writeFileSync(`${OUT}/kiosk-token.txt`, kioskToken ?? "");
@@ -206,8 +205,7 @@ console.log(
 );
 await page.getByRole("button", { name: "Resume training" }).click();
 await page.getByRole("button", { name: "Resume", exact: true }).last().click();
-await page.waitForSelector('[role="status"]', { timeout: 20000 });
-console.log("  resumed:", (await page.locator('[role="status"]').first().innerText()).trim());
+console.log("  resumed:", await msg(page, '[role="status"]'));
 
 // ------------------------------------------------------------- curriculum
 step("curriculum");

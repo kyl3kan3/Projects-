@@ -20,6 +20,19 @@ const browser = await chromium.launch({
   args: ["--no-sandbox", "--disable-dev-shm-usage"],
 });
 
+/** Wait for a live-region message to actually have text before reading it. */
+const msg = async (target, selector) => {
+  await target.waitForFunction(
+    (sel) => {
+      const el = document.querySelector(sel);
+      return el && el.textContent && el.textContent.trim().length > 0;
+    },
+    selector,
+    { timeout: 25000 },
+  );
+  return (await target.locator(selector).first().innerText()).trim();
+};
+
 const track = (page) => {
   page.on("console", (m) => {
     if (m.type() === "error") errors.push(`[console] ${m.text()}`);
