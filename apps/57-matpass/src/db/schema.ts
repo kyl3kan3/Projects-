@@ -13,8 +13,23 @@
  * - promotions is append-only (no update path is ever written for it;
  *   corrections append a reversal + new row).
  * - webhook_events unique per (provider, external_id).
+ * - retention_flags: at most one OPEN flag per student (partial unique index —
+ *   the nightly scan can then be run twice without duplicating a call sheet).
+ *
+ * Columns added during the build, beyond ARCHITECTURE.md's table list, and why:
+ * - users.password_hash — the portfolio's auth convention is scrypt + a signed
+ *   JWT cookie (AGENT_BRIEF.md), not Auth.js's adapter tables.
+ * - students.kiosk_pin — the kiosk's second identification path ("searches
+ *   name or enters PIN") needs somewhere to keep the PIN.
+ * - enrollments.signoff_by / signoff_at — ranks with requires_signoff need the
+ *   sign-off state the progression engine reads.
+ * - subscriptions.failed_payments / last_dunning_on / escalated_at — dunning
+ *   has to escalate after the second failure and must not mail daily forever.
+ * - schools.billing_status — MatPass's own subscription state (trialing until
+ *   checkout completes), separate from a family's tuition subscription.
  */
 
+import { sql } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -113,6 +128,13 @@ export const deliveryStatusEnum = pgEnum("delivery_status", [
   "failed",
 ]);
 
+export const billingStatusEnum = pgEnum("billing_status", [
+  "trialing",
+  "active",
+  "past_due",
+  "canceled",
+]);
+
 // ---------------------------------------------------------------- tables
 
 export const schools = pgTable("schools", {
@@ -122,6 +144,7 @@ export const schools = pgTable("schools", {
   stripeCustomerId: text("stripe_customer_id"),
   stripeSubscriptionId: text("stripe_subscription_id"),
   stripeAccountId: text("stripe_account_id"),
+  billingStatus: billingStatusEnum("billing_status").notNull().default("trialing"),
   trialEndsAt: timestamp("trial_ends_at", { withTimezone: true }),
   timezone: text("timezone").notNull().default("America/Chicago"),
   settings: jsonb("settings")
@@ -165,6 +188,7 @@ export const users = pgTable(
       .references(() => schools.id),
     email: text("email").notNull(),
     name: text("name").notNull(),
+    passwordHash: text("password_hash").notNull(),
     role: userRoleEnum("role").notNull().default("front_desk"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -256,6 +280,8 @@ export const students = pgTable(
     lastName: text("last_name").notNull(),
     birthdate: timestamp("birthdate", { withTimezone: true }),
     photoKey: text("photo_key"),
+    /** Kiosk's second identification path; 4 digits, unique per school. */
+    kioskPin: text("kiosk_pin"),
     status: studentStatusEnum("status").notNull().default("active"),
     joinedOn: timestamp("joined_on", { withTimezone: true }),
     notes: text("notes").notNull().default(""),
@@ -269,6 +295,7 @@ export const students = pgTable(
   (t) => [
     index("students_school_status_idx").on(t.schoolId, t.status),
     index("students_family_idx").on(t.familyId),
+    uniqueIndex("students_pin_unique").on(t.schoolId, t.kioskPin),
   ],
 );
 
@@ -288,6 +315,14 @@ export const enrollments = pgTable(
     currentStripes: integer("current_stripes").notNull().default(0),
     promotedAt: timestamp("promoted_at", { withTimezone: true }).notNull(),
     status: enrollmentStatusEnum("status").notNull().default("active"),
+    /** Instructor sign-off for ranks with requires_signoff; cleared on promotion. */
+    signoffBy: uuid("signoff_by").references(() => users.id),
+    signoffAt: timestamp("signoff_at", { withTimezone: true }),
+    /**
+     * A paused enrollment's clock stops: days-in-rank counts up to this instant
+     * instead of to now, so a summer pause does not manufacture eligibility.
+     */
+    pausedAt: timestamp("paused_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -489,6 +524,17 @@ export const subscriptions = pgTable(
     studentIds: jsonb("student_ids").$type<string[]>().notNull().default([]),
     currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
     pastDueSince: timestamp("past_due_since", { withTimezone: true }),
+    /** How many invoices have failed in the current past-due spell. */
+    failedPayments: integer("failed_payments").notNull().default(0),
+    /**
+     * Date (school-local, YYYY-MM-DD) the last dunning email went out. The
+     * dunning sweep is pinned to fixed distances from `past_due_since`, so a
+     * family that never pays is mailed on days 0/3/7 and then never again —
+     * "past due" stays true forever, and a naive daily sweep would too.
+     */
+    lastDunningOn: text("last_dunning_on"),
+    /** Set when the second failure escalates it to a desk conversation. */
+    escalatedAt: timestamp("escalated_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -528,7 +574,14 @@ export const retentionFlags = pgTable(
       .notNull()
       .defaultNow(),
   },
-  (t) => [index("flags_student_status_idx").on(t.studentId, t.status)],
+  (t) => [
+    index("flags_student_status_idx").on(t.studentId, t.status),
+    // One open flag per student, enforced by the database rather than by a
+    // read-then-write race in the nightly scan.
+    uniqueIndex("flags_one_open_per_student")
+      .on(t.studentId)
+      .where(sql`${t.status} = 'open'`),
+  ],
 );
 
 export const announcements = pgTable(
@@ -569,7 +622,11 @@ export const deliveries = pgTable(
       .notNull()
       .defaultNow(),
   },
-  (t) => [index("deliveries_announcement_idx").on(t.announcementId)],
+  (t) => [
+    index("deliveries_announcement_idx").on(t.announcementId),
+    // A re-run of the fan-out must not mail the same household twice.
+    uniqueIndex("deliveries_unique").on(t.announcementId, t.familyId),
+  ],
 );
 
 export const webhookEvents = pgTable(
@@ -608,3 +665,33 @@ export const auditLog = pgTable(
   },
   (t) => [index("audit_school_time_idx").on(t.schoolId, t.occurredAt)],
 );
+
+// ---------------------------------------------------------------- row types
+
+export type School = typeof schools.$inferSelect;
+export type User = typeof users.$inferSelect;
+export type Program = typeof programs.$inferSelect;
+export type Rank = typeof ranks.$inferSelect;
+export type Family = typeof families.$inferSelect;
+export type Student = typeof students.$inferSelect;
+export type Enrollment = typeof enrollments.$inferSelect;
+export type ClassSlot = typeof classSchedule.$inferSelect;
+export type Checkin = typeof checkins.$inferSelect;
+export type KioskDevice = typeof kioskDevices.$inferSelect;
+export type GradingEvent = typeof gradingEvents.$inferSelect;
+export type GradingCandidate = typeof gradingCandidates.$inferSelect;
+export type Promotion = typeof promotions.$inferSelect;
+export type MembershipPlan = typeof membershipPlans.$inferSelect;
+export type Subscription = typeof subscriptions.$inferSelect;
+export type RetentionFlag = typeof retentionFlags.$inferSelect;
+export type Announcement = typeof announcements.$inferSelect;
+export type Delivery = typeof deliveries.$inferSelect;
+
+export type UserRole = (typeof userRoleEnum.enumValues)[number];
+export type PlanTier = (typeof planEnum.enumValues)[number];
+export type CandidateStatus = (typeof candidateStatusEnum.enumValues)[number];
+export type FlagStatus = (typeof flagStatusEnum.enumValues)[number];
+export type SubscriptionStatus = (typeof subscriptionStatusEnum.enumValues)[number];
+export type DeliveryStatus = (typeof deliveryStatusEnum.enumValues)[number];
+export type StudentStatus = (typeof studentStatusEnum.enumValues)[number];
+export type GradingEventStatus = (typeof gradingEventStatusEnum.enumValues)[number];

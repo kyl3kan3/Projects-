@@ -312,7 +312,12 @@ function ScopeTable({
         <tbody>
           {rows.map((r) => (
             <tr key={`${r.scope}-${r.category}-${r.factorLabel}`}>
-              <td>{r.label}</td>
+              <td>
+                {r.label}
+                {/* Two market-based rows for one meter is correct and needs saying: the
+                    covered volume is credited at zero, the remainder is not. */}
+                {r.factorLabel === "Contractual instrument" ? " — covered by contract" : ""}
+              </td>
               <td className="num">
                 {r.unit === "USD cents"
                   ? formatCentsCompact(r.quantityMilli)

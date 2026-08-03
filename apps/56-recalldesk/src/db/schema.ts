@@ -11,6 +11,26 @@
  * - enrollments unique per (campaign_id, patient_id).
  * - call_tasks unique per (location_id, patient_id, queue_date).
  * - webhook_events unique per (provider, external_id) — idempotency ledger.
+ *
+ * Additions made during the build, on top of the scaffold's data model:
+ * - users.password_hash — auth is scrypt + a signed JWT cookie (portfolio
+ *   convention), so the login credential has to live somewhere.
+ * - patients.email_opted_out_at — the README requires opt-outs to be
+ *   "permanent per channel"; SMS had a column for it and email did not.
+ * - locations.quiet_start_hour / quiet_end_hour / hourly_send_cap — the
+ *   consent chokepoint and pacing are per-location policy, not constants.
+ * - campaigns.auto_enroll — ARCHITECTURE flow 2 ("new matches can auto-enroll
+ *   daily") is a per-campaign choice.
+ * - import_files — the uploaded CSV bytes. R2 is the specified home, but the
+ *   file has to land somewhere durable in a deployment with no object storage
+ *   configured, and a preview that cannot re-read its own file is a dead end.
+ * - mapping_presets — "column mapping with saved presets" (README), per
+ *   location and PMS.
+ * - job_leases — the scheduler's mutual exclusion. On Vercel there is no
+ *   always-on process, so the queue's jobs run from a cron-triggered route
+ *   (and, optionally, a long-lived `npm run worker`); a lease row keeps the
+ *   two from doing the same work twice. Compared in SQL, never against a JS
+ *   Date, so microsecond truncation cannot make a lease look free.
  */
 
 import {
@@ -159,6 +179,11 @@ export const locations = pgTable(
     bookingNotice: text("booking_notice").notNull().default(""),
     sendingDomain: text("sending_domain"),
     smsFromNumber: text("sms_from_number"),
+    /** Quiet hours in the location's own timezone (inclusive start, exclusive end). */
+    quietStartHour: integer("quiet_start_hour").notNull().default(9),
+    quietEndHour: integer("quiet_end_hour").notNull().default(19),
+    /** Deliverability pacing: touches this location may send in one hour. */
+    hourlySendCap: integer("hourly_send_cap").notNull().default(120),
     status: text("status", { enum: ["active", "paused"] })
       .notNull()
       .default("active"),
@@ -181,6 +206,7 @@ export const users = pgTable(
       .references(() => practices.id),
     email: text("email").notNull(),
     name: text("name").notNull(),
+    passwordHash: text("password_hash").notNull(),
     role: userRoleEnum("role").notNull().default("front_desk"),
     defaultLocationId: uuid("default_location_id").references(
       () => locations.id,
@@ -229,6 +255,40 @@ export const imports = pgTable(
   (t) => [index("imports_location_idx").on(t.locationId)],
 );
 
+/**
+ * The uploaded CSV itself. R2 is the specified home (imports.file_key holds the
+ * key); when object storage is not configured the bytes live here so the
+ * preview -> commit -> rollback pipeline still has a file to re-read.
+ */
+export const importFiles = pgTable("import_files", {
+  importId: uuid("import_id")
+    .primaryKey()
+    .references(() => imports.id, { onDelete: "cascade" }),
+  filename: text("filename").notNull(),
+  content: text("content").notNull(),
+  byteSize: integer("byte_size").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+/** Saved column mappings, per location and PMS — "map it once" (README). */
+export const mappingPresets = pgTable(
+  "mapping_presets",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    locationId: uuid("location_id")
+      .notNull()
+      .references(() => locations.id),
+    source: pmsSourceEnum("source").notNull(),
+    mapping: jsonb("mapping").$type<Record<string, string>>().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [uniqueIndex("mapping_presets_unique").on(t.locationId, t.source)],
+);
+
 export const patients = pgTable(
   "patients",
   {
@@ -244,6 +304,8 @@ export const patients = pgTable(
     emailConsent: boolean("email_consent").notNull().default(true),
     smsConsent: boolean("sms_consent").notNull().default(false),
     smsOptedOutAt: timestamp("sms_opted_out_at", { withTimezone: true }),
+    /** Email unsubscribe. Permanent, like STOP — never cleared by an import. */
+    emailOptedOutAt: timestamp("email_opted_out_at", { withTimezone: true }),
     emailBouncedAt: timestamp("email_bounced_at", { withTimezone: true }),
     phoneFailedAt: timestamp("phone_failed_at", { withTimezone: true }),
     recallIntervalMonths: integer("recall_interval_months")
@@ -288,7 +350,13 @@ export const visits = pgTable(
       .notNull()
       .defaultNow(),
   },
-  (t) => [index("visits_patient_time_idx").on(t.patientId, t.visitedOn)],
+  (t) => [
+    index("visits_patient_time_idx").on(t.patientId, t.visitedOn),
+    // Two rows for the same patient, day and kind are the same appointment seen
+    // twice (a re-import, or a PMS export that lists each procedure on its own
+    // line). Making that a constraint is what keeps commit idempotent.
+    uniqueIndex("visits_unique").on(t.patientId, t.visitedOn, t.kind),
+  ],
 );
 
 export const templates = pgTable(
@@ -331,6 +399,8 @@ export const campaigns = pgTable(
     maxTouchesPerPatient: integer("max_touches_per_patient")
       .notNull()
       .default(4),
+    /** Enroll patients who match the segment after launch, once per day. */
+    autoEnroll: boolean("auto_enroll").notNull().default(false),
     startedAt: timestamp("started_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -539,3 +609,34 @@ export const auditLog = pgTable(
   },
   (t) => [index("audit_practice_time_idx").on(t.practiceId, t.occurredAt)],
 );
+
+/**
+ * Scheduler mutual exclusion. `locked_until` is always written and compared in
+ * SQL (`now()`), never against a JS Date — a lease compared against a truncated
+ * millisecond timestamp is how a scheduler silently stops running.
+ */
+export const jobLeases = pgTable("job_leases", {
+  name: text("name").primaryKey(),
+  lockedUntil: timestamp("locked_until", { withTimezone: true }).notNull(),
+  lastRunAt: timestamp("last_run_at", { withTimezone: true }),
+  note: text("note"),
+});
+
+// ------------------------------------------------------------------- types
+
+export type Practice = typeof practices.$inferSelect;
+export type Location = typeof locations.$inferSelect;
+export type User = typeof users.$inferSelect;
+export type Import = typeof imports.$inferSelect;
+export type Patient = typeof patients.$inferSelect;
+export type Visit = typeof visits.$inferSelect;
+export type Template = typeof templates.$inferSelect;
+export type Campaign = typeof campaigns.$inferSelect;
+export type CampaignStep = typeof campaignSteps.$inferSelect;
+export type Enrollment = typeof enrollments.$inferSelect;
+export type Touch = typeof touches.$inferSelect;
+export type BookingRequest = typeof bookingRequests.$inferSelect;
+export type Booking = typeof bookings.$inferSelect;
+export type Attribution = typeof attributions.$inferSelect;
+export type CallTask = typeof callTasks.$inferSelect;
+export type MappingPreset = typeof mappingPresets.$inferSelect;

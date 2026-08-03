@@ -184,14 +184,28 @@ export function formatCents(cents: number, currency = "USD"): string {
   }).format(cents / 100);
 }
 
-/** Cents → "$1.3M" / "$482k" — the intensity denominator, kept short. */
+/**
+ * Cents → "$1.3M" / "$482K" / "$620".
+ *
+ * Below a thousand the compact notation has no suffix to justify a decimal, and
+ * `Intl`'s compact form still prints "$620.0", which reads like a rounding artefact in a
+ * table of money. Under $1,000 it falls back to whole dollars.
+ */
 export function formatCentsCompact(cents: number, currency = "USD"): string {
+  const dollars = cents / 100;
+  if (Math.abs(dollars) < 1000) {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      maximumFractionDigits: 0,
+    }).format(dollars);
+  }
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency,
     notation: "compact",
     maximumFractionDigits: 1,
-  }).format(cents / 100);
+  }).format(dollars);
 }
 
 /** Basis points → "99%" (never rounds 9 950 up to 100%). */

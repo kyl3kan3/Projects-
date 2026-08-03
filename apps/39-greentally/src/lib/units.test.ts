@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   convertToCanonical,
+  formatCentsCompact,
   formatConfidenceBp,
   formatFactorMicro,
   formatQuantityMilli,
@@ -78,4 +79,11 @@ test("confidence never rounds up to a hundred percent it has not earned", () => 
   assert.equal(formatConfidenceBp(9_950), "99%");
   assert.equal(formatConfidenceBp(10_000), "100%");
   assert.equal(formatConfidenceBp(4_200), "42%");
+});
+
+test("compact money does not print a decimal it has not earned", () => {
+  assert.equal(formatCentsCompact(62_000), "$620");
+  assert.equal(formatCentsCompact(84_130), "$841");
+  assert.equal(formatCentsCompact(1_139_000), "$11.4K");
+  assert.equal(formatCentsCompact(420_000_000), "$4.2M");
 });

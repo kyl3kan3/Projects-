@@ -486,8 +486,10 @@ label.field > span.t-label {
   right: 0;
   bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
   z-index: 20;
-  padding: 12px var(--gutter) 16px;
-  background: linear-gradient(to top, var(--color-bg) 64%, transparent);
+  /* A tall fade, not a short one: at 64% over 76px the row behind the pinned action was
+     still half-legible and read as a rendering fault rather than as content below. */
+  padding: 32px var(--gutter) 16px;
+  background: linear-gradient(to top, var(--color-bg) 60%, transparent);
   pointer-events: none;
 }
 .thumb-cta > * {
