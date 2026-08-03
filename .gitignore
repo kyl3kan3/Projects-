@@ -16,5 +16,10 @@ apps/**/src-tauri/target/
 __pycache__/
 *.py[cod]
 
+# Pidfiles from the dev servers build agents start while verifying. The brief
+# tells them to write one rather than hunt PIDs by pattern, since pkill has
+# taken out other agents' servers; the file itself is never worth committing.
+.server.pid
+
 .DS_Store
 *.log
