@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1785797085371,
+      "tag": "0000_greedy_amazoness",
+      "breakpoints": true
+    }
+  ]
+}

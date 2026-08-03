@@ -15,7 +15,7 @@
  * undone.
  */
 
-import { and, eq, inArray, isNull, isNotNull, ne } from "drizzle-orm";
+import { and, eq, inArray, isNull, ne } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
   facilities,
@@ -40,6 +40,8 @@ import { addDays, formatMoney, type IsoDate } from "@/lib/money";
 import { rentPayments } from "@/lib/payments";
 import { readSettings } from "@/lib/settings";
 import { sendMail } from "@/lib/email";
+import { renderLateNotice } from "@/lib/docs";
+import { tenancyContext } from "@/lib/tenancy";
 
 export interface DelinquentRow {
   owner: { id: string; name: string; email: string; settings: OwnerSettings };
@@ -219,6 +221,23 @@ export async function runLadderFor(
               .set({ ledgerEntryId: posted.entry.id })
               .where(eq(ladderEvents.id, eventId));
           }
+          // The document, not just the email: a past-due notice belongs on the
+          // tenant's file, and if this account ever reaches a lien sale the paper
+          // trail has to start here.
+          try {
+            const ctx = await tenancyContext(row.tenancy.id);
+            if (ctx) {
+              await renderLateNotice(
+                ctx,
+                row.delinquency.outstandingCents + feeCents,
+                row.delinquency.daysLate,
+                asOf,
+              );
+            }
+          } catch (err) {
+            // A failed PDF must not un-charge the fee that is already on the ledger.
+            console.error("[ladder] late notice failed", { tenancyId: row.tenancy.id, err });
+          }
           await sendMail({
             to: row.tenant.email ?? "",
             subject: `${row.facility.name}: unit ${row.unit.label} is ${row.delinquency.daysLate} days past due`,
@@ -350,13 +369,4 @@ export async function ladderHistory(tenancyId: string) {
     .from(ladderEvents)
     .where(eq(ladderEvents.tenancyId, tenancyId))
     .orderBy(ladderEvents.firedOn, ladderEvents.day);
-}
-
-/** Rungs that have been reversed — used by the unit file to show the undo. */
-export async function reversedRungCount(tenancyId: string): Promise<number> {
-  const rows = await getDb()
-    .select({ id: ladderEvents.id })
-    .from(ladderEvents)
-    .where(and(eq(ladderEvents.tenancyId, tenancyId), isNotNull(ladderEvents.reversedOn)));
-  return rows.length;
 }

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="UnitKeeper">
+  <rect width="32" height="32" rx="4" fill="#262622"/>
+  <g stroke="#efeeea" stroke-width="2" stroke-linecap="round" fill="none">
+    <path d="M8 9h16"/>
+    <path d="M8 14h16"/>
+    <path d="M8 19h16"/>
+  </g>
+  <path d="M8 24h16" stroke="#c86428" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

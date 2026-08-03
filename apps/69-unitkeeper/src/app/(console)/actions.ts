@@ -10,6 +10,7 @@
  */
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { facilities, units } from "@/db/schema";
@@ -53,7 +54,7 @@ export async function createFacilityAction(
 
   await audit(owner.id, owner.email, "facility.created", facility.id, { name, state });
   revalidatePath("/map");
-  return formOk(`${name} created.`, `/map?facility=${facility.id}`);
+  redirect(`/map?facility=${facility.id}`);
 }
 
 /**

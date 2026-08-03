@@ -23,7 +23,6 @@ const scrypt = promisify(_scrypt);
 const COOKIE = "unitkeeper_session";
 const MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
-export const SESSION_COOKIE = COOKIE;
 export type SessionOwner = Owner;
 
 export async function hashPassword(password: string): Promise<string> {

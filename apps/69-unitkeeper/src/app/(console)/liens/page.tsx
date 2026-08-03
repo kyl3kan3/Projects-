@@ -11,7 +11,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
 import { facilities, lienCases, lienRules, tenancies, tenants, units } from "@/db/schema";
 import { requireOwner } from "@/lib/auth";
-import { buildTimeline, type StepsState } from "@/lib/lien-engine";
+import { buildTimeline, displayCaseStatus, type StepsState } from "@/lib/lien-engine";
 import { manualModeSentence, REVIEWED_STATES, type RuleStep } from "@/lib/lien-rules";
 import { formatDateLong, isoDateOf } from "@/lib/money";
 import { canUseLienEngine } from "@/lib/plans";
@@ -85,6 +85,7 @@ export default async function LiensPage() {
               asOf,
             );
             const done = timeline.steps.filter((s) => s.completedOn).length;
+            const status = displayCaseStatus(row.lienCase.status, timeline, asOf);
             return (
               <li key={row.lienCase.id} className="hairline-b" style={{ padding: "16px 0" }}>
                 <div className="flex items-baseline justify-between gap-3">
@@ -98,14 +99,14 @@ export default async function LiensPage() {
                   <span
                     className="placard"
                     data-tone={
-                      row.lienCase.status === "sale_eligible"
+                      status === "sale_eligible"
                         ? "lien"
-                        : row.lienCase.status === "resolved" || row.lienCase.status === "closed"
+                        : status === "resolved" || status === "closed"
                           ? "paid"
                           : "overdue"
                     }
                   >
-                    {row.lienCase.status.replace(/_/g, " ")}
+                    {status.replace(/_/g, " ")}
                   </span>
                 </div>
                 <p className="t-secondary" style={{ marginTop: 2 }}>

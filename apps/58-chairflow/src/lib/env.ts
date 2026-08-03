@@ -1,73 +1,113 @@
 /**
  * src/lib/env.ts
  *
- * Typed, lazy access to every environment variable in .env.example.
- * Lazy getters (not module-scope reads) so `next build` succeeds without
- * secrets and the worker fails fast only when a variable is actually used.
+ * Typed, lazy access to every variable in `.env.example`.
  *
- * TODO:
- * - [ ] requireEnv(name): read process.env, throw a descriptive error
- *       naming the missing variable and the .env.example line to copy.
- * - [ ] optionalEnv(name, fallback?) for SENTRY_DSN, Google OAuth.
- * - [ ] Boolean coercion for DRY_RUN ("1" | "true").
+ * Values are read through getters so `next build` — which imports these modules
+ * with no secrets present — never crashes. Only the code path that actually needs
+ * a secret at runtime throws, and it names the variable when it does.
+ *
+ * Two have no safe default. `AUTH_SECRET` signs the stylist session cookie.
+ * `LINK_TOKEN_SECRET` signs the client-facing links — manage-appointment,
+ * nudge-booking, waitlist-claim — which are bearer credentials into one
+ * appointment. A fallback would make either forgeable from the source.
  */
+
+function required(name: string): string {
+  const v = process.env[name];
+  if (!v) throw new Error(`Missing required env var: ${name}`);
+  return v;
+}
+
+function optional(name: string, fallback = ""): string {
+  return process.env[name] ?? fallback;
+}
 
 export const env = {
   get databaseUrl(): string {
-    throw new Error("Not implemented");
-  },
-  get redisUrl(): string {
-    throw new Error("Not implemented");
+    return required("DATABASE_URL");
   },
   get appUrl(): string {
-    throw new Error("Not implemented");
+    return (
+      optional("APP_URL") || optional("NEXT_PUBLIC_APP_URL", "http://localhost:3058")
+    ).replace(/\/$/, "");
   },
+
+  // --- Secrets (no safe default) ---
   get authSecret(): string {
-    throw new Error("Not implemented");
+    return required("AUTH_SECRET");
   },
   get linkTokenSecret(): string {
-    throw new Error("Not implemented");
+    return required("LINK_TOKEN_SECRET");
   },
+
+  // --- Stripe: Connect Express (stylist money) + Billing (ours) ---
   get stripeSecretKey(): string {
-    throw new Error("Not implemented");
+    return required("STRIPE_SECRET_KEY");
   },
   get stripeWebhookSecret(): string {
-    throw new Error("Not implemented");
+    return optional("STRIPE_WEBHOOK_SECRET");
   },
   get stripeConnectWebhookSecret(): string {
-    throw new Error("Not implemented");
+    return optional("STRIPE_CONNECT_WEBHOOK_SECRET");
   },
-  get stripePriceChair(): string {
-    throw new Error("Not implemented");
+  get stripePublishableKey(): string {
+    return optional("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY");
   },
-  get stripePriceBook(): string {
-    throw new Error("Not implemented");
+  get stripePrices(): Record<"chair" | "book" | "shop", string> {
+    return {
+      chair: optional("STRIPE_PRICE_CHAIR"),
+      book: optional("STRIPE_PRICE_BOOK"),
+      shop: optional("STRIPE_PRICE_SHOP"),
+    };
   },
-  get stripePriceShop(): string {
-    throw new Error("Not implemented");
+
+  // --- SMS (Twilio) ---
+  get twilio(): { accountSid: string; authToken: string; fromNumber: string } {
+    return {
+      accountSid: optional("TWILIO_ACCOUNT_SID"),
+      authToken: optional("TWILIO_AUTH_TOKEN"),
+      fromNumber: optional("TWILIO_FROM_NUMBER"),
+    };
   },
-  get twilioAccountSid(): string {
-    throw new Error("Not implemented");
-  },
-  get twilioAuthToken(): string {
-    throw new Error("Not implemented");
-  },
-  get twilioFromNumber(): string {
-    throw new Error("Not implemented");
-  },
+
+  // --- Email (Resend) ---
   get resendApiKey(): string {
-    throw new Error("Not implemented");
+    return optional("RESEND_API_KEY");
   },
   get emailFrom(): string {
-    throw new Error("Not implemented");
+    return optional("EMAIL_FROM", "ChairFlow <bookings@mail.chairflow.io>");
   },
-  get googleClientId(): string {
-    throw new Error("Not implemented");
+
+  // --- Scheduled work ---
+  get cronSecret(): string {
+    return optional("CRON_SECRET");
   },
-  get googleClientSecret(): string {
-    throw new Error("Not implemented");
-  },
+
+  /** DRY_RUN=1 records comms and charges without calling any provider. */
   get dryRun(): boolean {
-    throw new Error("Not implemented");
+    return optional("DRY_RUN", "0") === "1";
   },
-};
+} as const;
+
+/**
+ * Is Stripe configured for real calls? When it is not, the payment gateway falls
+ * back to the recorded stand-in (see `server/payments.ts`) and every screen that
+ * touches money says so rather than pretending a card was charged.
+ */
+export function stripeConfigured(): boolean {
+  return Boolean(process.env.STRIPE_SECRET_KEY) && !env.dryRun;
+}
+
+export function emailConfigured(): boolean {
+  return Boolean(process.env.RESEND_API_KEY) && !env.dryRun;
+}
+
+export function smsConfigured(): boolean {
+  return Boolean(
+    process.env.TWILIO_ACCOUNT_SID &&
+      process.env.TWILIO_AUTH_TOKEN &&
+      process.env.TWILIO_FROM_NUMBER &&
+      !env.dryRun,
+  );
+}

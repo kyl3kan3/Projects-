@@ -14,20 +14,9 @@ export default async function ConsoleLayout({ children }: { children: React.Reac
   const { owner, ent } = await requireOwner();
 
   return (
-    <div style={{ minHeight: "100dvh", paddingBottom: "calc(var(--tabbar-h) + 24px)" }}>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(0, 1fr)",
-          maxWidth: 1180,
-          margin: "0 auto",
-        }}
-        className="console-grid"
-      >
-        <aside
-          className="console-rail"
-          style={{ display: "none", padding: "24px 12px", position: "sticky", top: 0, alignSelf: "start" }}
-        >
+    <div className="console-shell">
+      <div className="console-grid">
+        <aside className="console-rail">
           <Link
             href="/map"
             className="t-label"
@@ -43,7 +32,7 @@ export default async function ConsoleLayout({ children }: { children: React.Reac
           </form>
         </aside>
 
-        <div style={{ minWidth: 0 }}>
+        <div className="console-main">
           <header
             className="hairline-b"
             style={{
@@ -105,9 +94,8 @@ export default async function ConsoleLayout({ children }: { children: React.Reac
 
           {paymentsAreSimulated() ? (
             <p className="t-secondary" style={{ margin: "12px 20px 0" }}>
-              Rent collection is <strong>simulated</strong> in this deployment: no Stripe key is
-              configured, so charges are recorded without touching a card. Every ledger row from a
-              simulated charge says so.
+              Rent is <strong>simulated</strong> here — no Stripe key is configured, so no card is
+              touched and every simulated ledger row says so.
             </p>
           ) : null}
 

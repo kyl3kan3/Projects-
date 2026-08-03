@@ -14,7 +14,7 @@ run, a referral queue that deadlocked under launch-day load, magic-link login
 broken outright, certificate-expiry alerts that fired once and then went quiet
 forever. All were found by running the thing.
 
-## Verified working (37 of 74)
+## Verified working (38 of 74)
 
 Each was re-checked here after its build agent reported: line count, absence of
 unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
@@ -58,6 +58,7 @@ unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
 | 56 | recalldesk | 12,693 | 92 | 95 |
 | 62 | certshield | 12,947 | 94 | 115 |
 | 65 | listingloop | 10,475 | 77 | 80 |
+| 69 | unitkeeper | 10,891 | 97 | 55 |
 
 Apps 01–04 and 51 predate this process and have no test suites; they are counted
 as working on the strength of having no unimplemented stubs, not on verification.
@@ -86,13 +87,12 @@ build had been hiding:
 Formforge's test count reads 184 because it carries two suites: 151 unit tests and
 33 integration tests needing a real database (`npm run test:db`).
 
-## Partially built, interrupted (3)
+## Partially built, interrupted (2)
 
 An extended run of `529 Overloaded` API errors killed every agent in batch 5, most
 of them more than once. Their work is preserved and resumable, not finished:
 `57-matpass` (~3,600 lines, cut off in the kiosk check-in) has a real domain layer;
-`59-dispatchdeck` and `69-unitkeeper` were killed at or near startup and are still
-scaffold-sized.
+`59-dispatchdeck` was killed at or near startup and is still scaffold-sized.
 
 ## Not built (34)
 

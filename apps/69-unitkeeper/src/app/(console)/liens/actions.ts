@@ -7,6 +7,7 @@
  */
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { lienCases } from "@/db/schema";
@@ -44,21 +45,22 @@ export async function openLienCaseAction(_prev: FormState, form: FormData): Prom
     return formError("Nothing is owed on this unit, so there is no lien to claim");
   }
 
+  let lienCaseId: string;
   try {
-    const { lienCaseId } = await openLienCase(
+    ({ lienCaseId } = await openLienCase(
       owner.id,
       owner.email,
       ctx.tenancy.id,
       ctx.facility.state,
       delq.since,
-    );
-    revalidatePath("/delinquency");
-    revalidatePath("/liens");
-    return formOk("Lien case opened. Nothing has been sent yet.", `/liens/${lienCaseId}`);
+    ));
   } catch (err) {
     if (err instanceof ManualModeError) return formError(manualModeSentence(err.message));
     return formError(err instanceof Error ? err.message : "Could not open the case");
   }
+  revalidatePath("/delinquency");
+  revalidatePath("/liens");
+  redirect(`/liens/${lienCaseId}`);
 }
 
 /**
@@ -180,5 +182,5 @@ export async function resolveCaseAction(_prev: FormState, form: FormData): Promi
   await resolveCase(owner.id, owner.email, lienCaseId, reason as "paid" | "vacated" | "sold" | "error");
   revalidatePath("/liens");
   revalidatePath(`/liens/${lienCaseId}`);
-  return formOk("Case closed. The file stays; nothing is deleted.", "/liens");
+  redirect("/liens");
 }

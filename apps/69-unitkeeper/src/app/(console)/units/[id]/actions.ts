@@ -102,18 +102,22 @@ export async function completeMoveInAction(_prev: FormState, form: FormData): Pr
   const ctx = await ownedTenancy(owner.id, field(form, "tenancyId"));
   if (!ctx) return formError("That tenancy is not yours");
   const method = field(form, "method") === "cash" ? "cash" : "saved";
+  let charged: boolean;
+  let message: string;
   try {
     const result = await completeMoveIn(ctx, owner.email, method);
-    revalidatePath(`/units/${ctx.unit.id}`);
-    revalidatePath("/map");
-    if (!result.charged) return formError(result.message);
-    return formOk(
-      `${result.message} Gate code ${result.gateCode}.`,
-      `/map?facility=${ctx.facility.id}&flipped=${ctx.unit.id}`,
-    );
+    charged = result.charged;
+    message = result.message;
   } catch (err) {
     return formError(err instanceof Error ? err.message : "Could not complete the move-in");
   }
+  revalidatePath(`/units/${ctx.unit.id}`);
+  revalidatePath("/map");
+  revalidatePath(`/units/${ctx.unit.id}/move-in`);
+  if (!charged) return formError(message);
+  // Back to the move-in page, where step 4 shows the gate code the owner is about to
+  // read out. The map's door flip is one link away, deliberately.
+  redirect(`/units/${ctx.unit.id}/move-in`);
 }
 
 /** A fresh move-in link, when the first one expired or went to the wrong number. */
@@ -163,15 +167,17 @@ export async function recordPaymentAction(_prev: FormState, form: FormData): Pro
   revalidatePath("/delinquency");
   revalidatePath("/map");
 
+  // An overlock coming off is the one payment outcome worth showing on the map: the
+  // door flips back on arrival. Everything else stays on the unit file with a line.
+  if (reversal.overlockLifted) {
+    redirect(`/map?facility=${ctx.facility.id}&flipped=${ctx.unit.id}`);
+  }
+
   const notes: string[] = [];
-  if (reversal.overlockLifted) notes.push("overlock lifted and the gate code is live again");
   if (reversal.reversedRungs > 0) notes.push(`${reversal.reversedRungs} ladder step(s) reversed`);
   if (reversal.lienCaseResolved) notes.push("the lien case is resolved as paid");
   return formOk(
     notes.length > 0 ? `Payment recorded — ${notes.join(", ")}.` : "Payment recorded.",
-    reversal.overlockLifted
-      ? `/map?facility=${ctx.facility.id}&flipped=${ctx.unit.id}`
-      : undefined,
   );
 }
 
@@ -257,22 +263,13 @@ export async function moveOutAction(_prev: FormState, form: FormData): Promise<F
   for (const item of MAKE_READY_ITEMS) makeReady[item] = checkbox(form, `mr_${item}`);
 
   try {
-    const result = await moveOut(ctx, owner.email, endedOn, makeReady);
-    revalidatePath("/map");
-    revalidatePath(`/units/${ctx.unit.id}`);
-    const tail =
-      result.owedCents > 0
-        ? `${(result.owedCents / 100).toFixed(2)} still owed`
-        : result.refundDueCents > 0
-          ? `${(result.refundDueCents / 100).toFixed(2)} to refund`
-          : "square";
-    return formOk(
-      `Unit ${ctx.unit.label} is vacant. Final balance: ${tail}.`,
-      `/map?facility=${ctx.facility.id}&flipped=${ctx.unit.id}`,
-    );
+    await moveOut(ctx, owner.email, endedOn, makeReady);
   } catch (err) {
     return formError(err instanceof Error ? err.message : "Could not complete the move-out");
   }
+  revalidatePath("/map");
+  revalidatePath(`/units/${ctx.unit.id}`);
+  redirect(`/map?facility=${ctx.facility.id}&flipped=${ctx.unit.id}`);
 }
 
 /** Money back to a tenant who left in credit. Posted as a refund row. */

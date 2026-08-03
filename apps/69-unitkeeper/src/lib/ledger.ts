@@ -15,7 +15,7 @@
  *    `adjustment` row, and it is audited.
  */
 
-import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
+import { asc, eq, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { ledgerEntries, tenancies, type LedgerEntry, type LedgerKind } from "@/db/schema";
 import { audit } from "@/lib/audit";
@@ -191,30 +191,8 @@ export async function delinquencyFor(tenancyId: string, asOf: IsoDate): Promise<
   return delinquency(toCoreEntries(await entriesFor(tenancyId)), asOf);
 }
 
-export async function statementFor(
-  tenancyId: string,
-  from: IsoDate,
-  to: IsoDate,
-): Promise<Statement> {
-  return buildStatement(toCoreEntries(await entriesFor(tenancyId)), from, to);
-}
-
 export async function runningRowsFor(tenancyId: string) {
   return withRunningBalance(toCoreEntries(await entriesFor(tenancyId)));
-}
-
-/** Tenancies with no end date — the set autopay and the ladder walk. */
-export async function openTenancyIds(): Promise<string[]> {
-  const rows = await getDb()
-    .select({ id: tenancies.id })
-    .from(tenancies)
-    .where(and(isNull(tenancies.endedOn), eq(tenancies.status, "active")));
-  return rows.map((r) => r.id);
-}
-
-/** A receipt line for the tenant page and the emailed confirmation. */
-export function receiptLine(entry: LedgerEntry): string {
-  return `${entry.occurredOn} · ${entry.description} · ${entry.amountCents < 0 ? "received" : "charged"}`;
 }
 
 export function today(): IsoDate {

@@ -28,7 +28,7 @@ import { entriesFor, runningRowsFor, toCoreEntries } from "@/lib/ledger";
 import { openCaseForTenancy } from "@/lib/lien";
 import { manualModeSentence, packFor } from "@/lib/lien-rules";
 import { addDays, formatDate, formatMoney, isoDateOf } from "@/lib/money";
-import { noticesFor } from "@/lib/notices";
+import { noticeKindLabel, noticesFor } from "@/lib/notices";
 import { activeTenancyForUnit, ownedUnit, STATUS_LABEL } from "@/lib/units";
 import { readSettings } from "@/lib/settings";
 
@@ -327,7 +327,7 @@ export default async function UnitPage({ params }: { params: Promise<{ id: strin
           {documents.map((doc) => (
             <li className="row" key={doc.id}>
               <span style={{ flex: 1 }}>
-                <span className="t-title">{doc.kind.replace(/_/g, " ")}</span>
+                <span className="t-title">{noticeKindLabel(doc.kind)}</span>
                 <br />
                 <span className="t-secondary">
                   Generated {doc.generatedAt.toISOString().slice(0, 10)}

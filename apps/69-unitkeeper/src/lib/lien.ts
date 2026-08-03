@@ -248,20 +248,3 @@ export async function resolveCase(
     .where(eq(lienCases.id, lienCaseId));
   await audit(ownerId, actor, `lien.resolved.${reason}`, lienCaseId);
 }
-
-/** Every live case for an owner, for the delinquency board and the reports. */
-export async function liveCasesFor(tenancyIds: readonly string[]): Promise<Map<string, LienCase>> {
-  const out = new Map<string, LienCase>();
-  if (tenancyIds.length === 0) return out;
-  const rows = await getDb()
-    .select()
-    .from(lienCases)
-    .where(
-      and(
-        inArray(lienCases.tenancyId, [...tenancyIds]),
-        inArray(lienCases.status, ["open", "paused", "sale_eligible"]),
-      ),
-    );
-  for (const row of rows) out.set(row.tenancyId, row);
-  return out;
-}

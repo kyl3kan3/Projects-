@@ -98,19 +98,6 @@ export function lienEligibleDay(ladder: readonly LadderStep[]): number | null {
   return step ? step.day : null;
 }
 
-export function describeAction(action: LadderAction): string {
-  switch (action) {
-    case "retry":
-      return "Retry the card on file";
-    case "late_fee":
-      return "Post the late fee";
-    case "overlock":
-      return "Flag for overlock";
-    case "lien_eligible":
-      return "Lien-eligible — the owner decides";
-  }
-}
-
 export function actionPlacard(action: LadderAction): string {
   switch (action) {
     case "retry":

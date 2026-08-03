@@ -32,7 +32,7 @@ import { issueGateCode } from "@/lib/gate";
 import { delinquentRows, runLadderFor } from "@/lib/ladder-run";
 import { post } from "@/lib/ledger";
 import { attachNotice, caseById, completeStep, openLienCase } from "@/lib/lien";
-import { addDays, isoDateOf, periodOf, prorateFirstMonth } from "@/lib/money";
+import { addDays, isoDateOf, prorateFirstMonth } from "@/lib/money";
 import { tenancyContext } from "@/lib/tenancy";
 
 const EMAIL = "owner@riverbendstorage.example";
@@ -126,22 +126,29 @@ async function main(): Promise<void> {
   }
   console.log(`${created.length} units drawn.`);
 
-  // Two units out of service — a real yard always has a couple.
-  await db
-    .update(units)
-    .set({ status: "maintenance", notes: "Door track bent — parts ordered" })
-    .where(eq(units.id, created[7].id));
-  await db
-    .update(units)
-    .set({ status: "maintenance", notes: "Roof leak above this unit, do not rent" })
-    .where(eq(units.id, created[95].id));
+  /**
+   * Two units out of service — a real yard always has a couple.
+   *
+   * The ids are collected first and `rentable` filters on *them*, not on the
+   * in-memory `status`: the rows in `created` came back from the insert with status
+   * "vacant", so filtering on that value rented the maintenance units straight over
+   * the top and the map never showed a dashed door at all.
+   */
+  const maintenance: Array<[string, string]> = [
+    [created[7].id, "Door track bent — parts ordered"],
+    [created[95].id, "Roof leak above this unit, do not rent"],
+  ];
+  for (const [id, note] of maintenance) {
+    await db.update(units).set({ status: "maintenance", notes: note }).where(eq(units.id, id));
+  }
+  const outOfService = new Set(maintenance.map(([id]) => id));
 
   /**
    * Rent 138 of them. Start dates spread over two years so the ledgers have depth,
    * and a handful deliberately left in a late state so the board and the map have
    * something true to show.
    */
-  const rentable = created.filter((u) => u.status !== "maintenance");
+  const rentable = created.filter((u) => !outOfService.has(u.id));
   const target = 138;
   /**
    * How many recent months each late tenant has not paid. One unpaid month means a
@@ -223,8 +230,6 @@ async function main(): Promise<void> {
         const run = await ensureRentCharges(current, settings, today);
         if (run.created.length === 0) break;
       }
-      const fresh = await db.select().from(tenancies).where(eq(tenancies.id, tenancy.id));
-      const paidThrough = fresh[0]?.paidThrough ?? periodOf(startedOn);
 
       const charges = await db
         .select()
@@ -243,7 +248,6 @@ async function main(): Promise<void> {
           period: charge.period,
         });
       }
-      void paidThrough;
       rented += 1;
     }
   }

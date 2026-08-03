@@ -13,7 +13,7 @@
  *    is the thing this feature exists to prevent.
  */
 
-import { and, asc, eq, inArray, lte } from "drizzle-orm";
+import { and, asc, eq, lte } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
   facilities,
@@ -218,12 +218,4 @@ export async function rateChangesFor(ownerId: string): Promise<
     .where(eq(facilities.ownerId, ownerId))
     .orderBy(asc(rateChanges.effectiveOn));
   return rows;
-}
-
-export async function rateChangesForTenancy(tenancyIds: readonly string[]): Promise<RateChange[]> {
-  if (tenancyIds.length === 0) return [];
-  return getDb()
-    .select()
-    .from(rateChanges)
-    .where(inArray(rateChanges.tenancyId, [...tenancyIds]));
 }

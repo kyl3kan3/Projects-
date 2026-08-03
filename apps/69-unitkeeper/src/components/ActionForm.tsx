@@ -11,7 +11,6 @@
  */
 
 import { useActionState, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import type { FormState } from "@/lib/form";
 
 export function ActionForm({
@@ -43,11 +42,52 @@ export function ActionForm({
   const formRef = useRef<HTMLFormElement>(null);
   const [holding, setHolding] = useState(false);
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const router = useRouter();
+
+  /**
+   * React 19 resets an uncontrolled form after a form action completes — including
+   * when the action came back with an error. On a move-in form that is eight fields
+   * of typing gone because the owner left one blank, which is how a person decides
+   * software hates them. So: snapshot the fields on submit, and put them back if the
+   * action returned an error.
+   *
+   * Found by driving the real form in Chromium; nothing in the build or the types
+   * says a word about it.
+   */
+  const typed = useRef<Array<{ name: string; value: string; checked: boolean }>>([]);
 
   useEffect(() => {
-    if (state.ok && state.redirectTo) router.push(state.redirectTo);
-  }, [state.ok, state.redirectTo, router]);
+    if (!state.error || !formRef.current) return;
+    for (const field of typed.current) {
+      const el = formRef.current.elements.namedItem(field.name);
+      if (
+        el instanceof HTMLInputElement ||
+        el instanceof HTMLTextAreaElement ||
+        el instanceof HTMLSelectElement
+      ) {
+        if (el instanceof HTMLInputElement && (el.type === "checkbox" || el.type === "radio")) {
+          el.checked = field.checked;
+        } else if (el.value === "") {
+          el.value = field.value;
+        }
+      }
+    }
+  }, [state]);
+
+  function snapshot(form: HTMLFormElement) {
+    typed.current = [...form.elements]
+      .filter(
+        (el): el is HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement =>
+          (el instanceof HTMLInputElement ||
+            el instanceof HTMLTextAreaElement ||
+            el instanceof HTMLSelectElement) &&
+          el.name !== "",
+      )
+      .map((el) => ({
+        name: el.name,
+        value: el.value,
+        checked: el instanceof HTMLInputElement ? el.checked : false,
+      }));
+  }
 
   const buttonClass =
     variant === "quiet"
@@ -68,7 +108,12 @@ export function ActionForm({
   }
 
   return (
-    <form ref={formRef} action={formAction} className={className ?? "flex flex-col gap-4"}>
+    <form
+      ref={formRef}
+      action={formAction}
+      onSubmitCapture={(e) => snapshot(e.currentTarget)}
+      className={className ?? "flex flex-col gap-4"}
+    >
       {children}
 
       {state.error ? (
@@ -109,38 +154,5 @@ export function ActionForm({
 
       {disabled && disabledReason ? <p className="field-help">{disabledReason}</p> : null}
     </form>
-  );
-}
-
-/** A read-only value the owner copies: move-in links, gate codes. */
-export function CopyField({ label, value }: { label: string; value: string }) {
-  const [copied, setCopied] = useState(false);
-  return (
-    <div className="field">
-      <span className="field-label">{label}</span>
-      <div className="flex gap-2">
-        <input
-          className="input input-mono"
-          readOnly
-          value={value}
-          onFocus={(e) => e.currentTarget.select()}
-        />
-        <button
-          type="button"
-          className="btn btn-secondary"
-          onClick={async () => {
-            try {
-              await navigator.clipboard.writeText(value);
-              setCopied(true);
-              setTimeout(() => setCopied(false), 1600);
-            } catch {
-              setCopied(false);
-            }
-          }}
-        >
-          {copied ? "Copied" : "Copy"}
-        </button>
-      </div>
-    </div>
   );
 }

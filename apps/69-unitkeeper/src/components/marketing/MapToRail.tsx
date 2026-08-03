@@ -11,6 +11,12 @@
  * `prefers-reduced-motion` every beat's delay is zeroed in globals.css and the
  * device renders as its final frame, which is the frame that matters.
  *
+ * The whole choreography finishes inside 650ms, staggered 40ms per row. An earlier
+ * cut spread it over 2.4 seconds, which looked considered in the code and looked
+ * like a broken empty card in a screenshot — the panel reserves its full height, so
+ * a long stagger is just a long hole. DESIGN_LANGUAGE is right: motion is felt, not
+ * watched.
+ *
  * Every number in it is the real output of the seeded demo yard, and it is labelled
  * as a demo.
  */
@@ -104,11 +110,11 @@ export function MapToRail() {
     <div className="panel" style={{ padding: 20 }}>
       <div className="flex items-baseline justify-between gap-3" style={{ flexWrap: "wrap" }}>
         <p className="t-label">Riverbend Storage — Cedar Park</p>
-        <p className="t-mono">138 of 160 — $18,420/mo</p>
+        <p className="t-mono">138 of 160 — $17,592/mo</p>
       </div>
 
       {/* Beat 1 — the yard, and one door flips overdue. */}
-      <div className="map-wrap device-beat" style={{ marginTop: 16, animationDelay: "80ms" }}>
+      <div className="map-wrap device-beat" style={{ marginTop: 16, animationDelay: "60ms" }}>
         <div className="map-row">
           {DOORS.map((door) => (
             <span
@@ -123,7 +129,7 @@ export function MapToRail() {
           ))}
         </div>
       </div>
-      <p className="t-secondary device-beat" style={{ marginTop: 12, animationDelay: "1000ms" }}>
+      <p className="t-secondary device-beat" style={{ marginTop: 12, animationDelay: "220ms" }}>
         B-14 went unpaid. On day 6 the map paints it overdue — nobody typed anything.
       </p>
 
@@ -137,7 +143,7 @@ export function MapToRail() {
             key={step.day}
             className="device-beat"
             style={{
-              animationDelay: `${1300 + i * 220}ms`,
+              animationDelay: `${320 + i * 40}ms`,
               display: "flex",
               gap: 12,
               padding: "6px 0",
@@ -161,7 +167,7 @@ export function MapToRail() {
       {/* Beats 3 and 4 — the timeline unrolls and the hard stop lands. */}
       <div
         className="hairline-t device-beat"
-        style={{ marginTop: 16, paddingTop: 20, animationDelay: "2100ms" }}
+        style={{ marginTop: 16, paddingTop: 20, animationDelay: "480ms" }}
       >
         <p className="t-label">Texas lien timeline · rule pack v1, reviewed 2026-01-15</p>
         <div style={{ marginTop: 16 }}>

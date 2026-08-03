@@ -43,15 +43,6 @@ export interface CoreEntry {
 }
 
 /**
- * Charges and money-received, separated by sign rather than by kind — an
- * `adjustment` can be either, and a `credit` written as a negative amount is
- * money the facility owes back.
- */
-export function isCharge(entry: CoreEntry): boolean {
-  return entry.amountCents > 0;
-}
-
-/**
  * Ledger order: by the day it happened, then by the order it was written. Never
  * by amount or kind — a ledger's job is to be a chronology.
  */

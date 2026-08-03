@@ -78,6 +78,37 @@ can predict, a ten-minute move-in, and the lien timeline engine with
 citations and hard stops — the feature the notebook can never do and
 the incumbents bury in modules.
 
+## Running it
+
+```bash
+npm install
+cp .env.example .env.local          # DATABASE_URL and SESSION_SECRET are the only two you must fill
+npm run db:migrate                  # creates the 13 tables
+npm run db:seed                     # optional: a 160-unit demo yard, 138 rented
+npm run dev                         # http://localhost:3069
+```
+
+The seed signs you in as `owner@riverbendstorage.example` / `riverbend-demo`.
+
+What degrades honestly when a credential is missing, rather than breaking:
+
+| Missing | What happens |
+|---|---|
+| `STRIPE_SECRET_KEY` | Rent is **simulated**: charges are recorded without touching a card, every simulated ledger row says so, and the console shows a banner. The tenant page offers two labelled test methods, one of which declines so the late ladder can be exercised. |
+| R2 credentials | Leases, notices, statements and lien packets are written to `LOCAL_STORAGE_DIR` and served by `/api/documents/[...key]`, which checks the same ownership a presigned URL would have encoded. |
+| `RESEND_API_KEY` or `DRY_RUN=1` | Email is logged, not sent. |
+| `REDIS_URL` | No worker. `/api/cron/tick` does the same work — see `src/lib/tick.ts`; the two drivers share one function. |
+| `CRON_SECRET` | `/api/cron/tick` refuses to run at all. Deliberate: it can charge every card and overlock every unit. |
+
+Checks:
+
+```bash
+npm run typecheck    # tsc --noEmit
+npm test             # node:test via tsx — money, ledger, ladder, lien dates, plans
+npm run craft        # tools/craft-check.mjs — the design and safety rules a type-checker cannot see
+npm run build
+```
+
 ## Landing page
 
 - **Hero device:** "The lien clock that runs itself." — the unit map

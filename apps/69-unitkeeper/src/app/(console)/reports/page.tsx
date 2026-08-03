@@ -52,7 +52,10 @@ export default async function ReportsPage() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+              // 240px, not 140: at 390px a six-figure money stat in the mono face
+              // is wider than half the gutter-to-gutter width and was clipping its
+              // own cents. One tile per row on a phone, three on a desktop.
+              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
               gap: 16,
               marginTop: 16,
             }}

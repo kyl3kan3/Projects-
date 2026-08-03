@@ -178,13 +178,45 @@ export function dueStep(timeline: Timeline, asOf: IsoDate): TimelineStep | null 
   return canComplete(timeline, current.key, asOf).ok ? current : null;
 }
 
-/** The status a case should carry, derived — never a column a cron guesses at. */
+/**
+ * The status a case should carry, derived — never a column a cron guesses at.
+ *
+ * `sale_eligible` means exactly one thing: **the sale may be held today.** That
+ * needs the calendar *and* the paperwork — every step before the sale recorded as
+ * done. A case whose sale date has passed while the publication step is still
+ * outstanding is `open`, and saying otherwise would be the software telling an owner
+ * they may sell when they may not.
+ */
 export function caseStatus(
   timeline: Timeline,
   asOf: IsoDate,
 ): "open" | "sale_eligible" | "resolved" {
   if (timeline.complete) return "resolved";
   const last = timeline.steps[timeline.steps.length - 1];
-  if (last && !last.completedOn && compareDates(asOf, last.dueOn) >= 0) return "sale_eligible";
+  if (!last) return "open";
+  const earlierStepsDone = timeline.steps.slice(0, -1).every((s) => Boolean(s.completedOn));
+  if (earlierStepsDone && compareDates(asOf, last.dueOn) >= 0) return "sale_eligible";
   return "open";
+}
+
+export type StoredCaseStatus = "open" | "paused" | "resolved" | "sale_eligible" | "closed";
+
+/**
+ * What to show a human. `resolved`, `closed` and `paused` are decisions somebody
+ * made and are read from the row; `open` vs `sale_eligible` is a question about
+ * today and is always recomputed.
+ *
+ * The alternative — rendering the stored column — is how a screen ends up saying
+ * "open" on a case whose sale date passed six weeks ago, or "sale eligible" on one
+ * the owner already resolved. The column exists so the *board* can be queried
+ * cheaply; the display derives.
+ */
+export function displayCaseStatus(
+  stored: StoredCaseStatus,
+  timeline: Timeline,
+  asOf: IsoDate,
+): StoredCaseStatus {
+  if (stored === "resolved" || stored === "closed" || stored === "paused") return stored;
+  const derived = caseStatus(timeline, asOf);
+  return derived === "resolved" ? "closed" : derived;
 }

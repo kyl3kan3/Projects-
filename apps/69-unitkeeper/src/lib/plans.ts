@@ -74,13 +74,7 @@ export const PLANS: Record<Plan, PlanSpec> = {
 };
 
 export const PAID_PLANS: Plan[] = ["keeper", "yard", "depot"];
-export const PLAN_ORDER: Plan[] = ["trial", "keeper", "yard", "depot"];
-
 export const TRIAL_DAYS = 14;
-
-export function planSpec(id: Plan | null | undefined): PlanSpec {
-  return (id && PLANS[id]) || PLANS.trial;
-}
 
 /**
  * Stripe statuses that keep the doors open. `past_due` does: a failed card should

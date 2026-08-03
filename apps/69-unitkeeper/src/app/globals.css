@@ -724,6 +724,9 @@ select.input {
   font-weight: 500;
   text-align: right;
   white-space: nowrap;
+  /* Two right-aligned money columns next to each other collide without this: the
+     amount and the running balance ran together as "$120.68$120.68". */
+  padding-left: 16px;
   padding-right: 0;
 }
 .ledger tbody tr:last-child td {
@@ -731,6 +734,33 @@ select.input {
 }
 
 /* ---- App shell: tab bar on a phone, left rail from 1024px ------------- */
+
+/**
+ * The shell's grid lives here rather than in an inline style, and that is not a
+ * preference: an inline `grid-template-columns` outranks any media query in the
+ * cascade, so the desktop two-column rule silently lost and the left rail took the
+ * full width with the map pushed off-screen. Caught in a 1280px screenshot.
+ */
+.console-shell {
+  min-height: 100dvh;
+  padding-bottom: calc(var(--tabbar-h) + 24px);
+}
+.console-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 1180px;
+  margin: 0 auto;
+}
+.console-rail {
+  display: none;
+  padding: 24px 12px;
+  position: sticky;
+  top: 0;
+  align-self: start;
+}
+.console-main {
+  min-width: 0;
+}
 
 .tabbar {
   position: fixed;
@@ -778,13 +808,16 @@ select.input {
   .tabbar {
     display: none;
   }
+  .console-shell {
+    padding-bottom: 0;
+  }
   /* The rail replaces the tab bar; the map finally gets its width. */
   .console-grid {
     grid-template-columns: 208px minmax(0, 1fr);
     gap: 24px;
   }
   .console-rail {
-    display: block !important;
+    display: block;
     border-right: 1px solid var(--color-line);
     min-height: 100dvh;
   }
@@ -827,7 +860,7 @@ select.input {
 }
 /* Beat 1: one unit flips overdue at day 6. */
 .device-door-flip {
-  animation: device-flip 160ms var(--ease-in-out-soft) 900ms both;
+  animation: device-flip 160ms var(--ease-in-out-soft) 260ms both;
 }
 @keyframes device-flip {
   from {

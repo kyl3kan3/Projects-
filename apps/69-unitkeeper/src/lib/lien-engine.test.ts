@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { buildTimeline, canComplete, caseStatus, dueStep, type StepsState } from "@/lib/lien-engine";
+import {
+  buildTimeline,
+  canComplete,
+  caseStatus,
+  displayCaseStatus,
+  dueStep,
+  type StepsState,
+} from "@/lib/lien-engine";
 import { packFor, RULE_PACKS } from "@/lib/lien-rules";
 import { addDays } from "@/lib/money";
 
@@ -123,6 +130,35 @@ test("status is derived from the calendar, not stored", () => {
   assert.equal(caseStatus(sold, "2026-07-01"), "resolved");
   assert.equal(sold.complete, true);
   assert.equal(sold.hardStopUntil, null);
+});
+
+test("sale_eligible needs the paperwork, not only the calendar", () => {
+  // The sale date passed six weeks ago but the publication step was never recorded.
+  // Saying "sale eligible" here would be the software telling an owner they may sell
+  // when they may not.
+  const partial: StepsState = {
+    default_notice: { completedOn: "2026-06-01" },
+    waiting_period: { completedOn: "2026-06-15" },
+  };
+  const t = buildTimeline(TX, "2026-06-01", partial, "2026-08-03");
+  assert.equal(t.saleEligibleOn, "2026-06-29");
+  assert.equal(caseStatus(t, "2026-08-03"), "open");
+  assert.equal(displayCaseStatus("open", t, "2026-08-03"), "open");
+
+  const complete: StepsState = { ...partial, published_notice: { completedOn: "2026-06-22" } };
+  const ready = buildTimeline(TX, "2026-06-01", complete, "2026-08-03");
+  assert.equal(caseStatus(ready, "2026-08-03"), "sale_eligible");
+  assert.equal(displayCaseStatus("open", ready, "2026-08-03"), "sale_eligible");
+});
+
+test("the displayed status is derived, except where a human decided it", () => {
+  const t = buildTimeline(TX, "2026-06-01", {}, "2026-06-05");
+  // A stale column claiming sale_eligible must not survive contact with the calendar.
+  assert.equal(displayCaseStatus("sale_eligible", t, "2026-06-05"), "open");
+  // Decisions are facts and are read from the row.
+  assert.equal(displayCaseStatus("resolved", t, "2026-06-05"), "resolved");
+  assert.equal(displayCaseStatus("closed", t, "2026-06-05"), "closed");
+  assert.equal(displayCaseStatus("paused", t, "2026-06-05"), "paused");
 });
 
 test("an unknown step key is refused rather than defaulting to allowed", () => {

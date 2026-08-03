@@ -15,6 +15,7 @@ import { LienRail } from "@/components/LienRail";
 import { requireOwner } from "@/lib/auth";
 import { delinquencyFor } from "@/lib/ledger";
 import { caseById } from "@/lib/lien";
+import { displayCaseStatus } from "@/lib/lien-engine";
 import { formatDateLong, formatMoney, isoDateOf } from "@/lib/money";
 import { noticesForCase, noticeKindLabel } from "@/lib/notices";
 import { documentUrl } from "@/lib/storage";
@@ -33,7 +34,9 @@ export default async function LienCasePage({ params }: { params: Promise<{ id: s
   const asOf = isoDateOf(new Date());
   const delq = await delinquencyFor(ctx.tenancy.id, asOf);
   const documents = await noticesForCase(id);
-  const live = found.lienCase.status === "open" || found.lienCase.status === "sale_eligible";
+  // Derived, not read from the column a cron reconciles (see displayCaseStatus).
+  const status = displayCaseStatus(found.lienCase.status, found.timeline, asOf);
+  const live = status === "open" || status === "sale_eligible";
 
   return (
     <main style={{ padding: "20px 20px 40px", maxWidth: 680 }}>
@@ -47,9 +50,9 @@ export default async function LienCasePage({ params }: { params: Promise<{ id: s
         </h1>
         <span
           className="placard"
-          data-tone={found.lienCase.status === "sale_eligible" ? "lien" : live ? "overdue" : "paid"}
+          data-tone={status === "sale_eligible" ? "lien" : live ? "overdue" : "paid"}
         >
-          {found.lienCase.status.replace(/_/g, " ")}
+          {status.replace(/_/g, " ")}
         </span>
       </div>
 

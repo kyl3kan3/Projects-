@@ -77,10 +77,6 @@ export function compareDates(a: IsoDate, b: IsoDate): number {
   return a < b ? -1 : a > b ? 1 : 0;
 }
 
-export function maxDate(a: IsoDate, b: IsoDate): IsoDate {
-  return a >= b ? a : b;
-}
-
 export function periodOf(date: IsoDate): Period {
   return date.slice(0, 7);
 }
@@ -187,11 +183,6 @@ export function formatMoney(cents: number): string {
   return `${negative ? "-" : ""}$${dollars.toLocaleString("en-US")}.${rest}`;
 }
 
-/** `184500` → `"$1,845"` when whole, `"$1,845.50"` when not. For tight rows. */
-export function formatMoneyShort(cents: number): string {
-  return cents % 100 === 0 ? formatMoney(cents).replace(/\.00$/, "") : formatMoney(cents);
-}
-
 /**
  * Parse an owner-typed amount into cents. Accepts "185", "1,850", "$185.50".
  * Rejects anything else rather than guessing — a mistyped rate becomes a wrong
@@ -213,12 +204,6 @@ const MONTHS_LONG = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
 ];
-
-/** `"2026-08"` → `"AUG 2026"`. */
-export function formatPeriod(period: Period): string {
-  const { year, month } = periodParts(period);
-  return `${MONTHS[month - 1]} ${year}`;
-}
 
 /** `"2026-08-01"` → `"AUG 1"`; with the year when asked. */
 export function formatDate(date: IsoDate, opts: { year?: boolean } = {}): string {

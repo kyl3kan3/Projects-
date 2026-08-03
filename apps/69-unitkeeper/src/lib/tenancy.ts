@@ -204,7 +204,7 @@ export async function completeMoveIn(
   const period = periodOf(tenancy.startedOn);
   const amountCents = prorateFirstMonth(tenancy.rateCents, tenancy.startedOn, settings.prorateRule);
 
-  const charge = await post({
+  await post({
     tenancyId: tenancy.id,
     kind: "rent",
     amountCents,
@@ -215,7 +215,6 @@ export async function completeMoveIn(
     occurredOn: tenancy.startedOn,
     period,
   });
-  void charge;
 
   let collected = false;
   let message: string;
@@ -366,8 +365,4 @@ export async function moveOut(
     refundDueCents: finalBalanceCents < 0 ? -finalBalanceCents : 0,
     owedCents: finalBalanceCents > 0 ? finalBalanceCents : 0,
   };
-}
-
-export function todayIso(): IsoDate {
-  return isoDateOf(new Date());
 }

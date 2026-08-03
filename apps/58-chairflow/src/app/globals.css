@@ -1,54 +1,104 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   ChairFlow — design tokens. Generated from DESIGN.md; edit DESIGN.md first.
-   Obeys DESIGN_LANGUAGE.md: one rationed accent, hairlines not boxes,
-   no gradients or glow on controls, 4px spacing scale, fonts must load.
+   ChairFlow — "clipper metal and appointment-book paper".
+   The redline implementation of DESIGN.md: cool station-paper grounds,
+   near-black steel ink, and clipper-housing cobalt used only where
+   protection lives.
+
+   Obeys DESIGN_LANGUAGE.md v2.1: no emoji, no gradient or glow on controls,
+   hairlines not borders, space before boxes, the 4px scale, exactly three
+   radii, one accent rationed to <=10% of a screen. Light only, on purpose
+   (DESIGN.md): the booking page a client opens and the dashboard the stylist
+   works share one identical theme, and there is no dark theme in v1.
+
+   ---------------------------------------------------------------------------
+   CONTRAST, measured against the paper ground #F5F6F8 (card #FCFDFE is always
+   a shade higher, listed second where it matters). Per the build brief's one
+   documented exception, where a DESIGN.md grey fails WCAG AA at the size it is
+   actually used, DESIGN_LANGUAGE's AA floor wins: the token is raised,
+   measured, and said so here. Two needed a decision.
+
+     ink     #1F242C  14.4:1 / 15.3:1  AAA. Body, headings, primary button fill.
+     ink-2   #636B77   5.0:1 /  5.3:1  AA at 13px. Secondary text, as specified.
+     ink-3   #959CA8   2.6:1 /  2.7:1  FAILS. DESIGN.md reaches for it for
+                       "timestamps, placeholders" and the open slot's dashed
+                       hairline. Timestamps and placeholders carry meaning, so
+                       they use ink-2 instead; ink-3 is kept ONLY for
+                       decoration that never stands alone (the dashed hairline
+                       of an open slot, the inactive tab glyph beside its own
+                       label, disabled control text on the disabled fill).
+     cobalt  #3A62B8   5.4:1 /  5.7:1  AA as text. Kept exactly as specified —
+                       links, quiet actions, focus rings, the ledger amount.
+     green   #3E7C55   4.6:1 /  4.9:1  AA. Completed / paid / rebooked.
+     amber   #B5883B   3.0:1 /  3.2:1  FAILS as text, and is a whisker under
+                       the 3:1 graphics floor on paper. Kept for the 6px dot
+                       inside a pill (which sits on card, 3.2:1), while
+                       amber-text #8A6828 (4.8:1 / 5.0:1) carries every word
+                       and every glyph — LATE CANCEL, RENT DUE, OFFERED, the
+                       drifted-client mark.
+     red     #B14A3E   5.0:1 /  5.3:1  AA. No-show / failed / late.
+
+   Disabled controls (#D7DAE0 fill, ink-3 text) are exempt from the contrast
+   minimum by WCAG 1.4.3, and are never the only signal — a disabled primary
+   always has a sentence next to it saying why.
    ========================================================================== */
 
 @theme {
-  /* Palette — exact values from DESIGN.md */
+  /* Palette — DESIGN.md's table, with the AA correction noted above. */
   --color-paper: #f5f6f8; /* The ground. Every screen — cool station paper */
   --color-card: #fcfdfe; /* Appointment cards, ledger panels, sheets only */
   --color-hairline: #e1e4ea; /* 1px dividers & panel borders — never darker */
-  --color-ink: #1f242c; /* Primary text AND primary button fill (near-black steel) */
-  --color-ink-2: #636b77; /* Secondary text */
-  --color-ink-3: #959ca8; /* Faint (timestamps, placeholders) */
-  --color-cobalt: #3a62b8; /* THE accent. <=10% of any screen: policy marks, card-on-file glyph, links, acti */
+  --color-ink: #1f242c; /* Primary text AND primary button fill */
+  --color-ink-2: #636b77; /* Secondary text, and meaning-carrying tertiary text */
+  --color-ink-3: #959ca8; /* Decoration only — never text that stands alone */
+  --color-cobalt: #3a62b8; /* THE accent, <=10% of a screen */
   --color-green: #3e7c55; /* Completed / paid / rebooked only */
-  --color-amber: #b5883b; /* Late-cancel / rent due / offer pending only */
+  --color-amber: #b5883b; /* The pill dot only (graphics on card) */
+  --color-amber-text: #8a6828; /* Amber words and glyphs, AA-corrected */
   --color-red: #b14a3e; /* No-show / failed charge / rent late only */
 
-  /* Semantic aliases, so components never hardcode a hue name */
-  --color-bg: #f5f6f8;
-  --color-surface: #fcfdfe;
-  --color-line: #e1e4ea;
-  --color-fg: #1f242c;
-  --color-fg-2: #636b77;
-  --color-fg-3: #959ca8;
-  --color-accent: #3a62b8;
-  --color-action: #1f242c;
-  --color-ok: #3e7c55;
-  --color-warn: #b5883b;
-  --color-bad: #b14a3e;
+  /* Press and disabled states, so no component mixes its own. */
+  --color-ink-press: #2a303a;
+  --color-hairline-press: #cbd0d9;
+  --color-disabled: #d7dae0;
+  --color-cobalt-wash: #eaeef7; /* ~12% cobalt on paper: the selected chip */
+  --color-red-wash: #f7ecea; /* the NO-SHOW slot face */
 
-  --font-display: "Hanken Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-display: var(--font-sans-loaded), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: var(--font-sans-loaded), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-mono-loaded), ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Exactly three radii (DESIGN.md): controls / cards / sheets. */
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-sheet: 20px;
 
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 :root {
-  color-scheme: light;
+  color-scheme: light; /* one visual world, by choice — no dark theme in v1 */
+  --gutter: 20px;
   --tabbar-h: 56px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  border-color: var(--color-hairline);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 html,
 body {
-  background: var(--color-bg);
-  color: var(--color-fg);
+  background: var(--color-paper);
+  color: var(--color-ink);
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.55;
@@ -56,46 +106,770 @@ body {
   overscroll-behavior-y: none;
 }
 
-* { border-color: var(--color-line); }
+body {
+  margin: 0;
+  min-height: 100dvh;
+  /* The page body never scrolls sideways; wide content scrolls inside itself. */
+  overflow-x: hidden;
+}
 
-/* ---- Type roles (see the specimen table in DESIGN.md) ---- */
-.t-hero { font-family: var(--font-display); font-size: clamp(2rem, 8.5vw, 3.375rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 600; }
-.t-stat { font-family: var(--font-mono); font-size: clamp(2.125rem, 9.5vw, 3.25rem); line-height: 1.05; letter-spacing: -0.01em; font-weight: 500; font-variant-numeric: tabular-nums; }
-.t-h2 { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.01em; font-weight: 600; }
-.t-title { font-size: 1rem; line-height: 1.3; font-weight: 600; }
-.t-body { font-size: 1rem; line-height: 1.55; }
-.t-secondary { font-size: 0.8125rem; line-height: 1.45; color: var(--color-fg-2); }
-.t-label { font-size: 0.6875rem; line-height: 1.2; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-fg-3); }
-.t-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+/* A vertical stack whose columns may shrink. `display: grid` alone gives items
+   min-width:auto, so one wide child (a scrolling chip row) widens the whole
+   track and pushes the page sideways instead of scrolling inside itself. */
+.stack {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  min-width: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ---- Type roles: the specimen table in DESIGN.md, exactly ---- */
+
+.t-display {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 8.5vw, 3.375rem);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  font-weight: 700;
+}
+
+.t-stat {
+  font-family: var(--font-mono);
+  font-size: clamp(2.125rem, 9.5vw, 3.25rem);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.t-h2 {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  font-weight: 700;
+}
+
+.t-title {
+  font-size: 1rem;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.t-body {
+  font-size: 1rem;
+  line-height: 1.55;
+  font-weight: 400;
+}
+
+/* The policy text on the booking page: 15/1.5, medium. Never truncated. */
+.t-policy {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  font-weight: 500;
+  white-space: pre-wrap;
+}
+
+.t-secondary {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  font-weight: 400;
+  color: var(--color-ink-2);
+}
+
+.t-label {
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-2);
+}
+
+/* Data, money, times, phones. Mono tabular, always. */
+.t-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  font-size: 0.8125rem;
+  line-height: 1.2;
+}
+
+/* The hero stat's cents render at 60% (DESIGN.md). */
+.t-cents {
+  font-size: 0.6em;
+}
 
 /* ---- Hairline construction: space and rules, never nested boxes ---- */
-.hairline-t { border-top: 1px solid var(--color-line); }
-.hairline-b { border-bottom: 1px solid var(--color-line); }
+
+.hairline-t {
+  border-top: 1px solid var(--color-hairline);
+}
+
+.hairline-b {
+  border-bottom: 1px solid var(--color-hairline);
+}
 
 .card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-line);
-  border-radius: 12px;
+  background: var(--color-card);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-card);
+}
+
+.sheet {
+  background: var(--color-card);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-sheet);
 }
 
 /* ---- Controls ---- */
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 48px; padding: 0 20px; border-radius: 10px;
-  font-weight: 600; font-size: 0.9375rem; line-height: 1;
-  transition: transform 120ms var(--ease-out-quart), background-color 120ms linear;
-}
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: var(--color-action); color: var(--color-bg); }
-.btn-secondary { background: transparent; color: var(--color-fg); border: 1px solid var(--color-line); }
 
-.focus-ring:focus-visible,
-a:focus-visible,
-button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: var(--radius-control);
+  border: 1px solid transparent;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  line-height: 1;
+  cursor: pointer;
+  text-align: center;
+  transition:
+    transform 120ms var(--ease-out-quart),
+    background-color 120ms linear,
+    border-color 120ms linear;
 }
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.btn-primary:active {
+  background: var(--color-ink-press);
+}
+
+.btn-primary:disabled,
+.btn-primary[aria-disabled="true"] {
+  background: var(--color-disabled);
+  color: var(--color-ink-3);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--color-ink);
+  border-color: var(--color-hairline);
+}
+
+.btn-secondary:active {
+  border-color: var(--color-hairline-press);
+}
+
+.btn-secondary:disabled {
+  color: var(--color-ink-3);
+  cursor: not-allowed;
+}
+
+/* Quiet action: text only, cobalt, no underline; press dims to 80%. */
+.btn-quiet {
+  background: none;
+  border: none;
+  padding: 0;
+  min-height: 44px;
+  color: var(--color-cobalt);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  cursor: pointer;
+}
+
+.btn-quiet:active {
+  opacity: 0.8;
+}
+
+.btn-quiet:disabled {
+  color: var(--color-ink-3);
+  cursor: not-allowed;
+}
+
+.btn-full {
+  width: 100%;
+}
+
+.input {
+  width: 100%;
+  background: var(--color-card);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  min-height: 48px;
+  padding: 0 12px;
+  font-size: 1rem; /* >=16px: iOS must not zoom on focus */
+  color: var(--color-ink);
+}
+
+textarea.input {
+  padding: 12px;
+  line-height: 1.55;
+  min-height: 132px;
+  resize: vertical;
+}
+
+select.input {
+  appearance: none;
+  padding-right: 32px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--color-ink-2) 50%),
+    linear-gradient(135deg, var(--color-ink-2) 50%, transparent 50%);
+  background-position:
+    calc(100% - 17px) 21px,
+    calc(100% - 12px) 21px;
+  background-size:
+    5px 5px,
+    5px 5px;
+  background-repeat: no-repeat;
+}
+
+.input::placeholder {
+  color: var(--color-ink-2);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-cobalt);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-cobalt) 25%, transparent);
+}
+
+/* Focus is designed: a 2px offset ring in the accent, everywhere, always. */
+:focus-visible {
+  outline: 2px solid var(--color-cobalt);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.field {
+  display: grid;
+  gap: 4px;
+}
+
+.field-error {
+  color: var(--color-red);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+/* ---- Chips: day picker, ledger filters ---- */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  flex: none;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-card);
+  color: var(--color-ink);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    color 150ms linear,
+    border-color 150ms linear,
+    background-color 150ms linear;
+}
+
+.chip[aria-pressed="true"],
+.chip[data-active="true"] {
+  border-color: var(--color-cobalt);
+  background: var(--color-cobalt-wash);
+  color: var(--color-cobalt);
+}
+
+.chip-lg {
+  min-height: 44px;
+  padding: 0 14px;
+  flex-direction: column;
+  gap: 0;
+  justify-content: center;
+}
+
+.chip:disabled {
+  color: var(--color-ink-3);
+  cursor: not-allowed;
+}
+
+/* ---- Status pill: 28px, 6px dot + 11px label ---- */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-card);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.pill::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+
+.pill-green {
+  color: var(--color-green);
+}
+.pill-amber {
+  color: var(--color-amber-text);
+}
+.pill-red {
+  color: var(--color-red);
+}
+.pill-cobalt {
+  color: var(--color-cobalt);
+}
+.pill-quiet {
+  color: var(--color-ink-2);
+}
+
+/* ---- Rows: full-bleed, hairline-divided, no boxes ---- */
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-hairline);
+  width: 100%;
+  text-align: left;
+  background: none;
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.dot-green {
+  background: var(--color-green);
+}
+.dot-amber {
+  background: var(--color-amber);
+}
+.dot-red {
+  background: var(--color-red);
+}
+.dot-cobalt {
+  background: var(--color-cobalt);
+}
+.dot-quiet {
+  background: var(--color-ink-3);
+}
+
+/* ---- The day-strip slot ---- */
+
+.slot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 64px;
+  padding: 12px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-card);
+  text-align: left;
+}
+
+.slot-open {
+  background: transparent;
+  border-style: dashed;
+  border-color: var(--color-ink-3);
+  color: var(--color-ink-2);
+}
+
+.slot-time {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  min-width: 52px;
+  flex: none;
+}
+
+.slot-price {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  margin-left: auto;
+  flex: none;
+}
+
+.slot[data-state="no_show"] {
+  background: var(--color-red-wash);
+  border-color: color-mix(in srgb, var(--color-red) 30%, var(--color-hairline));
+}
+
+/* ---- The signature: the slot flips, the ledger writes (four beats) ---- */
+
+/* Beat 1 — the slot flips on its x-axis, 240ms, the book page turning. */
+.flip {
+  animation: flip 240ms var(--ease-in-out-soft) both;
+  transform-origin: center;
+  backface-visibility: hidden;
+}
+
+@keyframes flip {
+  from {
+    transform: rotateX(-90deg);
+    opacity: 0.4;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/* Beat 2 — the arithmetic wipes in left to right, 200ms. */
+.math-wipe {
+  animation: wipe 200ms var(--ease-out-quart) 240ms both;
+  clip-path: inset(0 0 0 0);
+}
+
+@keyframes wipe {
+  from {
+    clip-path: inset(0 100% 0 0);
+    opacity: 0.6;
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+  }
+}
+
+/* Beat 3 — the finished ledger line rises 16px and settles. */
+.ledger-land {
+  animation: land 320ms var(--ease-out-quart) 440ms both;
+}
+
+@keyframes land {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Beat 4 — the protected counter rolls up once, odometer-style, <=300ms. */
+.counter-settle {
+  animation: settle 300ms var(--ease-out-quart) 760ms both;
+}
+
+@keyframes settle {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Rows enter with a 24ms stagger, opacity + 4px only — schedules never bounce. */
+.enter {
+  animation: enter 200ms var(--ease-out-quart) both;
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---- Hold-to-confirm: 600ms fill, for anything that moves money ---- */
+
+.hold {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.hold::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--color-cobalt);
+  opacity: 0.22;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.hold[data-holding="true"]::after {
+  animation: hold-fill 600ms linear both;
+}
+
+@keyframes hold-fill {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* ---- The policy panel and the ledger line ---- */
+
+.policy-panel {
+  background: var(--color-card);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-sheet);
+  padding: 16px;
+}
+
+.ledger-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 12px 0;
+  border-top: 1px solid var(--color-hairline);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.ledger-amount {
+  margin-left: auto;
+  color: var(--color-cobalt);
+  white-space: nowrap;
+}
+
+.ledger-amount-waived {
+  text-decoration: line-through;
+  color: var(--color-ink-2);
+}
+
+/* ---- The rent grid ---- */
+
+.rent-grid {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.rent-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 64px;
+  min-height: 48px;
+  padding: 4px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-card);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.6875rem;
+  font-weight: 500;
+}
+
+.rent-cell[data-state="paid"] {
+  color: var(--color-green);
+}
+.rent-cell[data-state="due"] {
+  color: var(--color-amber-text);
+}
+.rent-cell[data-state="late"] {
+  color: var(--color-red);
+  border-color: color-mix(in srgb, var(--color-red) 30%, var(--color-hairline));
+}
+.rent-cell[data-state="waived"] {
+  color: var(--color-ink-2);
+  text-decoration: line-through;
+}
+.rent-cell[data-state="none"] {
+  border-style: dashed;
+  border-color: var(--color-ink-3);
+  color: var(--color-ink-2);
+}
+
+/* ---- Layout scaffolding ---- */
+
+.screen {
+  padding: 0 var(--gutter);
+  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 88px);
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.screen-plain {
+  padding: 0 var(--gutter) 40px;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  background: color-mix(in srgb, var(--color-card) 96%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-hairline);
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: var(--color-ink-2);
+  font-size: 0.625rem;
+  font-weight: 500;
+  position: relative;
+}
+
+.tab[data-active="true"] {
+  color: var(--color-ink);
+}
+
+.tab[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  bottom: 6px;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: var(--color-cobalt);
+}
+
+/* The thumb-zone primary action, above the tab bar. */
+.thumb-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  z-index: 19;
+  padding: 8px var(--gutter) 12px;
+  background: linear-gradient(
+    to top,
+    var(--color-paper) 60%,
+    color-mix(in srgb, var(--color-paper) 0%, transparent)
+  );
+}
+
+.thumb-bar .btn {
+  width: 100%;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: 32px;
+  }
+}
+
+/* ---- Reduced motion: complete, never punitive (DESIGN.md) ---- */
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* The NO-SHOW face is simply there; the maths line is complete; the ledger
+     line is in place; the counter has already settled. Every state motion
+     carried is also plain text and a pill, so nothing is lost. */
+  .flip,
+  .math-wipe,
+  .ledger-land,
+  .counter-settle,
+  .enter {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    clip-path: none;
+  }
+
+  .hold[data-holding="true"]::after {
+    animation: none;
+    transform: scaleX(1);
+  }
 }
