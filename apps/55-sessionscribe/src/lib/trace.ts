@@ -101,32 +101,55 @@ export function traceSection(
   section: NoteSection,
   opts: TraceOptions,
 ): TracedSentence[] {
-  const sentences = splitSentences(section.text);
+  const text = section.text.trim();
+  if (!text) return [];
   if (!opts.hasTranscript) {
-    return sentences.map((text, index) => ({
+    return splitSentences(text).map((sentence, index) => ({
       index,
-      text,
+      text: sentence,
       spans: [],
       kind: "no-transcript" as TraceKind,
     }));
   }
-  const map = new Map<string, SourceSpan[]>();
-  for (const entry of section.sentences ?? []) {
-    map.set(normalizeSentence(entry.text), entry.sourceSpans ?? []);
-  }
-  return sentences.map((text, index) => {
-    const key = normalizeSentence(text);
-    if (!map.has(key)) {
-      return { index, text, spans: [], kind: "clinician" as TraceKind };
+
+  /**
+   * Locate each drafted sentence inside the working copy rather than splitting
+   * the copy and looking sentences up.
+   *
+   * The lookup version broke on the first quotation: a drafted sentence like
+   * `Client reported: "Hard. I did not sleep."` contains a full stop, so the
+   * splitter cut it in two, neither half matched the map, and every sentence in
+   * the note silently degraded to untraceable clinician text — a rendered screen
+   * caught it, no unit test would have. Scanning forward through the text keeps
+   * quoted material intact and still detects an edit, because a sentence the
+   * clinician rewrote simply is not found.
+   */
+  const out: TracedSentence[] = [];
+  let cursor = 0;
+
+  const pushGap = (gap: string) => {
+    for (const sentence of splitSentences(gap)) {
+      out.push({ index: out.length, text: sentence, spans: [], kind: "clinician" });
     }
-    const spans = map.get(key) ?? [];
-    return {
-      index,
-      text,
+  };
+
+  for (const entry of section.sentences ?? []) {
+    const needle = entry.text.trim();
+    if (!needle) continue;
+    const at = text.indexOf(needle, cursor);
+    if (at < 0) continue; // rewritten or deleted by the clinician
+    if (at > cursor) pushGap(text.slice(cursor, at));
+    const spans = entry.sourceSpans ?? [];
+    out.push({
+      index: out.length,
+      text: needle,
       spans,
-      kind: (spans.length > 0 ? "traced" : "unsourced") as TraceKind,
-    };
-  });
+      kind: spans.length > 0 ? "traced" : "unsourced",
+    });
+    cursor = at + needle.length;
+  }
+  if (cursor < text.length) pushGap(text.slice(cursor));
+  return out;
 }
 
 export interface Coverage {

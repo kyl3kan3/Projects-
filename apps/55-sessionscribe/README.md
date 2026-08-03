@@ -90,6 +90,46 @@ Post-MVP (explicitly cut from v1): scheduling/calendar, claims/superbills, teleh
 4. **EHR bundling squeezes the category.** SimplePractice ships "good enough" scribes to a captive base. Mitigation: win the review moment and modality depth; stay EHR-agnostic so the product survives clinicians' platform churn; group/supervision features the add-ons ignore.
 5. **Inference costs at unlimited tiers.** A heavy user could 10x COGS. Mitigation: per-note cost telemetry from day one, fair-use guardrails in terms, model routing (cheap models for shorthand expansion, premium for full-session drafts).
 
+## Running it locally
+
+Needs Node 20+ and a Postgres 16 you can create a database in. Dependencies are
+linked from the repo root rather than installed per app — do not run
+`npm install` here.
+
+```bash
+# from the repo root
+node tools/link-deps.mjs apps/55-sessionscribe --kit web
+
+cd apps/55-sessionscribe
+cp .env.example .env.local           # then fill in DATABASE_URL, AUTH_SECRET,
+                                     # NOTE_HASH_SECRET, CRON_SECRET
+createdb app_55_sessionscribe        # or point DATABASE_URL at an existing db
+npm run db:migrate                   # schema + the append-only triggers
+npm run db:seed                      # optional demo practice, see below
+npm run dev                          # http://localhost:3055
+```
+
+No Deepgram or Anthropic key is needed to run it. With those keys absent the
+pipeline uses its built-in fixture transcriber and extractive drafter, and every
+transcript and draft they produce is labelled as a fixture on the note screen,
+in the exported PDF, and in the database. Add the keys to switch to the real
+providers — nothing else changes.
+
+Audio work happens in a Postgres work ledger rather than a queue service, and it
+can be driven three ways. In dev, capture kicks it inline, so nothing extra is
+required. To watch it instead, run `npm run worker` in a second terminal. In
+production Vercel Cron calls `/api/cron/tick`, which refuses to run unless
+`CRON_SECRET` is set and matches the request's bearer token.
+
+`npm run db:seed` creates a demo practice (sign-in credentials are printed) with
+three clients in different consent states and one shorthand session already
+drafted, so the first screen you see is a real review room rather than an empty
+queue. Re-running it is a no-op.
+
+Tests: `npm test` runs the unit suite (no database). `npm run test:db` runs the
+integrity suite against `DATABASE_URL` — it writes and deletes its own rows, so
+point it at a scratch database.
+
 ## Landing Page
 
 Message architecture per MARKETING_PLAYBOOK.md (in this folder):

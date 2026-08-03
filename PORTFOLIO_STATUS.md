@@ -14,7 +14,7 @@ run, a referral queue that deadlocked under launch-day load, magic-link login
 broken outright, certificate-expiry alerts that fired once and then went quiet
 forever. All were found by running the thing.
 
-## Verified working (30 of 74)
+## Verified working (31 of 74)
 
 Each was re-checked here after its build agent reported: line count, absence of
 unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
@@ -50,6 +50,7 @@ unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
 | 48 | formforge | 11,966 | 92 | 184 |
 | 49 | grantgrid | 9,765 | 70 | 82 |
 | 50 | waiverwing | 10,452 | 87 | 87 |
+| 55 | sessionscribe | 10,389 | 82 | 108 |
 | 51 | menocompass | 2,298 | 25 | — |
 
 Apps 01–04 and 51 predate this process and have no test suites; they are counted
