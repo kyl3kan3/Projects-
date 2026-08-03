@@ -147,10 +147,22 @@ describe("needs pricing", () => {
       index: 0,
       startSeconds: 0,
       text:
-        "One more thing — the attic air handler platform is rotted and I'll need a crane to set the new rooftop unit, so quote that separately once I hear back from the crane company.",
+        "I'll also need a crane to set the rooftop unit at the shop next door, so quote that separately once I hear back from the crane company.",
     });
     assert.ok(name, "expected a flagged row");
+    // The row is named after the work, not after the clause that says "later".
     assert.match(String(name), /crane/i);
+    assert.doesNotMatch(String(name), /separately|hear back/i);
+  });
+
+  it("names the work even when the cue clause is all filler", () => {
+    const name = needsPricingFrom({
+      index: 0,
+      startSeconds: 0,
+      text:
+        "There's a knob-and-tube run in the attic I can't price until I open the ceiling.",
+    });
+    assert.match(String(name), /knob/i);
   });
 
   it("flags another trade's scope", () => {

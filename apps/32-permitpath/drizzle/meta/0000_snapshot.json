@@ -1,5 +1,5 @@
 {
-  "id": "a3dbaaec-2c8a-419e-8126-effd91fc47ab",
+  "id": "f9bd2d9b-a6f7-46bd-b7df-e3219e5c5041",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -2252,6 +2252,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "inspection_sequence": {
+          "name": "inspection_sequence",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
         },
         "inspection_contact": {
           "name": "inspection_contact",

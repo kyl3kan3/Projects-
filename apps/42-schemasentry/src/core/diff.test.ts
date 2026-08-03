@@ -948,7 +948,10 @@ test("the diff is deterministic: the same pair twice gives byte-identical findin
 });
 
 test("a 2MB spec diffs in well under three seconds", async () => {
-  const props = Array.from({ length: 400 }, (_, i) => `    field_${i}: { type: string, description: "${"x".repeat(200)}" }`).join("\n");
+  const props = Array.from(
+    { length: 400 },
+    (_, i) => `                  field_${i}: { type: string, description: "${"x".repeat(200)}" }`,
+  ).join("\n");
   const paths = Array.from(
     { length: 40 },
     (_, i) => `  /v1/resource${i}:
@@ -970,6 +973,7 @@ ${props}
   const started = Date.now();
   const r = await run(before, after);
   const elapsed = Date.now() - started;
+  assert.equal(r.from.health.operations, 40, "the fixture must actually parse into 40 operations");
   assert.equal(r.summary.breaking, 40);
   assert.ok(elapsed < 3000, `diff took ${elapsed}ms`);
 });

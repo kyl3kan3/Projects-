@@ -134,7 +134,11 @@ export function tokenize(text: string): string[] {
     .filter(Boolean);
 
   const out: string[] = [];
-  for (const token of raw) {
+  for (const candidate of raw) {
+    // Keep the decimal point in "15.2" and the slash in "3/4", but drop the
+    // sentence's own punctuation — "feet." must still read as feet.
+    const token = candidate.replace(/^[./]+/, "").replace(/[./]+$/, "");
+    if (!token) continue;
     const ampSpec = /^(\d+)a$/.exec(token);
     if (ampSpec) {
       out.push(ampSpec[1], "amp");
@@ -210,9 +214,11 @@ export function parseNumberAt(tokens: string[], i: number): ParsedNumber | null 
     }
     if (NUMBER_WORDS[token] !== undefined) {
       const value = NUMBER_WORDS[token];
-      // "twenty two" → 22, but "six six" is two separate numbers.
-      if (current % 10 === 0 && current > 0 && current < 100 && value < 10) current += value;
-      else if (current === 0) current = value;
+      // "twenty two" → 22 and "a hundred and forty" → 140, but "six six" is
+      // two separate numbers, not 66.
+      if (current === 0) current = value;
+      else if (current % 100 === 0 && current > 0 && value < 100) current += value;
+      else if (current % 10 === 0 && current < 100 && value < 10) current += value;
       else break;
       sawWord = true;
       index += 1;
@@ -343,52 +349,78 @@ export interface ScoredCandidate {
   /** Token index in the segment where the best evidence sat. */
   position: number;
   matchedTokens: string[];
+  /** Every token in the item's own name — used to bind a count to the thing counted. */
+  itemTokens: Set<string>;
 }
 
 interface ItemIndex {
   item: MatchableItem;
   tokens: string[];
   weights: Map<string, number>;
-  totalWeight: number;
+  /** Denominator: identity words in full, spec words discounted. */
+  requiredWeight: number;
   /** Tokens specific enough to anchor a match (rare within this book). */
   anchors: Set<string>;
 }
+
+/**
+ * How much of the spec half of a name a sentence is expected to contain.
+ *
+ * A price-book row is written like "Thermostat, programmable Wi-Fi" — an identity
+ * before the comma and a spec after it. A contractor says "and a new thermostat".
+ * Requiring the spec words to appear would score that at 0.25 and drop the row, so
+ * the spec counts fully when it *is* said (it is strong evidence) and only
+ * fractionally when it is not.
+ */
+const SPEC_DISCOUNT = 0.35;
+
+/**
+ * Words that are too generic to anchor a match on their own. "Ridge vent
+ * replacement, forty-two feet" must not pull in "Decking replacement labor"
+ * because both rows happen to contain the word "replacement".
+ */
+const WEAK_ANCHORS = new Set([
+  "labor", "replacement", "install", "installation", "service", "kit", "standard", "allowance",
+  "misc", "general", "material", "complete", "unit", "system",
+]);
 
 /** Build the per-book statistics matching needs. O(items), cached by callers. */
 export function buildIndex(items: readonly MatchableItem[]): ItemIndex[] {
   const docFreq = new Map<string, number>();
   const tokenized = items.map((item) => {
+    // The category is deliberately not scored: "Flat rate" and "Materials"
+    // appear on a third of the book each, so they only dilute the weights.
+    const [identity, ...rest] = item.name.split(",");
+    const keep = (token: string) => !STOPWORDS.has(token) && token.length > 1;
+    const coreTokens = new Set(tokenize(identity).filter(keep));
     const tokens = Array.from(
-      new Set(
-        tokenize(`${item.name} ${item.description ?? ""} ${item.category}`).filter(
-          (token) => !STOPWORDS.has(token) && token.length > 1,
-        ),
-      ),
+      new Set(tokenize(`${item.name} ${item.description ?? ""}`).filter(keep)),
     );
+    void rest;
     for (const token of tokens) docFreq.set(token, (docFreq.get(token) ?? 0) + 1);
-    return { item, tokens };
+    return { item, tokens, coreTokens };
   });
 
   const total = Math.max(1, items.length);
   // A token is an anchor when it names few enough items to be diagnostic.
   const anchorCeiling = Math.max(1, Math.ceil(total * 0.2));
 
-  return tokenized.map(({ item, tokens }) => {
+  return tokenized.map(({ item, tokens, coreTokens }) => {
     const weights = new Map<string, number>();
     const anchors = new Set<string>();
-    let totalWeight = 0;
+    let requiredWeight = 0;
     for (const token of tokens) {
       const df = docFreq.get(token) ?? 1;
       const weight = Math.log(1 + total / df);
       weights.set(token, weight);
-      totalWeight += weight;
-      if (df <= anchorCeiling) anchors.add(token);
+      requiredWeight += coreTokens.has(token) ? weight : weight * SPEC_DISCOUNT;
+      if (df <= anchorCeiling && !WEAK_ANCHORS.has(token)) anchors.add(token);
     }
-    return { item, tokens, weights, totalWeight: totalWeight || 1, anchors };
+    return { item, tokens, weights, requiredWeight: requiredWeight || 1, anchors };
   });
 }
 
-const SCORE_FLOOR = 0.3;
+const SCORE_FLOOR = 0.34;
 
 /**
  * The candidate items for one sentence, best first. A match needs both a decent
@@ -428,9 +460,15 @@ export function candidatesForSegment(
       }
     }
     if (!anchored) continue;
-    const score = matchedWeight / entry.totalWeight;
+    const score = matchedWeight / entry.requiredWeight;
     if (score < SCORE_FLOOR) continue;
-    scored.push({ item: entry.item, score, position: bestPosition, matchedTokens });
+    scored.push({
+      item: entry.item,
+      score,
+      position: bestPosition,
+      matchedTokens,
+      itemTokens: new Set(entry.tokens),
+    });
   }
 
   return scored.sort((a, b) => b.score - a.score).slice(0, limit);
@@ -479,53 +517,84 @@ const NEEDS_PRICING_CUES = [
 ];
 
 const LEADING_FILLER =
-  /^(?:okay|alright|also|and|but|so|plus|then|there'?s|there is|the|a|an|one more thing|another thing|oh|now|i'?ll need|i need|we'?ll need|we need|i want|we want|if there'?s|if there is|that'?s)\b[\s,—-]*/i;
+  /^(?:okay|alright|also|and|but|so|plus|then|there'?s|there is|the|a|an|one more thing|another thing|oh|now|if|when|that'?s)\b[\s,—-]*/i;
+
+/** "I'll also need a…", "we want a…" — the speaker, not the work. */
+const LEADING_INTENT =
+  /^(?:i|we|they|somebody|someone|he|she)\s*(?:'|’)?(?:ll|ve|d)?\s*(?:also\s+)?(?:will\s+)?(?:need|needs|want|wants|have to|has to|gotta|got to|am going to|is going to|are going to)\s+(?:a|an|the|some)?\s*/i;
 
 /** The clause that names the thing, cleaned up enough to read in a row. */
 function nameFromClause(clause: string): string {
   let text = clause.trim();
-  for (let i = 0; i < 3; i++) {
-    const stripped = text.replace(LEADING_FILLER, "").trim();
+  for (let i = 0; i < 4; i++) {
+    const stripped = text.replace(LEADING_INTENT, "").replace(LEADING_FILLER, "").trim();
     if (stripped === text) break;
     text = stripped;
   }
-  // Cut at the cue itself, and at anything that reads as a follow-up thought.
+  // Cut at anything that reads as a follow-up thought rather than the noun.
   text = text
-    .split(/\b(?:so|because|and I|that somebody|that I|which|until|once)\b/i)[0]
-    .replace(/[,.;—-]+$/, "")
+    .split(
+      /\b(?:so|because|and I|and we|that somebody|that someone|that I|that we|that'?s|which|until|once)\b/i,
+    )[0]
+    .replace(/[,.;:—-]+$/, "")
     .trim();
-  const words = text.split(/\s+/).filter(Boolean).slice(0, 7);
-  while (words.length && STOPWORDS.has(words[words.length - 1].toLowerCase())) words.pop();
-  const name = words.join(" ");
+  const words = text.split(/\s+/).filter(Boolean).slice(0, 6);
+  while (words.length && STOPWORDS.has(words[words.length - 1].toLowerCase().replace(/\W/g, ""))) {
+    words.pop();
+  }
+  const name = words.join(" ").replace(/[,.;:—-]+$/, "");
   if (!name) return "";
   return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
+function significantWordCount(text: string): number {
+  return text
+    .split(/\s+/)
+    .filter((word) => word.replace(/\W/g, "").length > 1 && !STOPWORDS.has(word.toLowerCase()))
+    .length;
 }
 
 /**
  * Does this sentence describe work the draft must refuse to price? Returns the
  * row name to flag, or null.
+ *
+ * The name comes from the clause that names the *work*, not the clause that says
+ * "later" — every cue phrase is stripped first, and the clause nearest the cue
+ * that still has something in it wins. "so quote that separately once I hear back
+ * from the crane company" is not a line item; "Crane to set the rooftop unit" is.
  */
 export function needsPricingFrom(segment: Segment): string | null {
-  const cue = NEEDS_PRICING_CUES.find((pattern) => pattern.test(segment.text));
-  if (!cue) return null;
+  const cues = NEEDS_PRICING_CUES.filter((pattern) => pattern.test(segment.text));
+  if (!cues.length) return null;
 
-  // Prefer the clause that names the work over the clause that says "later".
   const clauses = segment.text
     .split(/(?:,|—|--|;)\s*/)
     .map((clause) => clause.trim())
     .filter(Boolean);
-  const cueIndex = clauses.findIndex((clause) => cue.test(clause));
-  const ordered =
-    cueIndex >= 0
-      ? [clauses[cueIndex], ...clauses.slice(0, cueIndex).reverse(), ...clauses.slice(cueIndex + 1)]
-      : clauses;
+  const cueIndex = clauses.findIndex((clause) => cues.some((cue) => cue.test(clause)));
 
-  for (const clause of ordered) {
-    const withoutCue = clause.replace(cue, " ").trim();
-    const name = nameFromClause(withoutCue || clause);
-    if (name.split(/\s+/).length >= 2) return name;
+  const stripped = clauses.map((clause) => {
+    let text = clause;
+    for (const cue of NEEDS_PRICING_CUES) text = text.replace(cue, " ");
+    return text.replace(/\s+/g, " ").trim();
+  });
+
+  const order =
+    cueIndex >= 0
+      ? [cueIndex, ...clauses.map((_, i) => i).filter((i) => i !== cueIndex)].sort(
+          (a, b) => (a === cueIndex ? -1 : b === cueIndex ? 1 : Math.abs(a - cueIndex) - Math.abs(b - cueIndex)),
+        )
+      : clauses.map((_, i) => i);
+
+  for (const i of order) {
+    if (significantWordCount(stripped[i]) < 2) continue;
+    const name = nameFromClause(stripped[i]);
+    // A name that starts with a preposition is the tail of the cue, not the
+    // work: "from the crane company" is where the price comes from, not the row.
+    if (/^(?:from|for|about|on|with|by|until|once|at|to)\b/i.test(name)) continue;
+    if (significantWordCount(name) >= 2) return name;
   }
-  return nameFromClause(segment.text) || "Unpriced scope from the walkthrough";
+  return "Unpriced scope from the walkthrough";
 }
 
 /* -------------------------------------------------------------- drafting --- */
@@ -547,31 +616,58 @@ export interface DraftOutcome {
   candidateIds: string[];
 }
 
+/** Tokens that mark a following number as a model or spec: "R-22", "type L". */
+const MODEL_MARKERS = new Set(["r", "type", "model", "no", "size", "seer", "seer2", "grade", "sch", "schedule", "class"]);
+
+/**
+ * Which quantity in this sentence belongs to this item?
+ *
+ * Measured quantities (feet, square feet, hours) are matched by unit and then by
+ * proximity, which is reliable because the unit itself disambiguates.
+ *
+ * Bare counts are the dangerous case — a sentence is full of numbers that are not
+ * quantities ("2009 unit", "R-22", "fifteen-two SEER2"). A count is only adopted
+ * when it sits *in front of* the item's own words and the token right after it is
+ * one of those words, i.e. the number grammatically modifies the thing being
+ * counted: "three pipe boots", "twelve twenty-amp AFCI breakers". Anything else
+ * leaves the quantity at 1, which the contractor can see and fix, rather than
+ * silently billing for twenty-two evaporator coils.
+ */
 function quantityFor(
   item: MatchableItem,
   candidate: ScoredCandidate,
+  tokens: readonly string[],
   quantities: readonly QuantityMention[],
 ): { quantityMilli: number; explicit: boolean } {
   const wanted = UNIT_TO_QUANTITY[item.unit];
-  const matching = quantities.filter((q) => q.kind === wanted);
-  if (matching.length) {
-    const nearest = matching.reduce((best, q) =>
-      Math.abs(q.position - candidate.position) < Math.abs(best.position - candidate.position)
-        ? q
-        : best,
-    );
-    return { quantityMilli: Math.max(1, Math.round(nearest.value * 1000)), explicit: true };
+  if (wanted !== "count") {
+    const matching = quantities.filter((q) => q.kind === wanted);
+    if (matching.length) {
+      const nearest = matching.reduce((best, q) =>
+        Math.abs(q.position - candidate.position) < Math.abs(best.position - candidate.position)
+          ? q
+          : best,
+      );
+      return { quantityMilli: Math.max(1, Math.round(nearest.value * 1000)), explicit: true };
+    }
+    return { quantityMilli: 1000, explicit: false };
   }
-  if (wanted === "count") {
-    // A bare count only counts when it is sitting next to the thing counted.
-    const near = quantities
-      .filter((q) => q.kind === "count" && Math.abs(q.position - candidate.position) <= 3)
-      .sort(
-        (a, b) =>
-          Math.abs(a.position - candidate.position) - Math.abs(b.position - candidate.position),
-      )[0];
-    if (near) return { quantityMilli: Math.max(1, Math.round(near.value * 1000)), explicit: true };
-  }
+
+  const bound = quantities
+    .filter((q) => q.kind === "count")
+    .filter((q) => q.position < candidate.position && candidate.position - q.position <= 4)
+    .filter((q) => {
+      const before = tokens[q.position - 1];
+      if (before && (before.length === 1 || MODEL_MARKERS.has(before))) return false;
+      const after = tokens[q.position + 1];
+      return Boolean(after && candidate.itemTokens.has(after));
+    })
+    .sort(
+      (a, b) =>
+        Math.abs(a.position - candidate.position) - Math.abs(b.position - candidate.position),
+    )[0];
+
+  if (bound) return { quantityMilli: Math.max(1, Math.round(bound.value * 1000)), explicit: true };
   return { quantityMilli: 1000, explicit: false };
 }
 
@@ -606,16 +702,32 @@ export function draftFromSegments(options: DraftOptions): DraftOutcome {
     for (const candidate of candidates) {
       candidateIds.add(candidate.item.id);
       const item = candidate.item;
-      const { quantityMilli, explicit } = quantityFor(item, candidate, quantities);
+      const { quantityMilli, explicit } = quantityFor(item, candidate, tokens, quantities);
       const unitPriceCents = applyMarkup(
         item.unitCostCents,
         item.markupPct ?? options.defaultMarkupPct,
       );
       const existing = byItem.get(item.id);
       if (existing) {
-        // A second mention only improves the row: a real quantity beats a
-        // default 1, and the better-scoring sentence keeps the citation.
-        if (explicit && !existing.explicitQuantity) {
+        /*
+         * A second mention can only improve the row, and the *best* sentence
+         * wins outright. This is what stops a passing reference from setting the
+         * quantity: "it's got double-taps on four breakers" describes the old
+         * panel and scores weakly, while "twelve twenty-amp AFCI breakers"
+         * scores strongly — so the row ends up as twelve, not four.
+         */
+        if (candidate.score > existing.score) {
+          existing.score = candidate.score;
+          existing.transcriptExcerpt = segment.text;
+          existing.transcriptOffsetSeconds = segment.startSeconds;
+          // A spoken quantity is never thrown away by a better-worded mention:
+          // "twenty-two hundred square feet" and "tear off the one layer" are the
+          // same row, and the number is in the first sentence.
+          if (explicit) {
+            existing.quantityMilli = quantityMilli;
+            existing.explicitQuantity = true;
+          }
+        } else if (explicit && !existing.explicitQuantity) {
           existing.quantityMilli = quantityMilli;
           existing.explicitQuantity = true;
           existing.transcriptExcerpt = segment.text;

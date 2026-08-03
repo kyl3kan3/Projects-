@@ -209,6 +209,7 @@ export const requirementRecords = pgTable(
     reviewTimeline: text().notNull(),
     quirks: text(),
     /** Inspection desk guidance — the thing nobody writes down. */
+    inspectionSequence: jsonb().$type<string[]>().notNull().default([]),
     inspectionContact: text(),
     inspectionLeadTimeDays: integer(),
     reinspectionFeeCents: integer(),

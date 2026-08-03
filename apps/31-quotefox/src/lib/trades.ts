@@ -171,22 +171,23 @@ export function starterBookFor(trade: Trade): StarterItem[] {
  */
 export const DEMO_NARRATION: Record<Trade, string> = {
   hvac:
-    "Okay, we're at the side of the house looking at the outdoor unit. This condenser is a 2009 unit, " +
-    "R-22, coil's rotted at the bottom and the pad has sunk about two inches so it's sitting in standing water. " +
-    "We're going to replace the condenser with a three-ton fifteen-two SEER2 and swap the evaporator coil while we're in there. " +
-    "New condenser pad, and I want a new thermostat since that one's the round mercury one. " +
-    "Line set run is about twenty-five feet up the side wall and it's kinked near the top so replace all of it. " +
-    "Six hours for me and six for the apprentice, plus charge and startup. Permit gets filed with the county. " +
-    "One more thing — the attic air handler platform is rotted and I'll need a crane to set the new rooftop unit at the shop next door, " +
-    "so quote that separately once I hear back from the crane company.",
+    "Okay, we're at the side of the house looking at the outdoor unit. This condenser is a 2009 unit on R-22, " +
+    "the coil is rotted at the bottom and the pad has sunk about two inches so it's sitting in standing water. " +
+    "We're replacing it with a three-ton fifteen-two SEER2 condenser and swapping the evaporator coil while we're in there. " +
+    "New condenser pad. I want a new thermostat too, that one's the round mercury one. " +
+    "The line set runs about twenty-five feet up the side wall and it's kinked near the top, so replace all of it. " +
+    "Six hours for the lead tech and six for the apprentice, plus refrigerant charge and startup. " +
+    "Permit gets filed with the county. " +
+    "I'll also need a crane to set the rooftop unit at the shop next door, so quote that separately once I hear back from the crane company.",
   roofing:
-    "Standing in the driveway looking at the front slope. Roof is about twenty-two hundred square feet, one layer of three-tab, " +
-    "roughly nineteen years old, granule loss all over the south face. Tear off the one layer and haul it. " +
-    "Full synthetic underlayment, ice and water shield on the eaves — that's about a hundred and forty linear feet — " +
-    "new aluminum drip edge all the way around, call it two hundred and ten feet. " +
+    "Standing in the driveway looking at the front slope. Roof is about twenty-two hundred square feet of architectural shingles, " +
+    "one layer, roughly nineteen years old, granule loss all over the south face. Tear off the one layer and haul it. " +
+    "Full synthetic underlayment across all twenty-two hundred square feet. " +
+    "Ice and water shield on the eaves, that's about a hundred and forty linear feet. " +
+    "New aluminum drip edge all the way around, call it two hundred and ten feet. " +
     "Ridge vent replacement, forty-two feet. Three pipe boots. " +
-    "There's soft decking above the garage, maybe a hundred and twenty square feet of OSB to replace. " +
-    "Chimney needs a re-flash and counter-flash. Twenty-yard dumpster on the driveway, permit filed with the city. " +
+    "There's soft decking above the garage, maybe a hundred and twenty square feet of OSB sheathing to replace. " +
+    "The chimney needs a re-flash and counter-flash. Twenty-yard dumpster on the driveway, and the permit gets filed with the city. " +
     "Also there's a satellite dish mount through the deck that somebody needs to come remove — not my scope, price it out separately.",
   electrical:
     "Alright, we're in the garage at the panel. This is a Federal Pacific Stab-Lok, sixty-amp, and it's got double-taps on four breakers. " +

@@ -245,6 +245,7 @@ CREATE TABLE "requirement_records" (
 	"fees" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"review_timeline" text NOT NULL,
 	"quirks" text,
+	"inspection_sequence" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"inspection_contact" text,
 	"inspection_lead_time_days" integer,
 	"reinspection_fee_cents" integer,

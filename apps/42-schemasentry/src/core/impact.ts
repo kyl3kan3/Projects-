@@ -53,13 +53,24 @@ function parseEndpoint(spec: string): { method: string; path: string } | null {
   return { method: m[1].toUpperCase(), path: m[2] };
 }
 
+/**
+ * Split a field path into comparable segments.
+ *
+ * Array traversal is spelled three ways in practice — `items[].status` from the
+ * diff walk, `items.0.status` from a generated test's accessor, and
+ * `items.status` from a human typing into the registry — and all three mean the
+ * same field. Both the `[]` marker and bare numeric indices are dropped so they
+ * compare equal; without this a contract assertion on `data.0.status` never
+ * matches a finding on `data[].status` and staleness detection silently returns
+ * nothing.
+ */
 function fieldSegments(path: string): string[] {
   return path
     .toLowerCase()
-    .replace(/\[\]/g, "")
+    .replace(/\[\d*\]/g, "")
     .split(".")
     .map((s) => s.trim())
-    .filter(Boolean);
+    .filter((s) => s.length > 0 && !/^\d+$/.test(s));
 }
 
 /** True when one segment list is a suffix of the other. */

@@ -510,6 +510,13 @@ function diffContent(
   const bMedia = isObject(before) ? before : {};
   const aMedia = isObject(after) ? after : {};
   const req = ctx.side === "request";
+  // Content-type rules name the operation in their template, so the vars have
+  // to carry it — a missing var renders as a literal `{endpoint}` in the UI.
+  const mediaVars = (mt: string) => ({
+    mediaType: mt,
+    status: ctx.status ?? "",
+    endpoint: `${ctx.method ?? ""} ${ctx.endpoint ?? ""}`.trim(),
+  });
 
   for (const mt of Object.keys(bMedia).sort()) {
     if (mt in aMedia) continue;
@@ -519,7 +526,7 @@ function diffContent(
       endpoint: ctx.endpoint,
       method: ctx.method,
       side: ctx.side,
-      vars: { mediaType: mt, status: ctx.status ?? "" },
+      vars: mediaVars(mt),
       before: mt,
       after: undefined,
     });
@@ -532,7 +539,7 @@ function diffContent(
       endpoint: ctx.endpoint,
       method: ctx.method,
       side: ctx.side,
-      vars: { mediaType: mt, status: ctx.status ?? "" },
+      vars: mediaVars(mt),
       before: undefined,
       after: mt,
     });
