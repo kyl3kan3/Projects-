@@ -4,11 +4,13 @@
  * Sign-up and sign-in.
  *
  * Every exported `"use server"` function is a public endpoint, so there are exactly
- * three here and each is called from a form on screen.
+ * two here and each is called from a form on screen. Signing out lives with the
+ * settings screen that offers it — a second copy here was an endpoint with no caller,
+ * which is attack surface rather than dead code.
  */
 
 import { redirect } from "next/navigation";
-import { clearSession, login, signup } from "@/lib/auth";
+import { login, signup } from "@/lib/auth";
 import { safeMessage } from "@/lib/errors";
 
 export interface AuthFormState {
@@ -42,9 +44,4 @@ export async function loginAction(
     return { error: safeMessage(err, "That sign-in could not be completed.") };
   }
   redirect("/reorder");
-}
-
-export async function logoutAction(): Promise<void> {
-  await clearSession();
-  redirect("/login");
 }
