@@ -71,3 +71,64 @@ Flat pricing — never a % of spend (the positioning line against enterprise Fin
 - **AWS could ship this:** they structurally won't do Slack-native, deploy-correlated, multi-account startup UX well — but track it; speed and focus are the defense.
 - **Security scrutiny:** read-only billing access is still access; SOC 2 becomes necessary earlier than for most micro-SaaS — budget for it in year 1.
 - **Spend-based seasonality:** customers optimize and their perceived need dips; the digest ritual + waste reports keep the product valuable in calm months.
+
+---
+
+## Running it
+
+You need Node 20+ and a Postgres database. Everything else is optional and the
+app tells you what it is missing rather than failing.
+
+```bash
+cp .env.example .env.local     # fill in DATABASE_URL and AUTH_SECRET
+npm install
+npm run db:migrate             # creates the schema
+npm run dev                    # http://localhost:3030
+```
+
+Then sign up, and connect an AWS account on the screen you land on.
+
+**Without an AWS credential**, CloudSpend runs a deterministic synthetic estate
+instead of calling AWS: three months of seasonal cost history with a seeded
+runaway and a deploy two hours before it. Every screen fed by it says
+`DEMO DATA`, and nothing is ever presented as a real bill. Set
+`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `CLOUDSPEND_AWS_ACCOUNT_ID` and
+the same code paths talk to Cost Explorer for real. Read
+`src/lib/aws/provider.ts` for the seam.
+
+Without `SLACK_SIGNING_SECRET` / a workspace bot token, alerts fall back to
+email; without `RESEND_API_KEY` too, they are written to the in-app alert log
+with their full text (Settings → Recent alerts). Without Stripe keys the pricing
+ladder is still enforced from the org record — you just cannot take a payment.
+
+### The scheduled work
+
+Everything periodic — Cost Explorer polling, CUR import, baseline refresh,
+anomaly detection, budget ladder, waste scan, digest — is one idempotent
+function, `runTick()`. Two ways to run it:
+
+```bash
+# The deployment target (Vercel): a cron-triggered route with a time budget.
+curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3030/api/cron/tick
+
+# A box you control: the same function on a loop.
+npm run worker
+```
+
+Running both at once is harmless: every write is an upsert and every alert is
+claimed in `alert_log` before it is sent.
+
+### Deploy markers
+
+Settings shows a per-org webhook URL and signing secret. Point a GitHub webhook
+at it (`push` or `deployment_status`), or post `{"service","sha"}` from the end
+of your deploy script with an `x-hub-signature-256` HMAC. Settings has the
+two-line shell version.
+
+### Checks
+
+```bash
+npm run typecheck
+npm test          # domain logic: money, dates, baselines, detection, ladder, CUR, Block Kit, PNG
+npm run build
+```

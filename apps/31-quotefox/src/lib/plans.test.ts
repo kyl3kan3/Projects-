@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   canDraft,
+  trialIsOver,
   featureEnabled,
   isReadOnly,
   planRequiredFor,
@@ -90,6 +91,15 @@ describe("the draft gate", () => {
     assert.match(gate.message, /stays live/i);
   });
 
+  it("blames the trial for a trial, and the bill for a bill", () => {
+    const trialOut = canDraft(org({ subscriptionStatus: "trial_expired" }), NOW);
+    assert.equal(trialOut.ok, false);
+    if (!trialOut.ok) assert.match(trialOut.message, /trial has ended/i);
+    const billing = canDraft(org({ subscriptionStatus: "canceled" }), NOW);
+    assert.equal(billing.ok, false);
+    if (!billing.ok) assert.match(billing.message, /billing/i);
+  });
+
   it("keeps a past-due account working, and a cancelled one read-only", () => {
     assert.equal(isReadOnly(org({ subscriptionStatus: "past_due" }), NOW), false);
     assert.equal(isReadOnly(org({ subscriptionStatus: "canceled" }), NOW), true);
@@ -113,6 +123,21 @@ describe("feature gates", () => {
     });
     assert.equal(featureEnabled(trial, "deposits"), true);
     assert.equal(featureEnabled(trial, "nudges"), true);
+  });
+});
+
+describe("why an account is read-only", () => {
+  it("knows a lapsed trial from an unpaid bill", () => {
+    assert.equal(trialIsOver(org({ subscriptionStatus: "trial_expired" }), NOW), true);
+    assert.equal(
+      trialIsOver(org({ subscriptionStatus: "trialing", trialEndsAt: new Date("2026-07-01") }), NOW),
+      true,
+    );
+    assert.equal(
+      trialIsOver(org({ subscriptionStatus: "trialing", trialEndsAt: new Date("2026-08-20") }), NOW),
+      false,
+    );
+    assert.equal(trialIsOver(org({ subscriptionStatus: "canceled" }), NOW), false);
   });
 });
 

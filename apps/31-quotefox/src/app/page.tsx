@@ -58,7 +58,7 @@ export default function LandingPage() {
       </header>
 
       {/* ---- the enemy ----------------------------------------------------- */}
-      <section className="gutter" style={{ paddingTop: 64, maxWidth: 1120, margin: "0 auto" }}>
+      <section className="gutter" style={{ paddingTop: 56, maxWidth: 1120, margin: "0 auto" }}>
         <p className="t-label">The enemy</p>
         <h2 className="t-h2" style={{ marginTop: 12, maxWidth: "26ch" }}>
           The estimate written twice — once in your head, once at 10pm.
@@ -105,7 +105,7 @@ export default function LandingPage() {
       </section>
 
       {/* ---- how it works -------------------------------------------------- */}
-      <section id="how" className="gutter" style={{ paddingTop: 64, maxWidth: 1120, margin: "0 auto" }}>
+      <section id="how" className="gutter" style={{ paddingTop: 56, maxWidth: 1120, margin: "0 auto" }}>
         <p className="t-label">The device</p>
         <h2 className="t-h2" style={{ marginTop: 12, maxWidth: "24ch" }}>
           Narration and photos in. Priced line items out.
@@ -144,7 +144,7 @@ export default function LandingPage() {
       </section>
 
       {/* ---- the objection -------------------------------------------------- */}
-      <section className="gutter" style={{ paddingTop: 64, maxWidth: 1120, margin: "0 auto" }}>
+      <section className="gutter" style={{ paddingTop: 56, maxWidth: 1120, margin: "0 auto" }}>
         <p className="t-label">The objection</p>
         <h2 className="t-h2" style={{ marginTop: 12, maxWidth: "28ch" }}>
           “I'm not signing my name to a number a robot made up.”
@@ -171,7 +171,7 @@ export default function LandingPage() {
       </section>
 
       {/* ---- the math ------------------------------------------------------- */}
-      <section className="gutter" style={{ paddingTop: 64, maxWidth: 1120, margin: "0 auto" }}>
+      <section className="gutter" style={{ paddingTop: 56, maxWidth: 1120, margin: "0 auto" }}>
         <p className="t-label">The math</p>
         <h2 className="t-h2" style={{ marginTop: 12, maxWidth: "26ch" }}>
           What the lag costs you, in your numbers.
@@ -182,7 +182,7 @@ export default function LandingPage() {
       </section>
 
       {/* ---- receipts ------------------------------------------------------- */}
-      <section className="gutter" style={{ paddingTop: 64, maxWidth: 1120, margin: "0 auto" }}>
+      <section className="gutter" style={{ paddingTop: 56, maxWidth: 1120, margin: "0 auto" }}>
         <p className="t-label">Receipts</p>
         <h2 className="t-h2" style={{ marginTop: 12, maxWidth: "26ch" }}>
           We are pre-launch, and we are not going to fake this part.
@@ -201,7 +201,7 @@ export default function LandingPage() {
       </section>
 
       {/* ---- pricing -------------------------------------------------------- */}
-      <section className="gutter" style={{ paddingTop: 64, maxWidth: 1120, margin: "0 auto" }}>
+      <section className="gutter" style={{ paddingTop: 56, maxWidth: 1120, margin: "0 auto" }}>
         <p className="t-label">Pricing</p>
         <h2 className="t-h2" style={{ marginTop: 12, maxWidth: "24ch" }}>
           Flat monthly. No cut of your deposits, ever.
@@ -255,7 +255,13 @@ export default function LandingPage() {
       {/* ---- final CTA ------------------------------------------------------ */}
       <section
         className="gutter"
-        style={{ paddingTop: 64, paddingBottom: 120, maxWidth: 1120, margin: "0 auto" }}
+        style={{
+          paddingTop: 56,
+          // Clearance for the sticky CTA, expressed on the 4px scale.
+          paddingBottom: "calc(80px + env(safe-area-inset-bottom))",
+          maxWidth: 1120,
+          margin: "0 auto",
+        }}
       >
         <h2 className="t-h2" style={{ maxWidth: "22ch" }}>
           Walk the next job. Send the bid before you pull away.

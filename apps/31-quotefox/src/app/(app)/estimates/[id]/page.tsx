@@ -7,6 +7,7 @@ import { requireOnboardedUser } from "@/lib/auth";
 import { computeDepositCents, depositWarning } from "@/lib/deposits";
 import { getEstimate, walkthroughFor } from "@/lib/estimates";
 import { featureEnabled, orgAsGatable, planRequiredFor } from "@/lib/plans";
+import { DuplicateButton } from "./DuplicateButton";
 import { EstimateEditor } from "./EstimateEditor";
 
 export const metadata: Metadata = { title: "Estimate" };
@@ -69,12 +70,18 @@ export default async function EstimatePage({
           <div className="panel" style={{ padding: 16 }}>
             <p className="t-title">This version has been sent</p>
             <p className="t-secondary" style={{ marginTop: 4 }}>
-              The homeowner is looking at these numbers, so they are frozen. Start version{" "}
-              {found.estimate.version + 1} to re-quote.
+              The homeowner is looking at these numbers, so they are frozen. Re-quoting copies the rows
+              into the next version, so you edit rather than retype.
             </p>
-            <Link href={`/jobs/${found.job.id}`} className="btn-quiet" style={{ paddingLeft: 0 }}>
-              Back to the job
-            </Link>
+            <div style={{ marginTop: 8, display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
+              <DuplicateButton
+                estimateId={found.estimate.id}
+                nextVersion={found.estimate.version + 1}
+              />
+              <Link href={`/jobs/${found.job.id}`} className="t-secondary">
+                Back to the job
+              </Link>
+            </div>
           </div>
         </section>
       ) : null}

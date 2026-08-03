@@ -121,6 +121,14 @@ export function isTrialing(org: Gatable): boolean {
   return org.subscriptionStatus === "trialing";
 }
 
+/** Was this org read-only *because the trial ran out*, rather than because of a bill? */
+export function trialIsOver(org: Gatable, now = new Date()): boolean {
+  if (org.subscriptionStatus === "trial_expired") return true;
+  if (!isTrialing(org) || !org.trialEndsAt) return false;
+  const ends = org.trialEndsAt instanceof Date ? org.trialEndsAt : new Date(org.trialEndsAt);
+  return ends.getTime() <= now.getTime();
+}
+
 /** Days left in the trial, floor 0. Null when not trialing. */
 export function trialDaysLeft(org: Gatable, now = new Date()): number | null {
   if (!isTrialing(org) || !org.trialEndsAt) return null;
@@ -203,8 +211,11 @@ export function canDraft(org: Gatable, now = new Date()): DraftGate {
     return {
       ok: false,
       code: "READ_ONLY",
-      message: isTrialing(org)
-        ? "Your 14-day trial has ended. Pick a plan to draft new quotes — everything you have already sent stays live."
+      // The wording has to match the actual cause: a contractor whose trial ran
+      // out has not failed to pay a bill, and telling them they have is a bad
+      // first impression at exactly the wrong moment.
+      message: trialIsOver(org, now)
+        ? `Your ${TRIAL_DAYS}-day trial has ended. Pick a plan to draft new quotes — everything you have already sent stays live.`
         : "This account is read-only until billing is sorted. Sent proposals stay live and deposits still land.",
       upgradeTo: "crew",
     };

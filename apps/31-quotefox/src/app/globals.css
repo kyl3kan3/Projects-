@@ -25,9 +25,10 @@
    * meaning: timestamps, unit labels, the transcript citation under a line item.
    * WCAG AA asks 4.5:1 below 24px, so the palette table and DESIGN_LANGUAGE's
    * "AA minimum everywhere" cannot both hold, and the reader wins. Same hue and
-   * chroma family, lightened only until it passes: 4.6:1.
+   * chroma family, lightened only until it passes on *both* dark grounds —
+   * 5.0:1 on iron and 4.6:1 on a toolbox panel, where it also appears.
    */
-  --color-text-3: #8a7e6c; /* was #6E6353 (3.1:1) */
+  --color-text-3: #8f8371; /* was #6E6353 (3.1:1 on iron, 2.9:1 on toolbox) */
   --color-paper: #f4efe6; /* primary buttons, the proposal page ground */
   --color-hi-vis: #cd7a29; /* THE accent. It marks; it never paints. */
   --color-amber: #d9a43c; /* waiting only: unviewed, needs pricing, retrying */
@@ -635,6 +636,49 @@ select.field {
 .paper-page .panel {
   background: #fffdf9;
   border-color: var(--color-paper-line);
+}
+
+/* ---- Responsive: the phone is the spec, the desktop is the enhancement --- */
+
+/*
+ * DESIGN.md asks for gutters of 32 and a three-across stat band from 768px, and a
+ * 1120px maximum content width. The app screens are single-column lists of
+ * hairline rows, so past a certain width the useful move is to stop them
+ * stretching rather than to invent a second column: a 56-character line of job
+ * titles is harder to scan than a narrow one, not easier.
+ *
+ * The left rail replacing the tab bar, and the estimate screen's side-by-side
+ * proposal preview, are described in DESIGN.md's responsive section and are not
+ * built here — they are desktop-only enhancements to a product whose whole point
+ * is being used one-handed in a driveway.
+ */
+@media (min-width: 768px) {
+  :root {
+    --gutter: 32px;
+  }
+  .app-measure {
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .tabbar {
+    max-width: 760px;
+    margin: 0 auto;
+    border-left: 1px solid var(--color-hairline);
+    border-right: 1px solid var(--color-hairline);
+  }
+  .thumb-bar {
+    max-width: 760px;
+    margin: 0 auto;
+    border-left: 1px solid var(--color-hairline);
+    border-right: 1px solid var(--color-hairline);
+  }
+  .stat-band {
+    display: flex;
+    gap: 40px;
+    align-items: baseline;
+    flex-wrap: wrap;
+  }
 }
 
 /* ---- Reduced motion: feature-complete, never punitive ----------------- */

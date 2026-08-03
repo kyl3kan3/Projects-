@@ -27,7 +27,7 @@
  */
 
 import type { DraftedLineItem, PriceBookItemKind, Unit } from "@/db/schema";
-import { applyMarkup, lineTotalCents } from "@/lib/money";
+import { applyMarkup } from "@/lib/money";
 
 /* ---------------------------------------------------------- tokenizing --- */
 
@@ -776,9 +776,4 @@ export function draftFromSegments(options: DraftOptions): DraftOutcome {
     needsPricingCount: flagged.length,
     candidateIds: Array.from(candidateIds),
   };
-}
-
-/** The priced money on a drafted row, for previews and totals. */
-export function draftedLineTotal(row: DraftedLineItem): number {
-  return row.needsPricing ? 0 : lineTotalCents(row.quantityMilli, row.unitPriceCents);
 }

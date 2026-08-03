@@ -98,7 +98,7 @@ export default async function PublicProposalPage({
 
   return (
     <main className="paper-page">
-      <div className="gutter" style={{ maxWidth: 640, margin: "0 auto", paddingBottom: 64 }}>
+      <div className="gutter" style={{ maxWidth: 640, margin: "0 auto", paddingBottom: 80 }}>
         {/* ---- letterhead ---- */}
         <header style={{ paddingTop: 32, paddingBottom: 24 }}>
           <p className="t-label" style={{ color: brand }}>

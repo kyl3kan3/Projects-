@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireOnboardedUser } from "@/lib/auth";
 import { createJob, setJobStatus } from "@/lib/jobs";
-import { setCaption, setNotes, startWalkthrough } from "@/lib/walkthroughs";
+import { startWalkthrough } from "@/lib/walkthroughs";
 import type { JobStatus } from "@/db/schema";
 
 export interface NewJobState {
@@ -35,25 +35,9 @@ export async function createJobAndCaptureAction(
   redirect(`/jobs/${result.job.id}/capture?w=${walkthrough.id}`);
 }
 
-export async function startAnotherWalkthroughAction(jobId: string): Promise<void> {
-  const { org, user } = await requireOnboardedUser();
-  const walkthrough = await startWalkthrough(org, user.id, jobId);
-  redirect(`/jobs/${jobId}/capture?w=${walkthrough.id}`);
-}
-
 export async function setJobStatusAction(jobId: string, status: JobStatus): Promise<void> {
   const { org, user } = await requireOnboardedUser();
   await setJobStatus(org.id, user.id, jobId, status);
   revalidatePath(`/jobs/${jobId}`);
   revalidatePath("/jobs");
-}
-
-export async function saveNotesAction(walkthroughId: string, notes: string): Promise<void> {
-  const { org } = await requireOnboardedUser();
-  await setNotes(org.id, walkthroughId, notes);
-}
-
-export async function saveCaptionAction(mediaId: string, caption: string): Promise<void> {
-  const { org } = await requireOnboardedUser();
-  await setCaption(org.id, mediaId, caption);
 }

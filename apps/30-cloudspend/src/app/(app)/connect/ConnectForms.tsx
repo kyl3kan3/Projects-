@@ -55,7 +55,7 @@ export function AddAccountForm() {
           defaultValue={kept.accountId ?? ""}
           inputMode="numeric"
           placeholder="481029384756"
-          pattern="[0-9\s-]{12,20}"
+          pattern="[0-9\s\-]{12,20}"
           required
         />
       </label>

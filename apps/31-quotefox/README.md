@@ -53,20 +53,98 @@ Notes on the model:
 
 ## MVP Feature List
 
-- [ ] Org onboarding: trade selection, branding (logo, license number, colors), starter price-book templates per trade
-- [ ] Price book: CRUD, CSV import, categories, labor/material/flat-rate item types, default markup rules
-- [ ] Mobile walkthrough capture: record narration (pauseable), snap photos, works offline-tolerant with upload retry; presigned direct-to-R2 uploads
-- [ ] Transcription + AI drafting pipeline: Whisper transcript, GPT-4o drafts line items matched against the org's price book with quantities and notes, flags unmatched items for review
-- [ ] Estimate editor: review/edit drafted line items, add/remove/reprice, markup and tax, the signature "estimate drafting itself" reveal
-- [ ] Branded proposal link: hosted page with scope, line items, photos, terms, license/insurance block; signed tokens, no homeowner login
-- [ ] E-acceptance: typed-name signature, timestamped acceptance record, PDF snapshot archived
-- [ ] Deposit collection: percentage or fixed deposit via Stripe Checkout on the contractor's connected account (Stripe Connect)
-- [ ] Proposal events: sent/viewed/accepted/deposit-paid timeline per proposal; email notifications to the contractor
-- [ ] Automatic follow-ups: polite nudge emails at +2d and +5d if unviewed/unaccepted (Crew+)
-- [ ] Billing for QuoteFox itself (Stripe Billing, the three plans above) with quote-count metering and plan gating
-- [ ] Audit log of every AI draft, edit, send, and payment action
+- [x] Org onboarding: trade selection, branding (logo, license number, colors), starter price-book templates per trade
+- [x] Price book: CRUD, CSV import, categories, labor/material/flat-rate item types, default markup rules
+- [x] Mobile walkthrough capture: record narration (pauseable), snap photos, works offline-tolerant with upload retry; presigned direct-to-R2 uploads
+- [x] Transcription + AI drafting pipeline: Whisper transcript, GPT-4o drafts line items matched against the org's price book with quantities and notes, flags unmatched items for review
+- [x] Estimate editor: review/edit drafted line items, add/remove/reprice, markup and tax, the signature "estimate drafting itself" reveal
+- [x] Branded proposal link: hosted page with scope, line items, photos, terms, license/insurance block; signed tokens, no homeowner login
+- [x] E-acceptance: typed-name signature, timestamped acceptance record, PDF snapshot archived
+- [x] Deposit collection: percentage or fixed deposit via Stripe Checkout on the contractor's connected account (Stripe Connect)
+- [x] Proposal events: sent/viewed/accepted/deposit-paid timeline per proposal; email notifications to the contractor
+- [x] Automatic follow-ups: polite nudge emails at +2d and +5d if unviewed/unaccepted (Crew+)
+- [x] Billing for QuoteFox itself (Stripe Billing, the three plans above) with quote-count metering and plan gating
+- [x] Audit log of every AI draft, edit, send, and payment action
 
 Post-MVP (explicitly cut from v1): review-request follow-ups, win-rate analytics, good/better/best proposal options, QuickBooks/Jobber export, financing offers, Spanish-language capture, iOS/Android native apps (v1 is a mobile-first PWA).
+
+## Setup
+
+Requirements: Node 20+ and a Postgres database. Everything else is optional and the
+app tells you, on the Settings screen, exactly what is switched off.
+
+```bash
+npm install
+cp .env.example .env.local        # then fill in DATABASE_URL and AUTH_SECRET
+npm run db:migrate                # creates the schema
+npm run dev                       # http://localhost:3031
+```
+
+Two variables are genuinely required:
+
+| Variable | Why |
+|---|---|
+| `DATABASE_URL` | Postgres. Migrations want the *direct* Neon URL, not the pooled one. |
+| `AUTH_SECRET` | Signs the session cookie (and the proposal links, unless you set `PROPOSAL_TOKEN_SECRET`). `openssl rand -hex 32` |
+
+Everything else degrades honestly rather than breaking:
+
+- **No `OPENAI_API_KEY`** — walkthrough audio is not transcribed. Drafts are built from
+  the tech's typed notes, the photo captions, and a clearly-labelled sample narration
+  for the trade, using a deterministic keyword matcher against the price book. Every
+  screen that shows such a draft says where the words came from.
+- **No R2 credentials** — audio, photos and PDF snapshots are written to the local
+  filesystem (`LOCAL_MEDIA_DIR`, default `.uploads`) through a signed upload grant that
+  behaves exactly like a presigned R2 URL. Fine for development; a serverless deploy
+  needs R2, and the Settings checklist says so.
+- **No `RESEND_API_KEY`, or `DRY_RUN=1`** — email is logged instead of sent, and the UI
+  offers the proposal link to copy and text instead.
+- **No `STRIPE_SECRET_KEY`** — plan checkout and deposits are unavailable; the homeowner's
+  proposal page says the contractor will follow up for the deposit rather than pretending
+  a card can be taken.
+- **No `CRON_SECRET`** — `/api/cron/tick` refuses to run, so nothing emails a homeowner
+  from an unprotected endpoint.
+
+### Running it
+
+```bash
+npm run dev          # Next.js on :3031
+npm run typecheck    # tsc --noEmit
+npm test             # node:test via tsx — domain logic, no database needed
+npm run build        # production build
+npm run worker       # OPTIONAL: retries stalled walkthroughs and sweeps follow-ups
+```
+
+### Scheduled work
+
+Follow-up nudges (+2 days, +5 days), proposal expiry and trial expiry run from
+`GET /api/cron/tick`, protected by `CRON_SECRET`. `vercel.json` schedules it daily;
+anywhere else, curl it from cron:
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" https://your-host/api/cron/tick
+```
+
+`npm run worker` does the same work on a shorter interval for a self-hosted install,
+and also picks up walkthroughs whose inline drafting died mid-flight. Both are
+idempotent, so running both is harmless.
+
+### Stripe
+
+Two separate relationships, on purpose:
+
+- **Our own billing** — ordinary Stripe Billing on the platform account. Leave the
+  `STRIPE_PRICE_*` variables blank and checkout creates the price inline from the
+  table above, so you can exercise it before building a product catalogue.
+- **Contractor deposits** — Stripe Connect *Standard*. The Checkout session is created
+  on the contractor's own account with no application fee: their money, their fees,
+  their disputes. QuoteFox takes no percentage, which is a stated product promise, and
+  it is enforced in one place (`src/lib/deposits.ts`).
+
+Point a webhook endpoint at `/api/webhooks/stripe` for both platform and connected
+events. The handler verifies the signature, records the event id, and refuses to run
+at all when `STRIPE_WEBHOOK_SECRET` is unset.
+
 
 ## Differentiation
 

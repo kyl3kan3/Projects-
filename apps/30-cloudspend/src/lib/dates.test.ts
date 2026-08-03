@@ -3,7 +3,6 @@ import test from "node:test";
 import {
   dayKey,
   daysInMonth,
-  dowHour,
   durationShort,
   floorHour,
   hourKey,
@@ -45,9 +44,7 @@ test("elapsed hours never returns zero on the first minute of the month", () => 
   assert.equal(hoursElapsedInMonth(new Date("2026-07-03T12:00:00Z")), 60);
 });
 
-test("the seasonality key is UTC day-of-week and hour", () => {
-  // 2026-07-14 is a Tuesday.
-  assert.deepEqual(dowHour(new Date("2026-07-14T14:00:00Z")), { dow: 2, hour: 14 });
+test("stamps are UTC, and the short form is the row specimen", () => {
   assert.equal(stampShort(new Date("2026-07-14T14:02:00Z")), "TUE 14:02");
   assert.equal(stampUtc(new Date("2026-07-14T14:00:00Z")), "Tue 14:00 UTC");
 });

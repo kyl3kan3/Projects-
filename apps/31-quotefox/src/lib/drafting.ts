@@ -346,11 +346,4 @@ export async function draftEstimate(request: DraftRequest): Promise<DraftResult>
   }
 }
 
-/** Photo captions written by whoever took them, plus a vision pass when there is one. */
-export async function captionPhotos(existing: Array<string | null>): Promise<string[]> {
-  // A vision pass over jobsite photos is a Phase 2 item in ROADMAP.md; the
-  // contractor's own captions are what the MVP drafts from.
-  return existing.map((caption) => (caption ?? "").trim()).filter(Boolean);
-}
-
 export { segmentTranscript };

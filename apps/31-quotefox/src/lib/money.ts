@@ -153,12 +153,3 @@ export function formatQuantity(quantityMilli: number): string {
   const value = (Math.round(quantityMilli) || 0) / 1000;
   return String(Number(value.toFixed(3)));
 }
-
-export function formatPercent(pct: number): string {
-  return `${Number((Number(pct) || 0).toFixed(2))}%`;
-}
-
-/** Basis points as a percentage string: 825 → "8.25%". */
-export function formatBpAsPercent(bp: number): string {
-  return `${Number(((Number(bp) || 0) / 100).toFixed(2))}%`;
-}

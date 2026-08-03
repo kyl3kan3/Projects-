@@ -18,7 +18,7 @@ import {
   SlackForm,
 } from "./SettingsForms";
 import { CopyLine } from "@/components/CopyLine";
-import { IconArrowLeft, IconHash, IconPlug } from "@/components/icons";
+import { IconArrowLeft, IconBell, IconHash, IconPlug } from "@/components/icons";
 
 export const metadata: Metadata = { title: "Settings" };
 export const dynamic = "force-dynamic";
@@ -141,7 +141,10 @@ export default async function SettingsPage() {
 
       {/* --- Email fallback ---------------------------------------------- */}
       <section className="gutter" style={{ paddingTop: 40 }}>
-        <h2 className="t-label">Alert email</h2>
+        <h2 className="t-label" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <IconBell size={16} />
+          Alert email
+        </h2>
         <div style={{ marginTop: 4, marginBottom: 16 }}>
           {emails.map((channel) => (
             <div key={channel.id} className="row" style={{ minHeight: 48 }}>

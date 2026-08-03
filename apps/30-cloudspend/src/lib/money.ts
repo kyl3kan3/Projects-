@@ -19,10 +19,6 @@ export function dollarsToMicros(amount: string | number): number {
   return Math.round(n * MICROS_PER_DOLLAR);
 }
 
-export function microsToDollars(micros: number): number {
-  return micros / MICROS_PER_DOLLAR;
-}
-
 /** Round micro-dollars to whole cents — the single rounding point. */
 export function microsToCents(micros: number): number {
   return Math.round(micros / 10_000);

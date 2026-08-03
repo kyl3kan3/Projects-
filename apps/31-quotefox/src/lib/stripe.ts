@@ -9,7 +9,7 @@
 
 import Stripe from "stripe";
 import { env, has } from "@/lib/env";
-import { PLANS, plan } from "@/lib/plans";
+import { plan } from "@/lib/plans";
 import type { Plan } from "@/db/schema";
 
 // Pinned deliberately: an unpinned version lets Stripe change response shapes
@@ -132,23 +132,3 @@ export async function createConnectOnboardingLink(args: {
   });
   return { accountId, url: link.url };
 }
-
-export async function connectAccountStatus(
-  accountId: string,
-): Promise<{ chargesEnabled: boolean; detailsSubmitted: boolean } | null> {
-  try {
-    const account = await stripe().accounts.retrieve(accountId);
-    return {
-      chargesEnabled: Boolean(account.charges_enabled),
-      detailsSubmitted: Boolean(account.details_submitted),
-    };
-  } catch {
-    return null;
-  }
-}
-
-export const PLAN_PRICE_LABELS: Record<Plan, string> = {
-  solo: `$${PLANS.solo.priceCents / 100}/mo`,
-  crew: `$${PLANS.crew.priceCents / 100}/mo`,
-  fleet: `$${PLANS.fleet.priceCents / 100}/mo`,
-};

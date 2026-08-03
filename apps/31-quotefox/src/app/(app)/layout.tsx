@@ -7,6 +7,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <>
       <div
+        className="app-measure"
         style={{
           minHeight: "100dvh",
           paddingBottom: "calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 88px)",

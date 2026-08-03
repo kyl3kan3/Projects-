@@ -231,34 +231,6 @@ export async function confirmUpload(
   return { ok: true, sizeBytes: head.sizeBytes };
 }
 
-export async function setCaption(
-  organizationId: string,
-  mediaId: string,
-  caption: string,
-): Promise<void> {
-  const db = getDb();
-  await db
-    .update(walkthroughMedia)
-    .set({ caption: caption.trim() || null })
-    .where(
-      and(eq(walkthroughMedia.organizationId, organizationId), eq(walkthroughMedia.id, mediaId)),
-    );
-}
-
-export async function setNotes(
-  organizationId: string,
-  walkthroughId: string,
-  notes: string,
-): Promise<void> {
-  const db = getDb();
-  await db
-    .update(walkthroughs)
-    .set({ notes: notes.trim() || null, updatedAt: new Date() })
-    .where(
-      and(eq(walkthroughs.organizationId, organizationId), eq(walkthroughs.id, walkthroughId)),
-    );
-}
-
 /* --------------------------------------------------------------- metering --- */
 
 export type QuotaClaim =
@@ -370,7 +342,12 @@ export async function completeWalkthrough(
     }
   }
 
-  if (options.notes !== undefined) await setNotes(org.id, walkthroughId, options.notes ?? "");
+  if (options.notes !== undefined) {
+    await db
+      .update(walkthroughs)
+      .set({ notes: options.notes?.trim() || null, updatedAt: new Date() })
+      .where(eq(walkthroughs.id, walkthroughId));
+  }
 
   // Verify what actually landed. Anything still pending is marked failed so the
   // capture screen can show it, and drafting proceeds with the rest.

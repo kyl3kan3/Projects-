@@ -120,12 +120,6 @@ export const IconGear = (p: IconProps) => (
   </Icon>
 );
 
-export const IconPlus = (p: IconProps) => (
-  <Icon {...p}>
-    <path d="M10 4v12M4 10h12" />
-  </Icon>
-);
-
 export const IconAlert = (p: IconProps) => (
   <Icon {...p}>
     <path d="M10 3.2 17.4 16H2.6L10 3.2Z" />

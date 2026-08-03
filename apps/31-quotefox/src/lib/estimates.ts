@@ -15,7 +15,7 @@
  *    version, so the proposal the homeowner opened cannot change under them.
  */
 
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
   estimateLineItems,
@@ -394,46 +394,6 @@ export async function updateEstimateSettings(
   return { ok: true };
 }
 
-/** Apply the org's markup to a price-book item, for "add from price book". */
-export function priceFor(
-  item: { unitCostCents: number; markupPct: number | null },
-  defaultMarkupPct: number,
-): number {
-  const pct = item.markupPct ?? defaultMarkupPct;
-  return Math.round(item.unitCostCents * (1 + pct / 100));
-}
-
-/**
- * Mark the estimate ready to send, or say why it is not.
- *
- * Refusing to send while a flagged row is unpriced is the product's spine: the
- * draft told the truth about what it could not price, and sending anyway would
- * turn that honesty into an under-quote.
- */
-export async function markReady(
-  org: Organization,
-  actorId: string,
-  estimateId: string,
-): Promise<EditResult> {
-  const db = getDb();
-  const found = await getEstimate(org.id, estimateId);
-  if (!found) return { ok: false, error: "That estimate no longer exists." };
-  if (!found.lines.length) return { ok: false, error: "Add at least one line item first." };
-  const flagged = needsPricingCount(found.lines);
-  if (flagged > 0) {
-    return {
-      ok: false,
-      error: `${flagged} line${flagged === 1 ? "" : "s"} still need pricing. Price ${flagged === 1 ? "it" : "them"} or remove ${flagged === 1 ? "it" : "them"} before sending.`,
-    };
-  }
-  await db
-    .update(estimates)
-    .set({ status: "ready", updatedAt: new Date() })
-    .where(eq(estimates.id, estimateId));
-  await audit(org.id, actorId, "estimate_updated", `${found.job.title} marked ready`);
-  return { ok: true };
-}
-
 /** A one-line scope summary for the proposal, from the drafted rows. */
 export function scopeSummaryFrom(rows: readonly DraftedLineItem[], jobTitle: string): string {
   const priced = rows.filter((row) => !row.needsPricing).slice(0, 3);
@@ -508,23 +468,4 @@ export async function walkthroughFor(estimate: Estimate) {
     .from(walkthroughs)
     .where(eq(walkthroughs.id, estimate.walkthroughId));
   return row ?? null;
-}
-
-/** Estimates for a set of jobs, newest version first — for the jobs list. */
-export async function latestEstimatesForJobs(
-  organizationId: string,
-  jobIds: readonly string[],
-): Promise<Map<string, Estimate>> {
-  if (!jobIds.length) return new Map();
-  const db = getDb();
-  const rows = await db
-    .select()
-    .from(estimates)
-    .where(
-      and(eq(estimates.organizationId, organizationId), inArray(estimates.jobId, [...jobIds])),
-    )
-    .orderBy(asc(estimates.version));
-  const map = new Map<string, Estimate>();
-  for (const row of rows) map.set(row.jobId, row);
-  return map;
 }

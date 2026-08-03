@@ -3,8 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireOrg } from "@/lib/auth";
 import { causeSentence, getAnomaly } from "@/lib/anomalies";
-import { contributorTotals, hourlyTotals } from "@/lib/facts";
-import { addHours, floorHour, stampShort, stampUtc } from "@/lib/dates";
+import { contributorTotals, dailyTotals, hourlyTotals } from "@/lib/facts";
+import { granularity, plan } from "@/lib/plans";
+import { addDays, addHours, dayKey, floorHour, lastNDayKeys, stampShort, stampUtc } from "@/lib/dates";
 import { formatPerDay, formatUsd, formatUsdWhole } from "@/lib/money";
 import { shortServiceName } from "@/lib/digest";
 import { getDb } from "@/db";
@@ -35,8 +36,11 @@ export default async function AnomalyDetailPage({
   const now = new Date();
   const to = floorHour(now);
   const from = addHours(to, -ZOOM_HOURS);
+  // README's pricing table: hourly granularity starts on Startup. Solo sees the
+  // same anomaly, at day resolution.
+  const hourly = granularity(org.plan) === "hour";
 
-  const hours = await hourlyTotals(account.id, { from, to });
+  const hours = hourly ? await hourlyTotals(account.id, { from, to }) : [];
   const cells = await getDb()
     .select()
     .from(baselines)
@@ -50,25 +54,52 @@ export default async function AnomalyDetailPage({
   const baselineByCell = new Map(cells.map((c) => [`${c.dow}:${c.hour}`, c.meanMicros]));
 
   // The zoom chart is the account's hourly series with this service's baseline
-  // ghost drawn under it, which is what the detection actually compared.
-  const points = hours.map((h) => ({
-    // A 48-hour window crosses a day boundary, so the hour alone would print the
-    // same label twice and mean nothing.
-    label: `${DOW[h.ts.getUTCDay()]} ${String(h.ts.getUTCHours()).padStart(2, "0")}`,
-    value: h.micros,
-    baseline: baselineByCell.get(`${h.ts.getUTCDay()}:${h.ts.getUTCHours()}`) ?? 0,
-  }));
-  const onsetIndex = hours.findIndex((h) => h.ts >= anomaly.startedAt);
+  // ghost drawn under it, which is what the detection actually compared. On the
+  // daily plan the same window is shown one point per day.
+  const dayKeys = lastNDayKeys(now, 14);
+  const daily = hourly
+    ? []
+    : await dailyTotals([account.id], {
+        from: new Date(`${dayKeys[0]}T00:00:00Z`),
+        to: addDays(new Date(`${dayKeys[dayKeys.length - 1]}T00:00:00Z`), 1),
+      });
+  const dailyByDay = new Map(daily.map((d) => [d.day, d.micros]));
+  const dailyBaseline = new Map<number, number>();
+  for (const cell of cells) {
+    dailyBaseline.set(cell.dow, (dailyBaseline.get(cell.dow) ?? 0) + cell.meanMicros);
+  }
 
+  const points = hourly
+    ? hours.map((h) => ({
+        // A 48-hour window crosses a day boundary, so the hour alone would print
+        // the same label twice and mean nothing.
+        label: `${DOW[h.ts.getUTCDay()]} ${String(h.ts.getUTCHours()).padStart(2, "0")}`,
+        value: h.micros,
+        baseline: baselineByCell.get(`${h.ts.getUTCDay()}:${h.ts.getUTCHours()}`) ?? 0,
+      }))
+    : dayKeys.map((day) => ({
+        label: day.slice(8),
+        value: dailyByDay.get(day) ?? 0,
+        baseline: dailyBaseline.get(new Date(`${day}T00:00:00Z`).getUTCDay()) ?? 0,
+      }));
+  const onsetIndex = hourly
+    ? hours.findIndex((h) => h.ts >= anomaly.startedAt)
+    : dayKeys.indexOf(dayKey(anomaly.startedAt));
+
+  const deployWindowFrom = hourly ? from : new Date(`${dayKeys[0]}T00:00:00Z`);
   const windowDeploys = await getDb()
     .select()
     .from(deploys)
-    .where(and(eq(deploys.orgId, org.id), gte(deploys.deployedAt, from), lt(deploys.deployedAt, to)))
+    .where(
+      and(eq(deploys.orgId, org.id), gte(deploys.deployedAt, deployWindowFrom), lt(deploys.deployedAt, to)),
+    )
     .orderBy(desc(deploys.deployedAt))
     .limit(8);
-  const pennants = windowDeploys
+  const pennants = (plan(org.plan).deployCorrelation ? windowDeploys : [])
     .map((d) => ({
-      index: hours.findIndex((h) => h.ts >= floorHour(d.deployedAt)),
+      index: hourly
+        ? hours.findIndex((h) => h.ts >= floorHour(d.deployedAt))
+        : dayKeys.indexOf(dayKey(d.deployedAt)),
       sha: d.sha.slice(0, 7),
       service: d.serviceName,
       stamp: stampShort(d.deployedAt),
@@ -155,14 +186,31 @@ export default async function AnomalyDetailPage({
 
       <div className="gutter" style={{ paddingBottom: 24 }}>
         <SpendChart
-          ariaLabel={`Hourly spend for ${account.label} over the last ${ZOOM_HOURS} hours, with the anomaly onset and the correlated deploy`}
+          ariaLabel={
+            hourly
+              ? `Hourly spend for ${account.label} over the last ${ZOOM_HOURS} hours, with the anomaly onset and the correlated deploy`
+              : `Daily spend for ${account.label} over the last 14 days, with the day the anomaly began`
+          }
           points={points}
           pennants={pennants}
           excessFromIndex={onsetIndex >= 0 ? onsetIndex : null}
           anomalyState={anomaly.status}
-          caption={`${ZOOM_HOURS}H · ${shortServiceName(anomaly.service)} BASELINE DASHED`}
-          emptyMessage="No hourly data in this window."
+          caption={`${hourly ? `${ZOOM_HOURS}H` : "14 DAYS"} · ${shortServiceName(
+            anomaly.service,
+          )} BASELINE DASHED`}
+          emptyMessage={hourly ? "No hourly data in this window." : "No daily data in this window."}
         />
+        {!hourly ? (
+          <p className="t-secondary" style={{ marginTop: 12 }}>
+            Your plan is {plan(org.plan).name}, which shows this window a day at a
+            time. Startup zooms the same anomaly to the hour and marks the deploys on
+            it —{" "}
+            <Link href="/settings/billing" style={{ color: "var(--color-steel)" }}>
+              see plans
+            </Link>
+            .
+          </p>
+        ) : null}
       </div>
 
       <section className="gutter" style={{ paddingBottom: 24 }}>

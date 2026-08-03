@@ -213,24 +213,6 @@ export async function contributorTotals(
   }));
 }
 
-/** Tag values seen for a key, so the budget form can offer real options. */
-export async function tagValuesFor(orgId: string, key: string): Promise<string[]> {
-  const db = getDb();
-  const rows = await db
-    .selectDistinct({ tagHash: costFacts.tagHash })
-    .from(costFacts)
-    .where(eq(costFacts.orgId, orgId))
-    .limit(500);
-  const values = new Set<string>();
-  for (const row of rows) {
-    for (const pair of row.tagHash.split("|")) {
-      const [k, v] = pair.split("=");
-      if (k === key && v) values.add(v);
-    }
-  }
-  return [...values].sort();
-}
-
 /** Distinct services seen for an org, for the budget scope picker. */
 export async function knownServices(orgId: string): Promise<string[]> {
   const db = getDb();
@@ -328,16 +310,4 @@ export async function factsSummary(
     from: row?.from ? new Date(row.from) : null,
     to: row?.to ? new Date(row.to) : null,
   };
-}
-
-/** Does this account have any facts at all? Drives the empty state. */
-export async function hasAnyFacts(accountIds: string[]): Promise<boolean> {
-  if (accountIds.length === 0) return false;
-  const db = getDb();
-  const [row] = await db
-    .select({ id: costFacts.id })
-    .from(costFacts)
-    .where(accountFilter(accountIds))
-    .limit(1);
-  return Boolean(row);
 }

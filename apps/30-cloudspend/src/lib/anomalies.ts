@@ -90,10 +90,6 @@ export async function getAnomaly(orgId: string, id: string): Promise<AnomalyWith
   return { anomaly: row, account, deploy };
 }
 
-export function countOpen(rows: AnomalyWithContext[]): number {
-  return rows.filter((r) => r.anomaly.status !== "resolved").length;
-}
-
 /** The 48×16 card thumbnail: hourly values over the last 24 hours. */
 export async function thumbnailValues(
   accountId: string,

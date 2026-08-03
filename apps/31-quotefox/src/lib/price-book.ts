@@ -477,8 +477,3 @@ export function sampleImportCsv(): string {
     'Flat rate,"Permit filing and inspection",Flat rate,each,325.00,0,Filed with the county',
   ].join("\n");
 }
-
-/** Total book value at cost — shown on the price book screen. */
-export function bookValueCents(items: readonly PriceBookItem[]): number {
-  return items.reduce((sum, item) => sum + item.unitCostCents, 0);
-}

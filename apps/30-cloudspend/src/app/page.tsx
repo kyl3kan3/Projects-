@@ -58,8 +58,12 @@ export default function LandingPage() {
             style={{
               color: "var(--color-text-2)",
               minHeight: 44,
+              minWidth: 44,
+              padding: "0 8px",
+              marginRight: -8,
               display: "inline-flex",
               alignItems: "center",
+              justifyContent: "flex-end",
             }}
           >
             Sign in
@@ -271,6 +275,15 @@ export default function LandingPage() {
             omitted entirely until you name one. There is no write permission in the
             policy at all.
           </p>
+          <a
+            className="btn-quiet"
+            href="/api/cloudformation"
+            target="_blank"
+            rel="noreferrer"
+            style={{ paddingLeft: 0 }}
+          >
+            Read the CloudFormation template
+          </a>
         </section>
 
         {/* ------------------------------------------------------- pricing */}
@@ -367,11 +380,20 @@ export default function LandingPage() {
             <Cta />
           </div>
           <p className="t-secondary" style={{ marginTop: 32, color: "var(--color-text-3)" }}>
-            CloudSpend · cost monitoring for engineering teams ·{" "}
-            <Link href="/login" style={{ color: "var(--color-steel)" }}>
-              Sign in
-            </Link>
+            CloudSpend · cost monitoring for engineering teams
           </p>
+          <Link
+            href="/login"
+            className="t-secondary"
+            style={{
+              color: "var(--color-steel)",
+              minHeight: 44,
+              display: "inline-flex",
+              alignItems: "center",
+            }}
+          >
+            Already watching? Sign in
+          </Link>
         </section>
       </div>
 

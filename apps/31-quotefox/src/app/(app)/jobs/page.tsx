@@ -9,7 +9,7 @@ import { durationLabel, plural } from "@/lib/display";
 import { emailReady } from "@/lib/email";
 import { listJobs, loadDashboard, type JobFilter } from "@/lib/jobs";
 import { formatMoneyShort } from "@/lib/money";
-import { isReadOnly, orgAsGatable, quoteCapacity, trialDaysLeft } from "@/lib/plans";
+import { isReadOnly, orgAsGatable, quoteCapacity, trialDaysLeft, trialIsOver } from "@/lib/plans";
 
 export const metadata: Metadata = { title: "Jobs" };
 export const dynamic = "force-dynamic";
@@ -33,6 +33,7 @@ export default async function JobsPage({
   const capacity = quoteCapacity(orgAsGatable(org));
   const trialLeft = trialDaysLeft(orgAsGatable(org));
   const readOnly = isReadOnly(orgAsGatable(org));
+  const trialOver = trialIsOver(orgAsGatable(org));
   const mail = emailReady();
 
   return (
@@ -95,10 +96,12 @@ export default async function JobsPage({
           <div className="panel" style={{ padding: 16, display: "flex", gap: 12 }}>
             <IconAlert size={20} style={{ color: "var(--color-red)", flex: "none" }} />
             <div>
-              <p className="t-title">Your trial has ended</p>
+              <p className="t-title">
+                {trialOver ? "Your trial has ended" : "This account is read-only"}
+              </p>
               <p className="t-secondary" style={{ marginTop: 4 }}>
-                Everything you have already sent stays live and deposits still land. Pick a plan to
-                draft new quotes.
+                Everything you have already sent stays live and deposits still land.{" "}
+                {trialOver ? "Pick a plan to draft new quotes." : "Sort the billing to draft again."}
               </p>
               <Link href="/settings/billing" className="btn-quiet" style={{ paddingLeft: 0 }}>
                 See plans

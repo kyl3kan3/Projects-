@@ -94,11 +94,6 @@ export function hoursInMonth(d: Date): number {
 
 const DOW_NAMES = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
-/** The seasonality key: UTC day-of-week (0=Sunday) and hour. */
-export function dowHour(d: Date): { dow: number; hour: number } {
-  return { dow: d.getUTCDay(), hour: d.getUTCHours() };
-}
-
 /** `TUE 14:02` — deploy and onset timestamps. */
 export function stampShort(d: Date): string {
   const hh = String(d.getUTCHours()).padStart(2, "0");

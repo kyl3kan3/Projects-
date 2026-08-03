@@ -8,7 +8,7 @@ import { accountLimitMessage, canAddAccount, plan } from "@/lib/plans";
 import { env } from "@/lib/env";
 import { stampUtc } from "@/lib/dates";
 import { AddAccountForm, CurForm, RemoveAccountForm, VerifyForm } from "./ConnectForms";
-import { IconAlert, IconArrowLeft, IconCheck, IconClock } from "@/components/icons";
+import { IconAlert, IconArrowLeft, IconCheck, IconClock, IconExternal } from "@/components/icons";
 
 export const metadata: Metadata = { title: "Connect AWS" };
 export const dynamic = "force-dynamic";
@@ -224,6 +224,20 @@ export default async function ConnectPage() {
           {plan(org.plan).name} plan · every permission, and why it is there. Nothing
           in this list can change anything in your account.
         </p>
+        <a
+          className="btn-quiet"
+          href={`/api/cloudformation${
+            accounts.find((a) => a.curBucket)?.curBucket
+              ? `?curBucket=${encodeURIComponent(accounts.find((a) => a.curBucket)?.curBucket ?? "")}`
+              : ""
+          }`}
+          target="_blank"
+          rel="noreferrer"
+          style={{ paddingLeft: 0, marginBottom: 8 }}
+        >
+          Read the CloudFormation template
+          <IconExternal size={16} />
+        </a>
         <div>
           {visibleStatements(accounts.find((a) => a.curBucket)?.curBucket).map((statement) => (
             <div key={statement.sid} className="row" style={{ alignItems: "flex-start" }}>

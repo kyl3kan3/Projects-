@@ -14,7 +14,7 @@ run, a referral queue that deadlocked under launch-day load, magic-link login
 broken outright, certificate-expiry alerts that fired once and then went quiet
 forever. All were found by running the thing.
 
-## Verified working (26 of 74)
+## Verified working (28 of 74)
 
 Each was re-checked here after its build agent reported: line count, absence of
 unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
@@ -33,6 +33,8 @@ unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
 | 17 | trustbadge | 8,831 | 88 | 163 |
 | 24 | tradelog | 10,789 | 102 | 197 |
 | 28 | clientdock | 9,273 | 84 | 66 |
+| 30 | cloudspend | 11,135 | 92 | 112 |
+| 31 | quotefox | 13,346 | 101 | 92 |
 | 32 | permitpath | 12,143 | 92 | 63 |
 | 33 | crewclock | 9,707 | 78 | 139 |
 | 34 | menulift | 10,803 | 83 | 97 |
@@ -85,6 +87,24 @@ design tokens and build config, no business logic. 8 are near-empty:
 
 `07-mergemate` was in that near-empty group (about 5 lines) and is now built, so a
 from-scratch stub is no harder for an agent than filling in a partial scaffold.
+
+## One defect the design system has, found four times independently
+
+`DESIGN_LANGUAGE.md` requires WCAG AA everywhere. Several apps' `DESIGN.md` then
+specifies a faint grey token that does not reach AA on the ground it is used
+against — and specifies it for exactly the 11-13px labels, axis ticks and
+placeholders where contrast matters most.
+
+Four agents found this separately and each raised the token, documenting the
+divergence in its own `globals.css`: `43-paidwell` (4.1:1 and 2.5:1),
+`49-grantgrid`, `31-quotefox` (3.1:1 on iron, 2.9:1 on panels) and `30-cloudspend`
+(3.09:1 on the night ground). Each was right to follow the stated accessibility
+floor over the stated hex, but four apps solving the same problem four times means
+the source documents disagree with each other, not that four agents each made a
+judgment call.
+
+Worth fixing at the source before the remaining apps are built, since every one of
+them will hit it too.
 
 ## What is untested everywhere
 
