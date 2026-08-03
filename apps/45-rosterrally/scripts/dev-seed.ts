@@ -132,7 +132,7 @@ async function main() {
     waiverAccepted: true,
     payPlan: "full",
     children: [
-      { firstName: "Mateo", lastName: "Alvarez", birthdate: "2016-04-11", divisionId: u10b.id, medicalNotes: "Inhaler in kit bag", emergencyName: "Rosa Alvarez", emergencyPhone: "+15550188", emergencyRelationship: "Grandmother", answers: {} },
+      { firstName: "Mateo", lastName: "Alvarez", birthdate: "2016-04-11", divisionId: u10b.id, medicalNotes: "Ventolin in the red side pocket", emergencyName: "Rosa Alvarez", emergencyPhone: "+15550188", emergencyRelationship: "Grandmother", answers: {} },
       { firstName: "Lucia", lastName: "Alvarez", birthdate: "2014-09-02", divisionId: u12g.id, medicalNotes: "", emergencyName: "Rosa Alvarez", emergencyPhone: "+15550188", emergencyRelationship: "Grandmother", answers: {} },
     ],
   });
@@ -147,7 +147,7 @@ async function main() {
     waiverAccepted: true,
     payPlan: "installments",
     children: [
-      { firstName: "Chidi", lastName: "Okonkwo", birthdate: "2016-11-20", divisionId: u10b.id, medicalNotes: "", emergencyName: "", emergencyPhone: "", emergencyRelationship: "", answers: {} },
+      { firstName: "Chidi", lastName: "Okonkwo", birthdate: "2016-11-20", divisionId: u10b.id, medicalNotes: "Carries a spacer for his inhaler", emergencyName: "Ada Okonkwo", emergencyPhone: "+15550164", emergencyRelationship: "Mother", answers: {} },
     ],
   });
   log(`Okonkwo: installments plan, checkout ${okonkwo.checkoutUrl ? "yes" : "none"}`);
@@ -161,7 +161,7 @@ async function main() {
     waiverAccepted: true,
     payPlan: "full",
     children: [
-      { firstName: "Fiona", lastName: "Brennan", birthdate: "2016-02-08", divisionId: u10b.id, medicalNotes: "Peanut allergy — epipen with coach", emergencyName: "Maeve Brennan", emergencyPhone: "+15550171", emergencyRelationship: "Aunt", answers: {} },
+      { firstName: "Fiona", lastName: "Brennan", birthdate: "2016-02-08", divisionId: u10b.id, medicalNotes: "Anaphylaxis risk, epipen in the coach bag", emergencyName: "Maeve Brennan", emergencyPhone: "+15550171", emergencyRelationship: "Aunt", answers: {} },
     ],
   });
   log(`Brennan (scholarship): total ${formatMoney(brennan.quote.totalCents)}, checkout ${brennan.checkoutUrl ? "yes" : "NONE (fully funded)"}`);
@@ -181,16 +181,18 @@ async function main() {
   });
   log(`Nguyen: waitlisted=${JSON.stringify(nguyen.waitlisted)}, charged now ${formatMoney(nguyen.quote.totalCents)}`);
 
+  // Every one of these carries a medical note and an emergency contact, so the
+  // isolation attack has real values on shared teams to hunt for.
   const others = [
-    ["Maria Santos", "maria.santos@example.com", "Sofia", "Santos", "2014-06-14", u12g.id],
-    ["Jon Halvorsen", "jon.halvorsen@example.com", "Ingrid", "Halvorsen", "2014-03-22", u12g.id],
-    ["Grace Adeyemi", "grace.adeyemi@example.com", "Tolu", "Adeyemi", "2018-08-09", u8.id],
+    ["Maria Santos", "maria.santos@example.com", "+15550151", "Sofia", "Santos", "2014-06-14", u12g.id, "Wears a knee brace on the left leg", "Diego Santos", "+15550152"],
+    ["Jon Halvorsen", "jon.halvorsen@example.com", "+15550153", "Ingrid", "Halvorsen", "2014-03-22", u12g.id, "Lactose intolerant, no milk at the snack bar", "Britt Halvorsen", "+15550154"],
+    ["Grace Adeyemi", "grace.adeyemi@example.com", "+15550155", "Tolu", "Adeyemi", "2018-08-09", u8.id, "Grommets fitted, no swimming", "Emeka Adeyemi", "+15550156"],
   ] as const;
-  for (const [contact, email, first, last, dob, divisionId] of others) {
+  for (const [contact, email, phone, first, last, dob, divisionId, note, ecName, ecPhone] of others) {
     await registerChildren(season.slug, {
-      contactName: contact, email, phone: "+15550100", smsConsent: true, scholarshipCode: "",
+      contactName: contact, email, phone, smsConsent: true, scholarshipCode: "",
       waiverAccepted: true, payPlan: "full",
-      children: [{ firstName: first, lastName: last, birthdate: dob, divisionId, medicalNotes: "", emergencyName: "", emergencyPhone: "", emergencyRelationship: "", answers: {} }],
+      children: [{ firstName: first, lastName: last, birthdate: dob, divisionId, medicalNotes: note, emergencyName: ecName, emergencyPhone: ecPhone, emergencyRelationship: "Parent", answers: {} }],
     });
   }
 

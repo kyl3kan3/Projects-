@@ -500,7 +500,8 @@ describe("the reminder ladder", () => {
   });
 
   it("claims a due rung exactly once, however many ticks run", async () => {
-    // A packet that is still open, with a rung already due.
+    // Twenty days back, so every rung of the 48h/5d/10d ladder is in the past and
+    // none of them can be "not due yet" while the assertions run.
     const { patient } = await upsertPatient(
       alpha.practice,
       { firstName: "Marcus", lastName: `Villalobos-${randomUUID().slice(0, 6)}` },
@@ -514,26 +515,35 @@ describe("the reminder ladder", () => {
       channelEmail: true,
       channelSms: false,
       actor: alpha.actor,
-      now: new Date(Date.now() - 10 * 86_400_000),
+      now: new Date(Date.now() - 20 * 86_400_000),
     });
-    const due = await db
-      .select({ id: reminders.id })
+    const mine = await db
+      .select({ id: reminders.id, scheduledFor: reminders.scheduledFor })
       .from(reminders)
-      .where(and(eq(reminders.intakeId, sent.intake.id), eq(reminders.status, "pending")));
-    assert.ok(due.length >= 1, "no rung came due for a ten-day-old packet");
+      .where(eq(reminders.intakeId, sent.intake.id));
+    assert.equal(mine.length, 3, "expected three email rungs");
+    assert.ok(
+      mine.every((r) => r.scheduledFor.getTime() < Date.now()),
+      "all three rungs should already be due",
+    );
 
-    const firstClaim = await claimDueReminders(100);
-    const claimedIds = new Set(firstClaim.map((r) => r.id));
-    const secondClaim = await claimDueReminders(100);
-    for (const row of secondClaim) {
-      assert.ok(!claimedIds.has(row.id), "a rung was claimed twice");
+    // Two overlapping ticks: the second must not see anything the first claimed.
+    const first = await claimDueReminders(200);
+    const second = await claimDueReminders(200);
+    const firstIds = new Set(first.map((r) => r.id));
+    for (const row of second) {
+      assert.ok(!firstIds.has(row.id), "a rung was claimed by two ticks");
     }
-    // Every rung this intake had is now sent, not pending.
+    // Every rung of this intake was claimed exactly once, and none is left pending.
+    const claimedHere = [...first, ...second].filter((r) => r.intakeId === sent.intake.id);
+    assert.equal(claimedHere.length, 3, "not every due rung was claimed");
+    assert.equal(new Set(claimedHere.map((r) => r.id)).size, 3, "a rung appeared twice");
     const after = await db
       .select({ status: reminders.status })
       .from(reminders)
       .where(eq(reminders.intakeId, sent.intake.id));
     assert.equal(after.filter((r) => r.status === "pending").length, 0);
+    assert.equal(after.filter((r) => r.status === "sent").length, 3);
   });
 });
 

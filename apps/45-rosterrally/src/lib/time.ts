@@ -162,15 +162,24 @@ export function zoneOffsetMs(at: Date, timeZone: string): number {
 /**
  * Turn a club-local wall time into the instant it names.
  *
- * Two passes, because the offset we need depends on the answer: guess with the
- * offset at the naive instant, then re-guess with the offset at that candidate.
- * The second pass is what makes a game booked at "01:30" on the fall-back Sunday
- * resolve to the *first* 01:30 rather than drifting an hour.
+ * A wall time is not always one instant, and the two awkward cases are decided
+ * here rather than left to whichever candidate a single pass happened to land on:
  *
- * Spring-forward gap times (02:30 on a day where 02:00–03:00 does not exist)
- * have no instant at all. Rather than throw at a registrar typing a plausible
- * time, we return the instant the clock reaches immediately after the gap and
- * `wallTimeExists` reports the discrepancy so a caller can warn.
+ *  - **Ambiguous** (the hour that repeats when clocks go back): resolves to the
+ *    **earliest** matching instant, in every zone. A registrar typing "01:30" on
+ *    the fall-back Sunday means the first 01:30, and two games typed with the same
+ *    wall time must land on the same instant or the checker stops seeing the
+ *    clash. Deciding this by rule rather than by arithmetic accident is the whole
+ *    point: an earlier version of this function returned the first occurrence in
+ *    New York and the second in Sydney, because the naive guess fell on different
+ *    sides of the transition.
+ *  - **Nonexistent** (the hour skipped when clocks go forward): there is no
+ *    instant, so rather than throw at a registrar typing a plausible time we
+ *    return the moment the clock reaches immediately after the gap — 02:30 becomes
+ *    03:30 — and `wallTimeExists` reports the discrepancy so callers can refuse it.
+ *
+ * Offsets are probed at the naive instant and a day either side, which brackets
+ * every real transition (no zone shifts by more than a day's worth of offset).
  */
 export function wallTimeToInstant(date: IsoDate, time: string, timeZone: string): Date {
   const { hour, minute } = parseClock(time);
@@ -184,20 +193,21 @@ export function wallTimeToInstant(date: IsoDate, time: string, timeZone: string)
     0,
     0,
   );
-  const firstOffset = zoneOffsetMs(new Date(naive), timeZone);
-  const firstGuess = naive - firstOffset;
-  const secondOffset = zoneOffsetMs(new Date(firstGuess), timeZone);
-  if (secondOffset === firstOffset) return new Date(firstGuess);
-  const secondGuess = naive - secondOffset;
-  // Prefer the candidate that actually reads back as the requested wall time.
+
+  const candidates = new Set<number>();
+  for (const probe of [naive - DAY_MS, naive, naive + DAY_MS]) {
+    candidates.add(naive - zoneOffsetMs(new Date(probe), timeZone));
+  }
+
   const reads = (ms: number) => {
     const p = wallPartsInZone(new Date(ms), timeZone);
     return p.hour === hour && p.minute === minute && p.day === d.getUTCDate();
   };
-  if (reads(secondGuess)) return new Date(secondGuess);
-  if (reads(firstGuess)) return new Date(firstGuess);
-  // Nonexistent wall time (the spring-forward gap): land just after it.
-  return new Date(Math.max(firstGuess, secondGuess));
+
+  const valid = [...candidates].filter(reads);
+  // Ambiguous: the earliest instant that reads as this wall time. Nonexistent:
+  // the latest candidate, which is the far side of the gap.
+  return new Date(valid.length > 0 ? Math.min(...valid) : Math.max(...candidates));
 }
 
 /** True when `time` on `date` really exists in `timeZone` (false inside a DST gap). */

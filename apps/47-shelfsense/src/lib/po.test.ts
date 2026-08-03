@@ -9,7 +9,17 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import type { PoDraft, PoDraftLine, Supplier } from "@/db/schema";
-import { csvFilename, lineUnitCost, renderCsv, validateDraft, validateLine } from "@/lib/po-format";
+import {
+  csvFilename,
+  groupForPurchase,
+  lineUnitCost,
+  renderCsv,
+  validateDraft,
+  validateLine,
+  UNASSIGNED_SUPPLIER_NAME,
+  type GroupableRow,
+  type SupplierRules,
+} from "@/lib/po-format";
 
 const DRAFT: PoDraft = {
   id: "11111111-1111-4111-8111-111111111111",
@@ -233,5 +243,212 @@ describe("validateDraft", () => {
     // 144 x $8.90 = $1,281.60, over the minimum, a whole number of packs.
     assert.equal(result.ok, true);
     assert.deepEqual(result.warnings, []);
+  });
+});
+
+/* ---------------------------------------------------------------- grouping --- */
+
+/**
+ * Fixture E — a variant that shares a supplier with others.
+ *
+ * The fourth case the brief names, and the one that costs money quietly: four SKUs on
+ * a 34-day sea-freight account belong on one PO, because the merchant places one order
+ * and the supplier's minimum applies to the order rather than the line. Split into
+ * four, every one of them misses the £1,200 minimum and the supplier rejects the lot.
+ *
+ * Arithmetic is written out longhand below and asserted, not read back from the
+ * implementation.
+ */
+describe("fixture E — grouping SKUs that share a supplier", () => {
+  const NORTHBAY: SupplierRules = {
+    id: "northbay",
+    name: "Northbay Textiles",
+    leadTimeDays: 34,
+    minOrderValueCents: 120_000,
+  };
+  const KETTLE: SupplierRules = {
+    id: "kettle",
+    name: "Kettle & Co",
+    leadTimeDays: 7,
+    minOrderValueCents: 15_000,
+  };
+
+  function row(overrides: Partial<GroupableRow> & { sku: string }): GroupableRow {
+    return {
+      variantId: `v-${overrides.sku}`,
+      displayTitle: overrides.sku,
+      status: "order_now",
+      reorderQty: 100,
+      moq: 0,
+      packSize: 1,
+      costCents: 1000,
+      priceCents: 4000,
+      supplierId: NORTHBAY.id,
+      leadTimeDays: 34,
+      snoozedUntil: null,
+      ...overrides,
+    };
+  }
+
+  it("puts four SKUs on one PO, not four", () => {
+    const result = groupForPurchase({
+      rows: [
+        row({ sku: "OAK-BLKT-07", reorderQty: 250, moq: 40, packSize: 10, costCents: 5900 }),
+        row({ sku: "OAK-APRN-05N", reorderQty: 96, moq: 60, packSize: 12, costCents: 2450 }),
+        row({ sku: "OAK-APRN-05C", reorderQty: 60, moq: 60, packSize: 12, costCents: null, priceCents: 6400 }),
+        row({ sku: "OAK-TOTE-01", reorderQty: 50, moq: 50, packSize: 10, costCents: 1800 }),
+      ],
+      suppliers: [NORTHBAY],
+    });
+
+    assert.equal(result.groups.length, 1);
+    const group = result.groups[0];
+    assert.equal(group.supplierId, "northbay");
+    assert.equal(group.leadTimeDays, 34, "the supplier's lead time, not the row's");
+    assert.equal(group.lines.length, 4);
+    assert.deepEqual(
+      group.lines.map((l) => l.sku),
+      ["OAK-APRN-05C", "OAK-APRN-05N", "OAK-BLKT-07", "OAK-TOTE-01"],
+      "lines are SKU-sorted, so the PO reads the same every time",
+    );
+
+    // 250 x 59.00 = 14,750.00 · 96 x 24.50 = 2,352.00 · 60 x 32.00 = 1,920.00
+    // (no cost on file, so half of 64.00) · 50 x 18.00 = 900.00
+    assert.deepEqual(
+      group.lines.map((l) => [l.sku, l.qty, l.unitCostCents, l.lineTotalCents]),
+      [
+        ["OAK-APRN-05C", 60, 3200, 192_000],
+        ["OAK-APRN-05N", 96, 2450, 235_200],
+        ["OAK-BLKT-07", 250, 5900, 1_475_000],
+        ["OAK-TOTE-01", 50, 1800, 90_000],
+      ],
+    );
+    assert.equal(group.totalCents, 192_000 + 235_200 + 1_475_000 + 90_000);
+    assert.equal(group.totalCents, 1_992_200);
+    assert.equal(group.belowMinimum, false, "$19,922 clears the $1,200 minimum");
+  });
+
+  it("flags the estimated cost on the line whose cost is missing", () => {
+    const result = groupForPurchase({
+      rows: [
+        row({ sku: "A", costCents: 1000 }),
+        row({ sku: "B", costCents: null, priceCents: 6400 }),
+      ],
+      suppliers: [NORTHBAY],
+    });
+    const lines = result.groups[0].lines;
+    assert.equal(lines.find((l) => l.sku === "A")!.costEstimated, false);
+    assert.equal(lines.find((l) => l.sku === "B")!.costEstimated, true);
+    assert.equal(lines.find((l) => l.sku === "B")!.unitCostCents, 3200);
+  });
+
+  it("keeps two suppliers apart, and each minimum against its own order", () => {
+    const result = groupForPurchase({
+      rows: [
+        row({ sku: "OAK-BLKT-07", reorderQty: 10, moq: 10, packSize: 10, costCents: 5900 }),
+        row({ sku: "OAK-HOOK-02", supplierId: KETTLE.id, reorderQty: 24, moq: 24, packSize: 6, costCents: 1550 }),
+      ],
+      suppliers: [NORTHBAY, KETTLE],
+    });
+    assert.equal(result.groups.length, 2);
+    const northbay = result.groups.find((g) => g.supplierId === "northbay")!;
+    const kettle = result.groups.find((g) => g.supplierId === "kettle")!;
+    // 10 x 59.00 = 590.00, under Northbay's 1,200.00 minimum.
+    assert.equal(northbay.totalCents, 59_000);
+    assert.equal(northbay.belowMinimum, true);
+    // 24 x 15.50 = 372.00, over Kettle's 150.00 minimum.
+    assert.equal(kettle.totalCents, 37_200);
+    assert.equal(kettle.belowMinimum, false);
+  });
+
+  it("rounds every line up to its own MOQ and pack size", () => {
+    // The roadmap's case, inside a group: 130 needed, MOQ 100, packs of 24 -> 144.
+    const result = groupForPurchase({
+      rows: [row({ sku: "OAK-SACH-06", reorderQty: 130, moq: 100, packSize: 24, costCents: 890 })],
+      suppliers: [NORTHBAY],
+    });
+    const line = result.groups[0].lines[0];
+    assert.equal(line.qty, 144);
+    assert.equal(line.lineTotalCents, 144 * 890);
+  });
+
+  it("groups the SKUs with no supplier together, and puts them last", () => {
+    const result = groupForPurchase({
+      rows: [
+        row({ sku: "NO-SUPPLIER-1", supplierId: null, leadTimeDays: 14 }),
+        row({ sku: "OAK-BLKT-07" }),
+        row({ sku: "NO-SUPPLIER-2", supplierId: null, leadTimeDays: 14 }),
+      ],
+      suppliers: [NORTHBAY],
+    });
+    assert.equal(result.groups.length, 2);
+    assert.equal(result.groups[0].supplierId, "northbay");
+    const orphans = result.groups[1];
+    assert.equal(orphans.supplierId, null);
+    assert.equal(orphans.supplierName, UNASSIGNED_SUPPLIER_NAME);
+    assert.equal(orphans.lines.length, 2);
+    assert.equal(orphans.leadTimeDays, 14, "falls back to the lead time the forecast used");
+    assert.equal(orphans.minOrderValueCents, 0);
+    assert.equal(orphans.belowMinimum, false, "there is no minimum to be below");
+    assert.equal(result.unassignedCount, 2);
+  });
+
+  it("only takes the SKUs that need ordering", () => {
+    const result = groupForPurchase({
+      rows: [
+        row({ sku: "NOW", status: "order_now" }),
+        row({ sku: "SOON", status: "order_soon" }),
+        row({ sku: "HEALTHY", status: "healthy" }),
+        row({ sku: "OVER", status: "overstocked" }),
+        row({ sku: "DEAD", status: "dead" }),
+        row({ sku: "ZERO-QTY", status: "order_now", reorderQty: 0 }),
+      ],
+      suppliers: [NORTHBAY],
+    });
+    assert.deepEqual(result.groups[0].lines.map((l) => l.sku), ["NOW", "SOON"]);
+  });
+
+  it("excludes snoozed and suppressed SKUs, and counts them so the screen can say why", () => {
+    const result = groupForPurchase({
+      rows: [
+        row({ sku: "KEPT" }),
+        row({ sku: "SNOOZED", snoozedUntil: new Date("2026-12-01T00:00:00Z") }),
+        row({ sku: "ON-A-SENT-PO", variantId: "v-suppressed" }),
+      ],
+      suppliers: [NORTHBAY],
+      suppressedVariantIds: new Set(["v-suppressed"]),
+      now: new Date("2026-08-01T00:00:00Z"),
+    });
+    assert.deepEqual(result.groups[0].lines.map((l) => l.sku), ["KEPT"]);
+    assert.equal(result.snoozedCount, 1);
+    assert.equal(result.suppressedCount, 1);
+  });
+
+  it("brings a snoozed SKU back once the snooze lapses", () => {
+    const result = groupForPurchase({
+      rows: [row({ sku: "WAS-SNOOZED", snoozedUntil: new Date("2026-07-01T00:00:00Z") })],
+      suppliers: [NORTHBAY],
+      now: new Date("2026-08-01T00:00:00Z"),
+    });
+    assert.equal(result.groups.length, 1);
+    assert.equal(result.snoozedCount, 0);
+  });
+
+  it("returns nothing when nothing needs ordering, rather than an empty PO", () => {
+    const result = groupForPurchase({
+      rows: [row({ sku: "HEALTHY", status: "healthy" })],
+      suppliers: [NORTHBAY],
+    });
+    assert.deepEqual(result.groups, []);
+  });
+
+  it("still groups a SKU whose supplier row has gone missing", () => {
+    // A deleted supplier must not make a needed reorder disappear.
+    const result = groupForPurchase({
+      rows: [row({ sku: "ORPHANED", supplierId: "deleted-supplier" })],
+      suppliers: [],
+    });
+    assert.equal(result.groups.length, 1);
+    assert.equal(result.groups[0].supplierName, UNASSIGNED_SUPPLIER_NAME);
   });
 });

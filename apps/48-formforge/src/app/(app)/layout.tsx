@@ -25,7 +25,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <header className="hairline-b flex items-center justify-between px-5 py-3 lg:hidden">
           <Link
             href="/intakes"
-            className="flex items-center gap-2 no-underline"
+            className="flex min-h-11 items-center gap-2 no-underline"
             style={{ color: "var(--color-ink)" }}
           >
             <span style={{ color: "var(--color-teal)" }}>

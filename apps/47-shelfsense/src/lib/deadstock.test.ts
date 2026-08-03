@@ -131,8 +131,19 @@ describe("suggestedAction", () => {
     assert.match(suggestedAction({ units: 10, daysOfCover: 400, cashTiedUpCents: 1000 }), /Write-off/);
     assert.match(
       suggestedAction({ units: 212, daysOfCover: 200, cashTiedUpCents: 381_600 }),
-      /Biggest cash drag/,
+      /A lot of cash in one SKU/,
     );
     assert.match(suggestedAction({ units: 5, daysOfCover: 150, cashTiedUpCents: 4000 }), /Bundle it/);
+  });
+
+  it("never claims a row is the biggest, because it only sees one row", () => {
+    // It printed "Biggest cash drag" on whichever row cleared $2,000, which on the
+    // demo store was the *second* largest.
+    for (const cents of [200_001, 381_600, 5_000_000]) {
+      assert.doesNotMatch(
+        suggestedAction({ units: 100, daysOfCover: 200, cashTiedUpCents: cents }),
+        /biggest|largest/i,
+      );
+    }
   });
 });

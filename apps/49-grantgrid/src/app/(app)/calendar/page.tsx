@@ -122,34 +122,51 @@ export default async function CalendarPage({
         {view === "month" ? formatMonthLabel(anchor) : `Week of ${formatCivilShort(rangeStart)}`}
       </p>
 
-      {/* The strip / grid, with gold ticks under dated days. */}
+      {/*
+        The strip / grid, with gold ticks under dated days.
+
+        In month view the weekday letters are a single header row rather than one
+        per cell: repeating S M T W five times is noise, and the greyed-out copies
+        measured 1.2:1 against the paper — invisible, and a contrast failure.
+        Cells outside the anchor month are left blank for the same reason; a day
+        number nobody can read is not information.
+      */}
+      {view === "month" ? (
+        <div
+          className="mt-3 grid gap-1"
+          style={{ gridTemplateColumns: "repeat(7, minmax(0, 1fr))" }}
+          aria-hidden="true"
+        >
+          {days.slice(0, 7).map((day) => (
+            <span key={`head-${day}`} className="t-label text-center">
+              {weekdayLetter(day)}
+            </span>
+          ))}
+        </div>
+      ) : null}
       <div
-        className="mt-3 grid gap-1"
+        className="mt-2 grid gap-1"
         style={{ gridTemplateColumns: "repeat(7, minmax(0, 1fr))" }}
       >
         {days.map((day) => {
           const ticks = ticksFor(day);
           const isToday = day === today;
           const otherMonth = view === "month" && monthOf(day) !== monthOf(anchor);
+          if (otherMonth) {
+            return <div key={day} className="py-1" aria-hidden="true" />;
+          }
           return (
             <div key={day} className="flex flex-col items-center gap-1 py-1">
-              <span
-                className="t-label"
-                style={{ color: otherMonth ? "var(--color-hairline)" : "var(--color-ink-2)" }}
-              >
-                {weekdayLetter(day)}
-              </span>
+              {view === "week" ? (
+                <span className="t-label">{weekdayLetter(day)}</span>
+              ) : null}
               <span
                 className="t-data inline-flex items-center justify-center"
                 style={{
                   width: 28,
                   height: 28,
                   borderRadius: 8,
-                  color: otherMonth
-                    ? "var(--color-ink-3)"
-                    : isToday
-                      ? "var(--color-manila)"
-                      : "var(--color-ink)",
+                  color: isToday ? "var(--color-manila)" : "var(--color-ink)",
                   background: isToday ? "var(--color-ink)" : "transparent",
                 }}
               >
@@ -182,7 +199,13 @@ export default async function CalendarPage({
           <div className="mt-2">
             {overdue.map((row) => (
               <div key={row.deadline.id} className="row">
-                <span className="min-w-0 flex-1">
+                {/* One target, not a 21px link inside a row: the whole block is
+                    the link, and the Done button sits outside it. */}
+                <Link
+                  href={`/pipeline/${row.deadline.grantId}`}
+                  className="flex min-w-0 flex-1 flex-col justify-center no-underline"
+                  style={{ minHeight: 44 }}
+                >
                   <span
                     className="t-data block"
                     style={{ color: "var(--color-brick-text)" }}
@@ -191,14 +214,9 @@ export default async function CalendarPage({
                     {deadlineKindLabel(row.deadline.kind).toUpperCase()} ·{" "}
                     {describeDue(row.deadline.dueOn, today).toUpperCase()}
                   </span>
-                  <Link
-                    href={`/pipeline/${row.deadline.grantId}`}
-                    className="t-title block truncate no-underline"
-                  >
-                    {row.funderName}
-                  </Link>
+                  <span className="t-title block truncate">{row.funderName}</span>
                   <span className="t-secondary block truncate">{row.deadline.label}</span>
-                </span>
+                </Link>
                 <form action={toggleDeadlineAction} className="shrink-0">
                   <input type="hidden" name="deadlineId" value={row.deadline.id} />
                   <input type="hidden" name="grantId" value={row.deadline.grantId} />

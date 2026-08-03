@@ -1,0 +1,11 @@
+{
+  "login": {
+    "email": "kyle@fultonbuild.example",
+    "password": "fulton-yard-2026"
+  },
+  "projectId": "a39fd612-d5c7-4cdd-b3d7-0258b48b538b",
+  "pkgId": "500bfdac-d324-4fdd-92b5-32932cd5b82d",
+  "pikePortal": "http://localhost:3036/bid/eyJhbGciOiJIUzI1NiJ9.eyJpbnYiOiIyYjNkMjEwMy01NDc4LTQyMmUtYmM3NC05OWY2NmFiYTA5NjgiLCJwa2ciOiI1MDBiZmRhYy1kMzI0LTRmZGQtOTJiNS0zMjkzMmNkNWI4MmQiLCJnZW4iOjB9.X-zSU47dJYDxJWOQuvRPRQR9AuxAYTki4OsixJJXdks",
+  "harlanPortal": "http://localhost:3036/bid/eyJhbGciOiJIUzI1NiJ9.eyJpbnYiOiJiNzhhZDhmMC1kNWY2LTQ3Y2MtODE5Yi1hZDEwM2I1ZGM4NTEiLCJwa2ciOiI1MDBiZmRhYy1kMzI0LTRmZGQtOTJiNS0zMjkzMmNkNWI4MmQiLCJnZW4iOjB9._I_vGPwo-ztUxlupg0rAMOQxTXJdaAcZ02Swi9HTZz4"
+}
+

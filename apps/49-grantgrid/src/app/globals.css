@@ -297,8 +297,16 @@ body {
   background-repeat: no-repeat;
 }
 
-/* Stage chips (pipeline + discovery filters) */
+/*
+ * Stage chips (pipeline + discovery filters).
+ *
+ * DESIGN.md fixes the visual height at 36px; DESIGN_LANGUAGE.md requires a 44px
+ * touch target. Both are satisfiable: the chip *looks* 36px and its hit area is
+ * extended 4px above and below by a pseudo-element, so a thumb gets 44px without
+ * the row growing. Measured in Chromium at 390px, not assumed.
+ */
 .chip {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -317,6 +325,11 @@ body {
   transition:
     color 150ms linear,
     border-color 150ms linear;
+}
+.chip::before {
+  content: "";
+  position: absolute;
+  inset: -4px 0; /* 36 + 4 + 4 = 44 */
 }
 .chip[data-active="true"] {
   border-color: var(--color-gold);

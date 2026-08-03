@@ -62,14 +62,22 @@ export default async function ConnectPage({
           blanket that went 8&times; in the last ten days, and 212 waxed canvas totes that stopped
           selling in May.
         </p>
+        {/* Descriptions, not figures, so they are set in secondary type — the mono
+            face is for counts, money, SKU codes and dates only. */}
         <dl className="mt-4">
-          <div className="hairline-t flex items-baseline justify-between py-3">
+          <div className="hairline-t py-3">
             <dt className="t-label">Revenue at risk · 30d</dt>
-            <dd className="t-data">computed from its own 90 days</dd>
+            <dd className="t-secondary mt-1">
+              Projected units missed &times; price, over the window a PO placed today
+              could not cover.
+            </dd>
           </div>
-          <div className="hairline-t flex items-baseline justify-between py-3">
+          <div className="hairline-t py-3">
             <dt className="t-label">Cash in dead stock</dt>
-            <dd className="t-data">ranked by units &times; unit cost</dd>
+            <dd className="t-secondary mt-1">
+              Units &times; unit cost, ranked, with an estimate flagged wherever a cost
+              is missing.
+            </dd>
           </div>
         </dl>
       </section>

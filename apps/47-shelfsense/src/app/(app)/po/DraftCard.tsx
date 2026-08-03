@@ -12,6 +12,9 @@
 import { useActionState, useState } from "react";
 import { HoldToConfirm } from "@/components/HoldToConfirm";
 import { IconDownload, IconSend } from "@/components/icons";
+// Pure formatting, no database reach — safe in a client component, and the only way
+// money reads the same here as everywhere else in the app.
+import { moneyExact } from "@/lib/format";
 import {
   dismissDraftAction,
   sendDraftAction,
@@ -86,7 +89,7 @@ export function DraftCard({
 
       {minOrderValueCents > 0 ? (
         <p className="t-data" style={{ color: "var(--color-fg-3)" }}>
-          MINIMUM ORDER {(minOrderValueCents / 100).toFixed(2)} {currency}
+          MINIMUM ORDER {moneyExact(minOrderValueCents, currency)}
         </p>
       ) : null}
 
@@ -110,6 +113,14 @@ export function DraftCard({
       ) : null}
 
       <footer className="mt-4 flex flex-col gap-3">
+        {/* The address belongs above the button, not inside it: a long supplier email
+            wrapped the label onto two lines and pushed the card's primary action out
+            of shape. DESIGN.md asks for "Send to supplier" as the label. */}
+        {supplierEmail ? (
+          <p className="t-data" style={{ color: "var(--color-fg-3)" }}>
+            TO {supplierEmail.toUpperCase()}
+          </p>
+        ) : null}
         <form action={sendAction}>
           <input type="hidden" name="draftId" value={draftId} />
           <button
@@ -119,7 +130,7 @@ export function DraftCard({
             title={errors.length ? errors[0] : undefined}
           >
             <IconSend size={18} />
-            {sending ? "Sending…" : supplierEmail ? `Send to ${supplierEmail}` : "Send to supplier"}
+            {sending ? "Sending…" : "Send to supplier"}
           </button>
         </form>
 
@@ -204,7 +215,7 @@ function LineRow({
         </p>
         <p className="t-data mt-1" style={{ color: "var(--color-fg-3)" }}>
           {line.sku} · MOQ {line.moq} · PACK {line.packSize} ·{" "}
-          {(line.unitCostCents / 100).toFixed(2)} {currency}
+          {moneyExact(line.unitCostCents, currency)}
         </p>
         {edited ? (
           <p className="t-data mt-1" style={{ color: "var(--color-fg-3)" }}>

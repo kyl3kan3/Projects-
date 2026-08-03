@@ -390,6 +390,18 @@ a {
   font-weight: 600;
 }
 
+/**
+ * A link that stands alone is a control, and the 44px floor applies to it. Inline
+ * links inside a sentence keep their line box; these two roles — the wordmark and a
+ * standalone "Sign in" — get a real target instead of a 12px one.
+ */
+a.t-label,
+a.link-block {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
 /* ==========================================================================
    Status pill — DESIGN.md: height 28, 6px dot + Label(11)
    ========================================================================== */

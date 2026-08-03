@@ -71,9 +71,12 @@ const LOW_INDEX = 0;
 
 export function HeroGrid() {
   const [landed, setLanded] = useState(0);
+  const [still, setStill] = useState(false);
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      // Not "animate to zero" — no transform and no transition at all.
+      setStill(true);
       setLanded(COLUMNS.length);
       return;
     }
@@ -105,7 +108,7 @@ export function HeroGrid() {
                   key={c.sub}
                   style={{
                     opacity: i < landed ? 1 : 0,
-                    transition: "opacity 200ms var(--ease-out-quart)",
+                    transition: still ? undefined : "opacity 200ms var(--ease-out-quart)",
                     color: i === LOW_INDEX && landed >= COLUMNS.length ? "var(--accent)" : undefined,
                   }}
                 >
@@ -130,11 +133,15 @@ export function HeroGrid() {
                       className={`lvl-cell${isLow ? " is-low" : ""}${isPlug ? " is-plug" : ""}${
                         value === null && !isPlug ? " is-empty" : ""
                       }`}
-                      style={{
-                        opacity: shown ? 1 : 0,
-                        transform: shown ? "translateY(0)" : "translateY(8px)",
-                        transition: `opacity 240ms var(--ease-out-quart) ${r * 24}ms, transform 240ms var(--ease-out-quart) ${r * 24}ms, color 200ms linear`,
-                      }}
+                      style={
+                        still
+                          ? undefined
+                          : {
+                              opacity: shown ? 1 : 0,
+                              transform: shown ? "translateY(0)" : "translateY(8px)",
+                              transition: `opacity 240ms var(--ease-out-quart) ${r * 24}ms, transform 240ms var(--ease-out-quart) ${r * 24}ms, color 200ms linear`,
+                            }
+                      }
                     >
                       {value !== null ? (
                         moneyShort(value)
@@ -161,10 +168,11 @@ export function HeroGrid() {
                 <td
                   key={c.sub}
                   className={i === LOW_INDEX && landed >= COLUMNS.length ? "is-apparent-low" : ""}
-                  style={{
-                    opacity: i < landed ? 1 : 0,
-                    transition: "opacity 240ms var(--ease-out-quart)",
-                  }}
+                  style={
+                    still
+                      ? undefined
+                      : { opacity: i < landed ? 1 : 0, transition: "opacity 240ms var(--ease-out-quart)" }
+                  }
                 >
                   {moneyShort(c.adjusted)}
                 </td>

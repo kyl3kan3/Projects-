@@ -116,23 +116,23 @@ export default async function SkuDetailPage({
 
         <MathRow
           label="Velocity · 7d"
-          value={perDay(inputs.velocity7d)}
+          value={windowValue(inputs.windows[0], inputs.velocity7d)}
           source={windowSource(inputs.windows[0])}
         />
         <MathRow
           label="Velocity · 30d"
-          value={perDay(inputs.velocity30d)}
+          value={windowValue(inputs.windows[1], inputs.velocity30d)}
           source={windowSource(inputs.windows[1])}
         />
         <MathRow
           label="Velocity · 90d"
-          value={perDay(inputs.velocity90d)}
+          value={windowValue(inputs.windows[2], inputs.velocity90d)}
           source={windowSource(inputs.windows[2])}
         />
         <MathRow
           label="Blended velocity"
           value={perDay(inputs.blendedVelocity)}
-          source={`${inputs.trend} trend · weights ${pct(inputs.weights.w7)}/${pct(inputs.weights.w30)}/${pct(inputs.weights.w90)} on 7/30/90`}
+          source={`${inputs.trend} trend · weights ${weightSplit(inputs.weights)} on 7/30/90`}
           emphasis
         />
         <MathRow
@@ -265,6 +265,25 @@ function windowSource(window: { units: number; observedDays: number; censoredDay
   }`;
 }
 
-function pct(value: number): string {
-  return `${Math.round(value * 100)}%`;
+/**
+ * A window with no in-stock day has no velocity — showing "0.0/day" for it says the
+ * SKU sells nothing, which is the single misreading this product exists to prevent.
+ */
+function windowValue(
+  window: { hasData: boolean },
+  velocity: number,
+): string {
+  return window.hasData ? perDay(velocity) : "—";
+}
+
+/**
+ * "0%/63%/38%" summed to 101%, because three independently rounded percentages do
+ * that. The remainder goes to the last share so the split always reads as a whole.
+ */
+function weightSplit(weights: { w7: number; w30: number; w90: number }): string {
+  const total = weights.w7 + weights.w30 + weights.w90;
+  if (total <= 0) return "0%/0%/0%";
+  const a = Math.round((weights.w7 / total) * 100);
+  const b = Math.round((weights.w30 / total) * 100);
+  return `${a}%/${b}%/${100 - a - b}%`;
 }

@@ -18,7 +18,7 @@ export default async function ConsoleLayout({ children }: { children: React.Reac
         <SideRail clubName={club.name} seasonName={season?.name ?? "No season yet"} />
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-3 px-5 pt-5 lg:hidden">
-            <Link href="/season" className="flex items-baseline gap-2">
+            <Link href="/season" className="flex items-baseline gap-2" style={{ color: "var(--fg)" }}>
               <span className="t-title">{club.name}</span>
               {season ? (
                 <span className="t-data" style={{ color: "var(--accent)" }}>

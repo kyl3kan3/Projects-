@@ -11,6 +11,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  conflictLabel,
   detectConflicts,
   hardConflicts,
   publishGate,
@@ -307,4 +308,277 @@ test("a 40-team season's worth of games checks in well under a second", () => {
   const started = Date.now();
   detectConflicts(entries, TZ);
   assert.ok(Date.now() - started < 1000, "conflict check must stay under a second");
+});
+
+/* ------------------------------------------- more of the registrar's week --- */
+
+test("a team booked as away in one game and home in another is double-booked", () => {
+  // The pattern a CSV import produces: a fixture list that puts one squad in two
+  // matches an hour apart because the away column was filled in twice.
+  const a = entry({
+    id: "g1",
+    teams: [
+      { id: "t-thunder", name: "Thunder" },
+      { id: "t-rapids", name: "Rapids" },
+    ],
+    ...at("2026-09-12", "09:00", 90),
+  });
+  const b = entry({
+    id: "g2",
+    teams: [
+      { id: "t-comets", name: "Comets" },
+      { id: "t-rapids", name: "Rapids" },
+    ],
+    venueId: "v-riverside",
+    venueName: "Riverside Complex",
+    field: "Field A",
+    ...at("2026-09-12", "10:00", 90),
+  });
+  const found = hardConflicts(detectConflicts([a, b], TZ));
+  assert.equal(found.length, 1);
+  assert.equal(found[0].kind, "team_double_booked");
+  assert.match(found[0].explanation, /Rapids is booked twice/);
+});
+
+test("one mistake that is both a field clash and a team clash reports both", () => {
+  // A registrar needs to know the field is oversubscribed AND that a squad is in
+  // two places: fixing one does not necessarily fix the other.
+  const a = entry({ id: "g1", ...at("2026-09-12", "09:00", 90) });
+  const b = entry({ id: "g2", ...at("2026-09-12", "09:30", 90) });
+  const found = detectConflicts([a, b], TZ);
+  assert.deepEqual(
+    found.map((f) => f.kind).sort(),
+    ["field_overlap", "team_double_booked"],
+  );
+  assert.ok(found.every((f) => f.severity === "hard"));
+});
+
+test("two coaches shared across the same pair of games are two separate findings", () => {
+  const dana = { id: "u-dana", name: "Dana Whitfield" };
+  const marcus = { id: "u-marcus", name: "Marcus Reyes" };
+  const a = entry({ id: "g1", coaches: [dana, marcus] });
+  const b = entry({
+    id: "g2",
+    divisionId: "d-u12b",
+    divisionName: "U12 Boys",
+    teams: [{ id: "t-rapids", name: "Rapids" }],
+    coaches: [dana, marcus],
+    field: "Field 1",
+    ...at("2026-09-12", "09:30", 60),
+  });
+  const found = softConflicts(detectConflicts([a, b], TZ));
+  assert.equal(found.length, 2);
+  assert.deepEqual(
+    found.map((f) => f.explanation.split(" is needed")[0]).sort(),
+    ["Dana Whitfield", "Marcus Reyes"],
+  );
+  // Distinct fingerprints, so accepting one does not silently accept the other.
+  assert.equal(new Set(found.map((f) => f.fingerprint)).size, 2);
+});
+
+test("two families with children in the same overlapping pair are two findings", () => {
+  const alvarez = { id: "h-alvarez", label: "The Alvarez family" };
+  const okonkwo = { id: "h-okonkwo", label: "The Okonkwo family" };
+  const a = entry({ id: "g1", households: [alvarez, okonkwo] });
+  const b = entry({
+    id: "g2",
+    divisionId: "d-u12g",
+    divisionName: "U12 Girls",
+    teams: [{ id: "t-comets", name: "Comets" }],
+    households: [alvarez, okonkwo],
+    field: "Field 1",
+    ...at("2026-09-12", "09:30", 60),
+  });
+  const found = softConflicts(detectConflicts([a, b], TZ));
+  assert.equal(found.length, 2);
+  assert.equal(new Set(found.map((f) => f.fingerprint)).size, 2);
+});
+
+test("a fingerprint is the same however the entries arrive", () => {
+  const a = entry({ id: "g1", ...at("2026-09-12", "09:00", 90) });
+  const b = entry({
+    id: "g2",
+    teams: [{ id: "t-rapids", name: "Rapids" }],
+    ...at("2026-09-12", "09:30", 90),
+  });
+  const forwards = detectConflicts([a, b], TZ).map((f) => f.fingerprint).sort();
+  const backwards = detectConflicts([b, a], TZ).map((f) => f.fingerprint).sort();
+  assert.deepEqual(forwards, backwards);
+  // This is what makes re-checking idempotent: the same clash upserts one row.
+  assert.ok(forwards.every((f) => f.includes("g1") && f.includes("g2")));
+});
+
+test("a long booking is compared against everything it covers, not just the next one", () => {
+  // A three-hour tournament block on Field 2 with four 45-minute practices
+  // slotted inside it: the sweep must not stop after the first overlap.
+  const block = entry({ id: "block", ...at("2026-09-12", "09:00", 180) });
+  const inside = [0, 45, 90, 135].map((offset, i) =>
+    entry({
+      id: `p${i}`,
+      teams: [{ id: `t-${i}`, name: `Team ${i}` }],
+      venueId: "v-riverside",
+      venueName: "Riverside Complex",
+      field: "Field A",
+      ...at("2026-09-12", `${9 + Math.floor(offset / 60)}:${String(offset % 60).padStart(2, "0")}`, 45),
+    }),
+  );
+  // Different venue: nothing should clash at all.
+  assert.deepEqual(detectConflicts([block, ...inside], TZ), []);
+  // Same field: every one of the four clashes with the block.
+  const sameField = inside.map((e) => ({ ...e, venueId: "v-miller", venueName: "Miller Park", field: "Field 2" }));
+  const found = hardConflicts(detectConflicts([block, ...sameField], TZ));
+  const withBlock = found.filter((f) => f.gameIds.includes("block"));
+  assert.equal(withBlock.length, 4, "the block clashes with all four practices");
+});
+
+test("a booking that runs past midnight is compared against the next morning", () => {
+  const late = entry({ id: "g1", ...at("2026-09-12", "22:30", 180) }); // to 01:30
+  const early = entry({
+    id: "g2",
+    teams: [{ id: "t-rapids", name: "Rapids" }],
+    ...at("2026-09-13", "01:00", 60),
+  });
+  const found = hardConflicts(detectConflicts([late, early], TZ));
+  assert.equal(found.length, 1);
+  assert.equal(found[0].kind, "field_overlap");
+  // The window label falls back to the first day when the pair straddles midnight.
+  assert.match(found[0].explanation, /SAT SEP 12/);
+});
+
+test("a practice and a game are held to the same field rule", () => {
+  const game = entry({ id: "g1", kind: "game", ...at("2026-09-12", "09:00", 90) });
+  const practice = entry({
+    id: "g2",
+    kind: "practice",
+    teams: [{ id: "t-rapids", name: "Rapids" }],
+    ...at("2026-09-12", "10:00", 60),
+  });
+  const found = hardConflicts(detectConflicts([game, practice], TZ));
+  assert.equal(found.length, 1);
+  assert.match(found[0].explanation, /Rapids practice/);
+});
+
+test("an event with no opponent describes itself sensibly", () => {
+  const event = entry({
+    id: "g1",
+    kind: "event",
+    teams: [{ id: "t-thunder", name: "Thunder" }],
+    ...at("2026-09-12", "09:00", 60),
+  });
+  const clash = entry({
+    id: "g2",
+    kind: "practice",
+    teams: [{ id: "t-rapids", name: "Rapids" }],
+    ...at("2026-09-12", "09:30", 60),
+  });
+  const found = detectConflicts([event, clash], TZ);
+  assert.match(found[0].explanation, /Thunder event/);
+});
+
+test("hard findings sort ahead of soft ones", () => {
+  const coach = { id: "u-dana", name: "Dana Whitfield" };
+  const entries = [
+    entry({ id: "g1", coaches: [coach], ...at("2026-09-12", "09:00", 60) }),
+    entry({
+      id: "g2",
+      divisionId: "d-u12b",
+      divisionName: "U12 Boys",
+      teams: [{ id: "t-rapids", name: "Rapids" }],
+      coaches: [coach],
+      field: "Field 1",
+      ...at("2026-09-12", "09:30", 60),
+    }),
+    entry({
+      id: "g3",
+      teams: [{ id: "t-comets", name: "Comets" }],
+      field: "Field 3",
+      ...at("2026-09-12", "09:00", 60),
+    }),
+    entry({
+      id: "g4",
+      teams: [{ id: "t-storm", name: "Storm" }],
+      field: "Field 3",
+      ...at("2026-09-12", "09:30", 60),
+    }),
+  ];
+  const found = detectConflicts(entries, TZ);
+  assert.equal(found[0].severity, "hard");
+  assert.equal(found[found.length - 1].severity, "soft");
+});
+
+test("the pennant labels cover every kind", () => {
+  assert.deepEqual(
+    (["field_overlap", "team_double_booked", "coach_overlap", "sibling_overlap"] as const).map(
+      conflictLabel,
+    ),
+    ["FIELD OVERLAP", "TEAM TWICE", "COACH OVERLAP", "SIBLING OVERLAP"],
+  );
+});
+
+test("the gate accepts soft conflicts one at a time", () => {
+  const dana = { id: "u-dana", name: "Dana Whitfield" };
+  const marcus = { id: "u-marcus", name: "Marcus Reyes" };
+  const findings = softConflicts(
+    detectConflicts(
+      [
+        entry({ id: "g1", coaches: [dana, marcus] }),
+        entry({
+          id: "g2",
+          divisionId: "d-u12b",
+          divisionName: "U12 Boys",
+          teams: [{ id: "t-rapids", name: "Rapids" }],
+          coaches: [dana, marcus],
+          field: "Field 1",
+          ...at("2026-09-12", "09:30", 60),
+        }),
+      ],
+      TZ,
+    ),
+  );
+  assert.equal(findings.length, 2);
+  const half = publishGate(findings, [findings[0].fingerprint]);
+  assert.equal(half.ok, false);
+  assert.equal(half.needsOverride.length, 1);
+  const all = publishGate(findings, findings.map((f) => f.fingerprint));
+  assert.equal(all.ok, true);
+  // An unrelated override does not unlock anything.
+  assert.equal(publishGate(findings, ["coach_overlap:gX,gY:u-dana"]).ok, false);
+});
+
+test("a season with no clashes produces nothing at all", () => {
+  const entries = [0, 1, 2, 3].map((i) =>
+    entry({
+      id: `g${i}`,
+      teams: [{ id: `t-${i}`, name: `Team ${i}` }],
+      coaches: [{ id: `u-${i}`, name: `Coach ${i}` }],
+      households: [{ id: `h-${i}`, label: `Family ${i}` }],
+      field: `Field ${i}`,
+      ...at("2026-09-12", "09:00", 90),
+    }),
+  );
+  assert.deepEqual(detectConflicts(entries, TZ), []);
+  assert.equal(publishGate(detectConflicts(entries, TZ), []).ok, true);
+});
+
+test("timezone-crossing clash: a shared venue booked by two clubs' local clocks", () => {
+  // A league shares Miller Park. One club types 12:00 Denver, the other 14:00
+  // New York. Same field, same instant, 90 minutes each — a real double booking
+  // that any wall-clock comparison would wave through.
+  const denver = wallTimeToInstant("2026-09-12", "12:00", "America/Denver");
+  const newYork = wallTimeToInstant("2026-09-12", "14:00", "America/New_York");
+  const a = entry({
+    id: "g1",
+    startsAt: denver,
+    endsAt: new Date(denver.getTime() + 90 * 60_000),
+  });
+  const b = entry({
+    id: "g2",
+    teams: [{ id: "t-rapids", name: "Rapids" }],
+    startsAt: newYork,
+    endsAt: new Date(newYork.getTime() + 90 * 60_000),
+  });
+  const found = hardConflicts(detectConflicts([a, b], TZ));
+  assert.equal(found.length, 1);
+  assert.equal(found[0].kind, "field_overlap");
+  assert.match(found[0].explanation, /overlap by 90 min/);
 });

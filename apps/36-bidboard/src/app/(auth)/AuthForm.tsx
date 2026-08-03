@@ -63,17 +63,14 @@ export function AuthForm({
         </label>
       </ActionForm>
 
-      <p className="t-secondary">
-        {isSignup ? (
-          <>
-            Already running bids here? <Link className="link" href="/login">Sign in</Link>
-          </>
-        ) : (
-          <>
-            First package to put out? <Link className="link" href="/signup">Create an account</Link>
-          </>
-        )}
-      </p>
+      <div className="stack" style={{ gap: "var(--s1)" }}>
+        <p className="t-secondary">
+          {isSignup ? "Already running bids here?" : "First package to put out?"}
+        </p>
+        <Link className="link link-block" href={isSignup ? "/login" : "/signup"}>
+          {isSignup ? "Sign in" : "Create an account"}
+        </Link>
+      </div>
     </div>
   );
 }

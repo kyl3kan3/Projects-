@@ -41,6 +41,14 @@ const STOPWORDS = new Set([
   "materials",
   "complete",
   "work",
+  // "Debris removal" and "Dumpsters" are one scope item on a bid form; so are
+  // "Debris haul-off" and "Debris disposal". The noun carries the meaning.
+  "removal",
+  "removals",
+  "disposal",
+  "haul",
+  "hauling",
+  "off",
   "allowance",
   "alt",
   "alternate",

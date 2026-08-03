@@ -28,6 +28,7 @@ import { moneyExact } from "@/lib/format";
 import { entitlementsFor } from "@/lib/plans";
 import {
   csvFilename,
+  groupForPurchase,
   lineUnitCost,
   renderCsv,
   validateDraft,
@@ -35,8 +36,7 @@ import {
   type DraftValidation,
   type LineValidation,
 } from "@/lib/po-format";
-import { roundToOrderable } from "@/lib/reorder";
-import { reorderBoard, suppressedVariantIds, type SkuRow } from "@/lib/views";
+import { reorderBoard, suppressedVariantIds } from "@/lib/views";
 import { trialActive } from "@/lib/billing";
 
 export interface DraftSummary {
@@ -75,43 +75,24 @@ export async function buildDrafts(shop: Shop): Promise<BuildDraftsResult> {
   const db = getDb();
   const board = await reorderBoard(shop.id);
   const suppressed = await suppressedVariantIds(shop.id);
-  const now = new Date();
-
-  const eligible = board.rows.filter(
-    (row) =>
-      (row.status === "order_now" || row.status === "order_soon") &&
-      row.reorderQty > 0 &&
-      !(row.snoozedUntil !== null && row.snoozedUntil > now) &&
-      !suppressed.has(row.variantId),
-  );
-
-  const skippedSuppressed = board.rows.filter(
-    (row) =>
-      (row.status === "order_now" || row.status === "order_soon") && suppressed.has(row.variantId),
-  ).length;
-
-  const unassigned = eligible.filter((row) => row.supplierId === null).length;
-
-  // Grouped by supplier. Variants with no supplier are grouped together rather
-  // than dropped: "four SKUs need ordering and I do not know from whom" is
-  // information, and silently omitting them is how a stockout gets missed.
-  const groups = new Map<string, SkuRow[]>();
-  for (const row of eligible) {
-    const key = row.supplierId ?? "unassigned";
-    const list = groups.get(key) ?? [];
-    list.push(row);
-    groups.set(key, list);
-  }
-
   const supplierRows = await db.select().from(suppliers).where(eq(suppliers.shopId, shop.id));
-  const supplierById = new Map(supplierRows.map((s) => [s.id, s]));
+
+  // The grouping, the MOQ/pack rounding and the minimum-order check are pure and
+  // tested in po-format.test.ts (including the shared-supplier case). What is left
+  // here is only the persistence.
+  const grouped = groupForPurchase({
+    rows: board.rows,
+    suppliers: supplierRows.map((supplier) => ({
+      id: supplier.id,
+      name: supplier.name,
+      leadTimeDays: supplier.leadTimeDays,
+      minOrderValueCents: supplier.minOrderValueCents,
+    })),
+    suppressedVariantIds: suppressed,
+  });
 
   const out: DraftSummary[] = [];
-  for (const [key, rows] of groups) {
-    const supplier = key === "unassigned" ? null : (supplierById.get(key) ?? null);
-    const supplierName = supplier?.name ?? "No supplier assigned";
-    const leadTimeDays = supplier?.leadTimeDays ?? rows[0]?.leadTimeDays ?? 14;
-
+  for (const group of grouped.groups) {
     const [existing] = await db
       .select()
       .from(poDrafts)
@@ -119,7 +100,9 @@ export async function buildDrafts(shop: Shop): Promise<BuildDraftsResult> {
         and(
           eq(poDrafts.shopId, shop.id),
           eq(poDrafts.status, "draft"),
-          supplier ? eq(poDrafts.supplierId, supplier.id) : sql`${poDrafts.supplierId} is null`,
+          group.supplierId
+            ? eq(poDrafts.supplierId, group.supplierId)
+            : sql`${poDrafts.supplierId} is null`,
         ),
       )
       .limit(1);
@@ -133,9 +116,9 @@ export async function buildDrafts(shop: Shop): Promise<BuildDraftsResult> {
         .insert(poDrafts)
         .values({
           shopId: shop.id,
-          supplierId: supplier?.id ?? null,
-          supplierName,
-          leadTimeDays,
+          supplierId: group.supplierId,
+          supplierName: group.supplierName,
+          leadTimeDays: group.leadTimeDays,
           status: "draft",
         })
         .returning();
@@ -143,27 +126,27 @@ export async function buildDrafts(shop: Shop): Promise<BuildDraftsResult> {
       created = true;
     }
 
-    for (const row of rows) {
-      const cost = lineUnitCost(row);
-      const qty = roundToOrderable(row.reorderQty, row.moq, row.packSize);
+    for (const line of group.lines) {
       await db
         .insert(poDraftLines)
         .values({
           poDraftId: draft.id,
-          variantId: row.variantId,
-          sku: row.sku,
-          title: row.displayTitle,
-          suggestedQty: qty,
-          finalQty: qty,
-          unitCostCents: cost.cents,
+          variantId: line.variantId,
+          sku: line.sku,
+          title: line.title,
+          suggestedQty: line.qty,
+          finalQty: line.qty,
+          unitCostCents: line.unitCostCents,
         })
         .onConflictDoUpdate({
           target: [poDraftLines.poDraftId, poDraftLines.variantId],
+          // finalQty is deliberately absent: a merchant who edited 192 up to 200
+          // keeps their 200 when the nightly run nudges the suggestion.
           set: {
-            sku: row.sku,
-            title: row.displayTitle,
-            suggestedQty: qty,
-            unitCostCents: cost.cents,
+            sku: line.sku,
+            title: line.title,
+            suggestedQty: line.qty,
+            unitCostCents: line.unitCostCents,
           },
         });
     }
@@ -171,15 +154,19 @@ export async function buildDrafts(shop: Shop): Promise<BuildDraftsResult> {
     const totals = await recalcDraft(draft.id);
     out.push({
       draftId: draft.id,
-      supplierId: supplier?.id ?? null,
-      supplierName,
+      supplierId: group.supplierId,
+      supplierName: group.supplierName,
       lineCount: totals.lineCount,
       totalCents: totals.totalCents,
       created,
     });
   }
 
-  return { drafts: out, suppressed: skippedSuppressed, unassigned };
+  return {
+    drafts: out,
+    suppressed: grouped.suppressedCount,
+    unassigned: grouped.unassignedCount,
+  };
 }
 
 /** Recompute a draft's line count and total from its lines. */
@@ -390,6 +377,7 @@ function addDaysIso(date: string, days: number): string {
  */
 export {
   csvFilename,
+  groupForPurchase,
   lineUnitCost,
   renderCsv,
   validateDraft,

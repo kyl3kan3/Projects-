@@ -146,7 +146,7 @@ export default async function DiscoveryPage({
           ))}
         </div>
       </div>
-      <div className="-mx-5 overflow-x-auto px-5 pt-2">
+      <div className="-mx-5 overflow-x-auto px-5 pt-4">
         <div className="flex gap-2">
           <Link href={href({ cause: undefined })} className="chip" data-active={!params.cause}>
             All causes
@@ -163,7 +163,7 @@ export default async function DiscoveryPage({
           ))}
         </div>
       </div>
-      <div className="-mx-5 overflow-x-auto px-5 py-2">
+      <div className="-mx-5 overflow-x-auto px-5 pt-4 pb-2">
         <div className="flex gap-2">
           {SIZE_FILTERS.map((size) => (
             <Link

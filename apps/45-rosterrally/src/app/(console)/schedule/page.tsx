@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PennantClear } from "./PennantClear";
 import {
   AddGameForm,
   CancelGameForm,
@@ -174,6 +175,11 @@ export default async function SchedulePage() {
         </div>
       </div>
 
+      <PennantClear
+        seasonId={season.id}
+        conflictedGameIds={[...new Set(view.conflicts.flatMap((c) => c.gameIds))]}
+      />
+
       {view.days.length === 0 ? (
         <EmptyState
           title="Nothing on the schedule yet"
@@ -194,7 +200,7 @@ export default async function SchedulePage() {
             {day.rows.map((row) => {
               const worst = row.conflicts.find((c) => c.severity === "hard") ?? row.conflicts[0];
               return (
-                <div key={row.game.id} className={worst ? "row" : "row row-clear"}>
+                <div key={row.game.id} className="row" data-game-row={row.game.id}>
                   <span className="t-data" style={{ width: 56, color: "var(--fg)" }}>
                     {formatClock(row.game.startsAt, view.timezone)}
                   </span>
@@ -212,25 +218,28 @@ export default async function SchedulePage() {
                       {row.game.publishedAt ? "" : " · draft"}
                     </span>
                     {worst ? (
-                      <span className="mt-2 block">
+                      <span className="mt-2 flex flex-wrap items-center gap-2">
                         <PennantChip severity={worst.severity} kind={worst.kind} />
+                        {worst.overriddenAt ? (
+                          <span className="t-data" style={{ color: "var(--fg-3)" }}>
+                            ACCEPTED
+                          </span>
+                        ) : null}
                       </span>
                     ) : null}
-                    <span className="mt-1 flex items-center gap-4">
-                      <MoveGameForm
-                        action={updateGameAction}
-                        gameId={row.game.id}
-                        venues={venues.map((v) => ({ id: v.id, name: v.name, fields: v.fields }))}
-                        current={{
-                          venueId: row.game.venueId,
-                          field: row.game.field,
-                          localDate: row.game.localDate,
-                          localTime: row.game.localTime,
-                          durationMinutes: row.game.durationMinutes,
-                        }}
-                      />
-                      <CancelGameForm action={cancelGameAction} gameId={row.game.id} />
-                    </span>
+                    <MoveGameForm
+                      action={updateGameAction}
+                      gameId={row.game.id}
+                      venues={venues.map((v) => ({ id: v.id, name: v.name, fields: v.fields }))}
+                      current={{
+                        venueId: row.game.venueId,
+                        field: row.game.field,
+                        localDate: row.game.localDate,
+                        localTime: row.game.localTime,
+                        durationMinutes: row.game.durationMinutes,
+                      }}
+                      cancel={<CancelGameForm action={cancelGameAction} gameId={row.game.id} />}
+                    />
                   </span>
                 </div>
               );

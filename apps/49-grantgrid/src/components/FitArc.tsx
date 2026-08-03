@@ -21,7 +21,7 @@
  * can be dragged into the browser bundle through it.
  */
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { IconCheck, IconChevronDown, IconDash, IconX } from "@/components/icons";
 import { fitVerdict, unknownCount, type FitScore } from "@/lib/fit-score";
 
@@ -39,16 +39,30 @@ function usePrefersReducedMotion(): boolean {
   return reduced;
 }
 
-/** Counts 0 → target in step with the arc. Static under reduced motion. */
+/**
+ * Counts 0 → target in step with the arc.
+ *
+ * The initial state is the **true score**, not zero. That matters more than it
+ * looks: this component is server-rendered, so a hook that starts at 0 ships HTML
+ * saying `FIT 0` beside a label saying `Fit 92 / 100`, and that is what a visitor
+ * sees until hydration finishes — or forever, if the JavaScript never arrives. For
+ * a product whose whole claim is that its numbers are honest, briefly showing
+ * every funder a zero is not a cosmetic bug.
+ *
+ * So the count-up is set up in a layout effect instead: it runs after mount and
+ * before paint, drops the value to 0 and animates up, which keeps DESIGN.md's
+ * signature while leaving the no-JS render correct.
+ */
 function useCountUp(target: number, run: boolean, reduced: boolean): number {
-  const [value, setValue] = useState(reduced ? target : 0);
+  const [value, setValue] = useState(target);
   const frame = useRef<number>(0);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (reduced || !run) {
       setValue(target);
       return;
     }
+    setValue(0);
     const started = performance.now();
     const tick = (now: number) => {
       const t = Math.min(1, (now - started) / 600);
@@ -202,7 +216,8 @@ export function FitPanel({
           </span>
           <span className="t-secondary block" style={{ color: "var(--color-ink-2)" }}>
             {fitVerdict(score)}
-            {score.longShot ? " · long shot" : ""}
+            {/* The verdict already says "long shot" below 40; don't say it twice. */}
+            {score.longShot && !/long shot/i.test(fitVerdict(score)) ? " · long shot" : ""}
           </span>
         </span>
         <IconChevronDown

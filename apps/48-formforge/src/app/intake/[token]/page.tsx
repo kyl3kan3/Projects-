@@ -167,7 +167,13 @@ export default async function IntakePage({
           </p>
         )}
 
-        <form action={saveSectionAction} encType="multipart/form-data">
+        {/*
+          No `encType` here on purpose: React sets it for a form whose action is a
+          server function, and specifying it produces a console error saying so.
+          File inputs still arrive in the FormData — the upload block is verified
+          end to end, bytes and all.
+        */}
+        <form action={saveSectionAction}>
           <input type="hidden" name="token" value={token} />
           <input type="hidden" name="section" value={index} />
 

@@ -93,6 +93,10 @@ export function suggestedAction(row: {
 }): string {
   if (row.daysOfCover === null) return "Discount or bundle — it has stopped selling entirely.";
   if (row.daysOfCover > 365) return "Write-off territory. Discount hard or clear it in a bundle.";
-  if (row.cashTiedUpCents > 200_000) return "Biggest cash drag. A 20% discount clears it fastest.";
+  // No superlative: this function sees one row, so it cannot know whether it is the
+  // biggest — and it was printing "Biggest cash drag" on the second-largest row.
+  if (row.cashTiedUpCents > 200_000) {
+    return "A lot of cash in one SKU. A 20% discount usually clears it fastest.";
+  }
   return "Bundle it with a fast mover, or discount at the next sale.";
 }

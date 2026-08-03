@@ -37,6 +37,7 @@ import { audit, SYSTEM } from "@/lib/audit";
 import { DEFAULT_CLUB_SETTINGS } from "@/lib/auth";
 import { notifyHousehold, sendAnnouncement } from "@/lib/comms";
 import { formatMoney } from "@/lib/money";
+import { ageInDays, chaseRungFor } from "@/lib/notices";
 import { getGateway } from "@/lib/payments";
 import {
   applyAvailableCredit,
@@ -314,8 +315,6 @@ export async function promoteWaitlists(): Promise<number> {
  * Deduped by counting the chases already sent to that household for that purpose,
  * so the ladder walks once and stops.
  */
-const CHASE_RUNGS = [3, 10, 21];
-
 export async function chaseUnpaid(asOf: IsoDate = todayIso()): Promise<number> {
   const db = getDb();
   let sent = 0;
@@ -338,13 +337,10 @@ export async function chaseUnpaid(asOf: IsoDate = todayIso()): Promise<number> {
     const money = await getHouseholdMoney(reg.householdId);
     if (money.netDueCents <= 0) continue;
 
-    const ageDays = Math.floor(
-      (Date.parse(`${asOf}T00:00:00Z`) - reg.createdAt.getTime()) / 86_400_000,
-    );
     // The tightest crossed rung, not the loosest: a 30-day-old unpaid
-    // registration gets the day-21 notice, not the day-3 one.
-    const rung = [...CHASE_RUNGS].reverse().find((d) => ageDays >= d);
-    if (rung === undefined) continue;
+    // registration gets the day-21 notice, not the day-3 one (lib/notices.ts).
+    const rung = chaseRungFor(ageInDays(reg.createdAt, new Date(`${asOf}T00:00:00Z`)));
+    if (rung === null) continue;
 
     const alreadySent = await db
       .select({ n: sql<number>`count(*)::int` })

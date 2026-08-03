@@ -168,15 +168,27 @@ export function MoveGameForm({
   gameId,
   venues,
   current,
+  cancel,
 }: {
   action: Action;
   gameId: string;
   venues: VenueOption[];
   current: { venueId: string; field: string; localDate: string; localTime: string; durationMinutes: number };
+  /** The cancel control, tucked inside the same disclosure. */
+  cancel?: React.ReactNode;
 }) {
   return (
-    <details className="disclosure mt-2">
-      <summary className="btn-quiet">Edit</summary>
+    // One neutral control per row rather than two turf links: at a dozen games a
+    // screen, always-visible quiet actions would spend the whole accent budget on
+    // furniture (DESIGN_LANGUAGE rule 3), and DESIGN.md puts the row's edit in an
+    // overflow anyway.
+    <details className="disclosure mt-1">
+      <summary
+        className="t-secondary inline-flex min-h-[44px] items-center gap-1"
+        style={{ color: "var(--fg-2)" }}
+      >
+        Edit or move
+      </summary>
       <div className="panel mt-2 p-4">
         <ActionForm action={action} submitLabel="Move it" small>
           <input type="hidden" name="gameId" value={gameId} />
@@ -248,6 +260,7 @@ export function MoveGameForm({
             </div>
           </div>
         </ActionForm>
+        {cancel ? <div className="mt-4 hairline-t pt-4">{cancel}</div> : null}
       </div>
     </details>
   );

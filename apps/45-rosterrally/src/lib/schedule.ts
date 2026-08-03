@@ -35,6 +35,7 @@ import {
   type ConflictFinding,
   type ScheduleEntry,
 } from "@/lib/conflicts";
+import { remindersToSchedule } from "@/lib/notices";
 import { coachesByTeam, householdsByTeam } from "@/lib/rosters";
 import {
   addMinutes,
@@ -589,11 +590,6 @@ export async function publishSchedule(
 
 /* ------------------------------------------------------------- reminders --- */
 
-const REMINDER_RUNGS = [
-  { rung: "t24_email", channel: "email" as const, minutesBefore: 24 * 60 },
-  { rung: "t3_sms", channel: "sms" as const, minutesBefore: 3 * 60 },
-];
-
 /**
  * Materialise this game's reminders at fixed distances from kick-off.
  *
@@ -604,12 +600,10 @@ const REMINDER_RUNGS = [
  */
 export async function scheduleRemindersForGame(game: Game): Promise<void> {
   const db = getDb();
-  for (const rung of REMINDER_RUNGS) {
-    const sendAfter = addMinutes(game.startsAt, -rung.minutesBefore);
-    // A game already inside the window when it is published gets no notice for
-    // that rung rather than an instant one — nobody wants a "tomorrow's game"
-    // email about a game that starts in an hour.
-    if (sendAfter.getTime() < Date.now()) continue;
+  // `remindersToSchedule` decides which rungs still make sense (lib/notices.ts):
+  // a game already inside a window gets no notice for that rung rather than an
+  // instant one.
+  for (const { rung, sendAfter } of remindersToSchedule(game.startsAt)) {
     await db
       .insert(gameReminders)
       .values({

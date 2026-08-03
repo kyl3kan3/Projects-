@@ -41,6 +41,7 @@ import {
 import { audit, SYSTEM, type Actor } from "@/lib/audit";
 import { env } from "@/lib/env";
 import { householdUrl, mintHouseholdToken } from "@/lib/links";
+import { isReached } from "@/lib/notices";
 import { emailShell, sendEmail, sendSms } from "@/lib/notify";
 
 /* -------------------------------------------------------------- audience --- */
@@ -446,10 +447,6 @@ export interface ReceiptGrid {
     skipped: number;
     unreached: number;
   };
-}
-
-function isReached(status: DeliveryStatus, openedAt: Date | null, clickedAt: Date | null): boolean {
-  return status === "opened" || status === "clicked" || status === "viewed_link" || Boolean(openedAt) || Boolean(clickedAt);
 }
 
 export async function getReceipts(announcementId: string): Promise<ReceiptGrid | null> {

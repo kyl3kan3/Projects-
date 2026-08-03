@@ -170,9 +170,21 @@ export async function recomputeShop(
     const leadTimeDays = variant.supplierLeadTimeDays ?? settings.defaultLeadTimeDays;
     const hasSalesHistory = Boolean(variant.firstSaleOn);
 
+    /**
+     * Rounded **once**, here, and then used for everything downstream.
+     *
+     * The reorder point has to be reproducible from the velocity the UI shows, because
+     * "honest math, shown" is the product's differentiator and a panel whose inputs do
+     * not give its own answer is worse than no panel. Feeding `planReorder` the full
+     * float while storing a 3-decimal one put a SKU on screen whose displayed velocity
+     * implied a reorder point of 106 against a stored 105 — a merchant checking the
+     * arithmetic would have found the app wrong.
+     */
+    const blendedVelocity = round3(profile.blended);
+
     const suggestion = planReorder({
       asOf: runDate,
-      velocity: profile.blended,
+      velocity: blendedVelocity,
       available: variant.inventoryQuantity,
       leadTimeDays,
       safetyDays: settings.safetyDays,
@@ -194,7 +206,7 @@ export async function recomputeShop(
       velocity7d: round3(profile.w7.velocity),
       velocity30d: round3(profile.w30.velocity),
       velocity90d: round3(profile.w90.velocity),
-      blendedVelocity: round3(profile.blended),
+      blendedVelocity,
       windows: [profile.w7, profile.w30, profile.w90].map((w) => ({
         windowDays: w.windowDays,
         units: w.units,

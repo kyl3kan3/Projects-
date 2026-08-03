@@ -35,6 +35,7 @@ export async function importCsvAction(
     let csv = String(formData.get("csv") ?? "");
     let filename = String(formData.get("filename") ?? "sales.csv");
     const file = formData.get("file");
+    const uploaded = file instanceof File && file.name.length > 0;
     if (file instanceof File && file.size > 0) {
       if (file.size > MAX_CSV_BYTES) {
         return {
@@ -47,7 +48,13 @@ export async function importCsvAction(
       filename = file.name;
     }
     if (!csv.trim()) {
-      return { error: "Choose a CSV exported from your POS", ok: null, needsMapping: null };
+      return {
+        error: uploaded
+          ? "That file is empty. Export it again from your POS — the download may have failed."
+          : "Choose a CSV exported from your POS",
+        ok: null,
+        needsMapping: null,
+      };
     }
 
     const nameCol = String(formData.get("mapName") ?? "").trim();

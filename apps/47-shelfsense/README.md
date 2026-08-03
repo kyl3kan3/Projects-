@@ -85,3 +85,51 @@ Post-MVP (explicitly cut from v1): multi-location transfer suggestions, bundle/B
 3. **Data quality in, garbage out.** Merchants with untracked inventory, missing costs, or unassigned suppliers see weak output. Mitigation: onboarding checklist that scores data readiness and a CSV import path for costs/lead times before showing forecasts.
 4. **Crowded app-store category.** Several funded competitors buy reviews and ads. Mitigation: sharper positioning (dollars at risk + dead stock), the free calculator as an owned channel, and pricing under the ops-suite tier.
 5. **Churn on seasonality.** Merchants may pause after peak season. Mitigation: the monthly dead-stock digest keeps the tool valuable in slow months; annual pricing with two months free.
+
+## Setup
+
+Requires Node 20+ and a Postgres database. Nothing else is mandatory: the app runs
+without Shopify credentials and without an email provider, and says so on screen where
+that changes what you see.
+
+```bash
+npm install
+cp .env.example .env.local          # fill in DATABASE_URL and AUTH_SECRET
+npm run db:migrate                  # applies drizzle/ against DATABASE_URL
+npm run dev                         # http://localhost:3000
+```
+
+Then sign up, and on the connect screen either:
+
+- **Connect a real store** — needs `SHOPIFY_API_KEY` / `SHOPIFY_API_SECRET` from a
+  Shopify Partner app whose allowed redirect URL is `APP_URL` +
+  `SHOPIFY_REDIRECT_PATH`, and an HTTPS tunnel, because Shopify will not send OAuth or
+  webhooks to `localhost`. The install registers the webhooks and the 90-day backfill
+  starts on the next tick.
+- **Load the demo store** — a labelled sample catalogue (Oaklane Goods, 12 SKUs, 90
+  days of generated orders). It runs the real backfill, the real velocity maths and the
+  real forecast writer against a deterministic fake of the Admin API, so every screen is
+  rendered from real rows. It is labelled as a demo everywhere its numbers appear and
+  can never be billed.
+
+### Background work
+
+Webhook deliveries, backfills, the nightly recompute and the digests are all driven by
+one cron-triggered route, bounded by a time budget:
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron/tick
+```
+
+`vercel.json` schedules it every 10 minutes (which needs a Vercel plan above Hobby —
+Hobby runs cron once a day). The route refuses every request when `CRON_SECRET` is
+unset rather than defaulting to open. `npm run worker` runs the identical work on a
+loop for anyone hosting a long-lived process instead.
+
+### Checks
+
+```bash
+npm run typecheck
+npm test          # node:test via tsx, no test dependency
+npm run build
+```

@@ -14,7 +14,7 @@
  */
 
 import { randomUUID } from "node:crypto";
-import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, max, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
   eightySixEvents,
@@ -41,6 +41,21 @@ export { DIETARY_TAGS, DIETARY_TAG_LABELS, normaliseTags, type DietaryTag } from
 
 /** Positions are spaced so a drag lands between neighbours without a rewrite. */
 export const POSITION_STEP = 100;
+
+/**
+ * Next sparse position at the end of a list.
+ *
+ * Written as `max(col)` plus a TypeScript fallback rather than a raw coalesce
+ * against an interpolated step constant. Interpolating a JS number into a raw
+ * fragment sends it as an *untyped* bind parameter, so Postgres sees `-$1` and
+ * fails with `operator is not unique: - unknown` — at runtime only.
+ * That broke creating a menu, a section, or a dish outright, and neither the
+ * typechecker nor the production build noticed.
+ */
+function nextPosition(maxValue: number | null): number {
+  return maxValue === null ? 0 : maxValue + POSITION_STEP;
+}
+
 
 /* ----------------------------------------------------------------- reading */
 
@@ -141,7 +156,7 @@ export async function loadBoardItems(locationId: string): Promise<BoardItem[]> {
   const open = await db
     .select()
     .from(eightySixEvents)
-    .where(and(eq(eightySixEvents.locationId, locationId), sql`${eightySixEvents.restoredAt} is null`))
+    .where(and(eq(eightySixEvents.locationId, locationId), isNull(eightySixEvents.restoredAt)))
     .orderBy(desc(eightySixEvents.eightySixedAt));
   const openByItem = new Map<string, (typeof open)[number]>();
   for (const e of open) if (!openByItem.has(e.menuItemId)) openByItem.set(e.menuItemId, e);
@@ -211,7 +226,7 @@ export async function createMenu(input: CreateMenuInput, actor: Actor): Promise<
   const daypart = validateDaypart(input.daypart ?? null);
 
   const [maxRow] = await db
-    .select({ max: sql<number>`coalesce(max(${menus.position}), -${POSITION_STEP})` })
+    .select({ max: max(menus.position) })
     .from(menus)
     .where(eq(menus.locationId, input.locationId));
 
@@ -221,7 +236,7 @@ export async function createMenu(input: CreateMenuInput, actor: Actor): Promise<
       locationId: input.locationId,
       name,
       daypart,
-      position: Number(maxRow?.max ?? 0) + POSITION_STEP,
+      position: nextPosition(maxRow?.max ?? null),
     })
     .returning();
 
@@ -255,7 +270,7 @@ export async function createSection(
   if (!menu) throw new Error("That menu no longer exists");
 
   const [maxRow] = await db
-    .select({ max: sql<number>`coalesce(max(${menuSections.position}), -${POSITION_STEP})` })
+    .select({ max: max(menuSections.position) })
     .from(menuSections)
     .where(eq(menuSections.menuId, menuId));
 
@@ -265,7 +280,7 @@ export async function createSection(
       menuId,
       name: trimmed,
       note: note?.trim() || null,
-      position: Number(maxRow?.max ?? 0) + POSITION_STEP,
+      position: nextPosition(maxRow?.max ?? null),
     })
     .returning();
 
@@ -299,7 +314,7 @@ export async function createItem(input: CreateItemInput, actor: Actor): Promise<
   if (!section) throw new Error("That section no longer exists");
 
   const [maxRow] = await db
-    .select({ max: sql<number>`coalesce(max(${menuItems.position}), -${POSITION_STEP})` })
+    .select({ max: max(menuItems.position) })
     .from(menuItems)
     .where(eq(menuItems.sectionId, input.sectionId));
 
@@ -313,7 +328,7 @@ export async function createItem(input: CreateItemInput, actor: Actor): Promise<
       priceCents: input.priceCents,
       costCents: input.costCents ?? null,
       dietaryTags: normaliseTags(input.dietaryTags),
-      position: Number(maxRow?.max ?? 0) + POSITION_STEP,
+      position: nextPosition(maxRow?.max ?? null),
     })
     .returning();
 
@@ -641,7 +656,7 @@ export async function itemsMissingCost(locationId: string) {
     })
     .from(menuItems)
     .innerJoin(menuSections, eq(menuSections.id, menuItems.sectionId))
-    .where(and(eq(menuItems.locationId, locationId), sql`${menuItems.costCents} is null`))
+    .where(and(eq(menuItems.locationId, locationId), isNull(menuItems.costCents)))
     .orderBy(asc(menuSections.position), asc(menuItems.position));
 }
 

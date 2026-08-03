@@ -513,6 +513,36 @@ select.input {
   border: 0;
 }
 
+/* ---- Landing page: the three entry beats (MARKETING_PLAYBOOK.md law 6) ----
+   The hero runway draws itself once, the reorder notch lands, and the row's kraft
+   underline sweeps. All CSS, all on entry, and all collapsed by reduced motion below. */
+@keyframes landing-drain {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 58%;
+  }
+}
+@keyframes landing-notch-land {
+  from {
+    left: 100%;
+    opacity: 0;
+  }
+  to {
+    left: 18%;
+    opacity: 1;
+  }
+}
+.landing-fill {
+  width: 58%;
+  animation: landing-drain 900ms var(--ease-out-quart) 120ms both;
+}
+.landing-notch {
+  left: 18%;
+  animation: landing-notch-land 640ms var(--ease-in-out-soft) 420ms both;
+}
+
 /* ---- Reduced motion: every signal is also plain text, so nothing is lost ---- */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -535,5 +565,11 @@ select.input {
   .hold-progress[data-holding="true"] {
     animation: none;
     transform: scaleX(1);
+  }
+  /* The runway's final state is the whole message; the drawing of it is decoration.
+     Both dates are in plain text beneath it either way. */
+  .landing-fill,
+  .landing-notch {
+    animation: none;
   }
 }

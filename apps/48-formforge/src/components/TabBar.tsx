@@ -5,6 +5,9 @@
  * active gets ink text plus a 2px teal dot (DESIGN.md). Replaced by a left rail
  * at >=1024px — same destinations, one source of truth.
  *
+ * Hidden at >=1024px by a media query in globals.css, not by a utility class —
+ * see the comment there for why the utility could not win.
+ *
  * Imports only `next/link`, `next/navigation` and the icon set: a client
  * component that reached a module that reached the db client would pull
  * `postgres` into the browser bundle.
@@ -28,7 +31,7 @@ function isActive(pathname: string, href: string): boolean {
 export function TabBar() {
   const pathname = usePathname();
   return (
-    <nav className="tabbar lg:hidden" aria-label="Main">
+    <nav className="tabbar" aria-label="Main">
       {ITEMS.map(({ href, label, Icon }) => {
         const active = isActive(pathname, href);
         return (

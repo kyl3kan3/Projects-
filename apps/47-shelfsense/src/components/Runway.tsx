@@ -139,7 +139,15 @@ export function Runway({
               className="t-data absolute top-0 whitespace-nowrap"
               style={{
                 left: `${mark.pct}%`,
-                transform: mark.pct > 85 ? "translateX(-100%)" : "translateX(-50%)",
+                // The first and last labels align to their edge instead of centring
+                // on it: centred, half of "AUG 3" hangs outside the strip and gets
+                // clipped to "G 3".
+                transform:
+                  mark.pct <= 1
+                    ? "none"
+                    : mark.pct > 85
+                      ? "translateX(-100%)"
+                      : "translateX(-50%)",
                 color: "var(--color-fg-3)",
               }}
             >
