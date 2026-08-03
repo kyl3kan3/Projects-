@@ -82,6 +82,83 @@ Post-MVP (explicitly cut from v1): direct EHR integrations (SimplePractice/Thera
 | **DocuSign / Dropbox Sign** | ~$25-40/user/mo | Signatures only — no forms, no PHI storage model, no intake pipeline. |
 | **Paper + scanner** | ~Free | The real incumbent: familiar, "worked so far." Beaten by completion-rate math, lost-packet stories, and the records-request scenario. |
 
+## Setup
+
+Requires Node 20+ and a Postgres 14+ database.
+
+```bash
+npm install
+cp .env.example .env.local     # four vars must be real to run the product:
+                               # DATABASE_URL, AUTH_SECRET,
+                               # FIELD_ENCRYPTION_MASTER_KEY, INTAKE_TOKEN_SECRET
+npm run db:migrate             # schema, plus the append-only triggers
+npm run db:seed                # optional: a demo practice mid-week
+npm run dev                    # http://localhost:3048
+```
+
+Generate the two crypto secrets before the first run:
+
+```bash
+openssl rand -hex 32           # FIELD_ENCRYPTION_MASTER_KEY (exactly 64 hex chars)
+openssl rand -base64 32        # INTAKE_TOKEN_SECRET
+```
+
+**Back up `FIELD_ENCRYPTION_MASTER_KEY` somewhere your database backup is not.**
+It wraps every practice's data key; without it, every encrypted field in every
+practice is permanently unreadable. In production it belongs in a KMS — the
+`wrapDek`/`unwrapDek` pair in `src/lib/crypto.ts` is the only seam that changes.
+
+`npm run db:seed` prints the login it creates. Without it, sign up at `/signup`:
+copying a gallery template and publishing it takes about ten minutes, and then
+**Send intake** produces a patient link.
+
+**What each optional service buys you.** Nothing below is needed to send a packet
+and take a signature:
+
+| Unset | What happens |
+|---|---|
+| `RESEND_API_KEY` (or `DRY_RUN=1`) | Invites and reminders are logged instead of sent — the log records the recipient's domain and the subject, never the body. |
+| `TWILIO_*` | SMS reminders are logged instead of sent. |
+| `S3_BUCKET` / `AWS_ACCESS_KEY_ID` | Uploaded files are stored as AES-256-GCM envelopes in Postgres instead of S3. Encrypted either way — the application encrypts before storage. |
+| `STRIPE_SECRET_KEY` | The billing screen says so; the three plans still display and nothing is gated off. |
+| `CRON_SECRET` | `/api/cron/tick` refuses to run at all rather than defaulting to open. |
+
+### The two surfaces
+
+- `/` — the marketing page.
+- `/intakes` — the practice dashboard (staff sign in; sessions expire after 12h).
+- `/intake/<token>` — what the patient's phone opens. No account. The raw token
+  exists only inside the link; the database stores its HMAC, and re-sending a link
+  issues a new token and retires the old one.
+
+### Scripts
+
+```bash
+npm run typecheck     # tsc --noEmit
+npm test              # node:test via tsx — domain logic, no database needed
+npm run test:db       # the integrity suite: encryption, isolation and the
+                      # append-only guarantees, proven by attack against a real
+                      # Postgres. Needs DATABASE_URL and the two crypto secrets.
+npm run build         # production build
+npm run worker        # optional long-lived poller; the Vercel cron does the same
+npm run db:generate   # new migration from a schema change
+```
+
+### Deploying
+
+Vercel + Neon; see the repo's `DEPLOYING.md`. Use Neon's **pooled** connection
+string for the app and the direct one for `db:migrate`, and set `CRON_SECRET` so
+the daily `/api/cron/tick` (reminders, link expiry, retention sweep) can run. The
+worker is optional: without it the reminder ladder fires at daily granularity,
+which is why every rung is a day or more apart.
+
+### A word on what this software is
+
+FormForge is **pre-launch**. It has no executed Business Associate Agreement, no
+completed third-party security review and no SOC 2 report, and it says so in the
+product. Use test data until that changes. What the code does provide is
+documented in `ARCHITECTURE.md` and demonstrated by `npm run test:db`.
+
 ## Key Risks
 
 1. **Compliance claims are load-bearing.** A security incident or an inaccurate HIPAA claim is existential in this niche. Mitigation: conservative architecture (field-level encryption, least-privilege access, immutable audit log), a third-party security review before charging, cyber-liability insurance, and marketing language reviewed against actual controls — never "HIPAA certified" (no such thing), always specific.

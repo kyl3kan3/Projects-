@@ -522,6 +522,17 @@ select.input {
 
 /* ---- Audit ledger rows: mono first ------------------------------------ */
 
+/**
+ * DESIGN.md sets the row as `14:02:11 · VIEWED · packet — Dana R. · 73.92.1.8`.
+ * The interpuncts are generated rather than typed into every screen, so a row
+ * cannot be assembled without them. They also keep a row readable when it wraps
+ * at 390px, which it must: the alternative is a sideways-scrolling ledger.
+ */
+.ledger-row > * + *::before {
+  content: "· ";
+  color: var(--color-ink-3);
+}
+
 .ledger-row {
   display: flex;
   gap: 8px;

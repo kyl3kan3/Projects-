@@ -160,7 +160,13 @@ export const costFacts = pgTable(
     usageType: text().notNull(),
     /** Matches `tag_sets.hash`; "-" for untagged spend. */
     tagHash: text().notNull().default("-"),
-    resourceId: text(),
+    /**
+     * CUR gives resource-level lines; Cost Explorer does not. Empty string, not
+     * NULL, because this column is part of a unique index and Postgres treats
+     * NULLs as distinct — a nullable column there would stop dedupe working for
+     * every Cost Explorer row.
+     */
+    resourceId: text().notNull().default(""),
     amountMicros: bigint({ mode: "number" }).notNull(),
     source: text().notNull().default("ce").$type<CostSource>(),
     createdAt: createdAt(),
@@ -173,6 +179,7 @@ export const costFacts = pgTable(
       t.region,
       t.usageType,
       t.tagHash,
+      t.resourceId,
       t.source,
     ),
     index("cost_facts_account_ts_idx").on(t.accountId, t.ts),
