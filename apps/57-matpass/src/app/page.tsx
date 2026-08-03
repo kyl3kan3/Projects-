@@ -98,7 +98,7 @@ const COMPARISONS: [string, string, string, string | null][] = [
 export default function LandingPage() {
   return (
     <>
-      <header className="marketing" style={{ paddingTop: 20 }}>
+      <header className="gutters" style={{ paddingTop: 20 }}>
         <nav className="flex items-center justify-between gap-4">
           <span className="flex items-center gap-2 fg">
             <span className="crimson">

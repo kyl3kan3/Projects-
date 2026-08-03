@@ -76,6 +76,8 @@
   --gutter: 20px;
   --tabbar-h: 56px;
   --control-h: 48px;
+  /* The desktop left rail's width. Not spacing — a component dimension. */
+  --rail-w: 200px;
 }
 
 /* The kiosk shares the palette at arm's length: bigger targets, bigger type,
@@ -313,10 +315,10 @@ textarea.input {
 }
 select.input {
   appearance: none;
-  padding-right: 36px;
+  padding-right: 40px;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none' stroke='%23736F67' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M6 8l4 4 4-4'/></svg>");
   background-repeat: no-repeat;
-  background-position: right 10px center;
+  background-position: right 12px center;
 }
 /* The kiosk search field: 56px, 18px text. */
 .world-kiosk .input {
@@ -355,7 +357,7 @@ select.input {
   align-items: center;
   gap: 6px;
   min-height: 44px;
-  padding: 0 14px;
+  padding: 0 12px;
   border-radius: var(--radius-control);
   border: 1px solid var(--line);
   background: transparent;
@@ -382,6 +384,13 @@ select.input {
   scrollbar-width: none;
 }
 .chip-row::-webkit-scrollbar { display: none; }
+/* A row of choices wraps instead of scrolling: a clipped radio option is easy
+   to miss, and a horizontal swipe must never be the only way to reach one. */
+.chip-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
 
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
   outline: 2px solid var(--accent);
@@ -495,7 +504,7 @@ select.input {
   align-items: center;
   gap: 6px;
   height: 28px;
-  padding: 0 10px;
+  padding: 0 8px;
   border-radius: var(--radius-control);
   border: 1px solid var(--line);
   font-family: var(--font-display);
@@ -530,7 +539,9 @@ select.input {
   padding-bottom: env(safe-area-inset-bottom);
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  /* card at 96% + blur, per DESIGN.md — written as a literal rgba rather than a
+     color-mix() so the painted value is unambiguous to a contrast audit. */
+  background: rgba(252, 251, 248, 0.96);
   backdrop-filter: blur(12px);
   border-top: 1px solid var(--line);
   z-index: 40;
@@ -544,7 +555,9 @@ select.input {
   font-family: var(--font-display);
   font-size: 10px;
   font-weight: 600;
-  color: var(--fg-3);
+  /* 10px text needs 4.5:1 and then some: --fg-2 measures 5.01:1 on canvas and
+     5.29:1 on the card the bar is made of. --fg-3 was inside the margin. */
+  color: var(--fg-2);
   text-decoration: none;
   position: relative;
   min-height: 44px;
@@ -560,11 +573,26 @@ select.input {
   background: var(--accent);
 }
 
+/* Header controls: nav affordances, so they meet the 44px target rule even
+   though their glyph is 22px. */
+.head-target {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  min-width: 44px;
+}
+.head-target-text {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
 /* ---- Layout ----------------------------------------------------------- */
 
 .screen {
   padding: 0 var(--gutter);
-  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 96px);
+  /* Clears the tab bar, the safe area, and the thumb CTA above it: 80 + 16. */
+  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 80px + 16px);
   max-width: 1120px;
   margin: 0 auto;
 }
@@ -574,7 +602,7 @@ select.input {
   margin: 0 auto;
 }
 .screen-narrow {
-  padding: 0 var(--gutter) 120px;
+  padding: 0 var(--gutter) calc(80px + 40px);
   max-width: 560px;
   margin: 0 auto;
 }
@@ -719,9 +747,14 @@ select.input {
     animation-range: entry 5% cover 25%;
   }
 }
+/* Transform only, never opacity. A scroll-linked animation is positional, not
+   one-shot: scroll back up and the section returns to its `from` state. With
+   opacity in the keyframes that left four sections of body copy sitting at 55%
+   whenever they were below the fold — permanently dimmed text, measured. Motion
+   that costs legibility at any scroll position is not motion worth having. */
 @keyframes beat-rise {
-  from { opacity: 0.55; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { transform: translateY(12px); }
+  to { transform: translateY(0); }
 }
 .sticky-cta {
   position: fixed;
@@ -752,13 +785,13 @@ select.input {
 @media (min-width: 1024px) {
   .screen {
     padding-bottom: 80px;
-    padding-left: calc(var(--gutter) + 200px);
+    padding-left: calc(var(--gutter) + var(--rail-w));
   }
   .tabbar {
     top: 0;
     bottom: 0;
     right: auto;
-    width: 200px;
+    width: var(--rail-w);
     height: 100%;
     grid-template-columns: 1fr;
     grid-template-rows: repeat(4, 56px);
@@ -916,11 +949,20 @@ select.input {
 
 /* ---- Marketing layout -------------------------------------------------- */
 
-.marketing {
+/* Horizontal gutters and the content measure, with no vertical opinion — the
+   marketing header uses this on its own. `.marketing` adds the bottom padding
+   the sticky CTA needs, and applying that to the header too left 120px of dead
+   air under the logo. */
+.gutters {
   padding: 0 var(--gutter);
   max-width: 1120px;
   margin: 0 auto;
-  padding-bottom: 120px;
+}
+.marketing {
+  /* 80 + 40: the sticky CTA plus a step of air beneath the footer. */
+  padding: 0 var(--gutter) calc(80px + 40px);
+  max-width: 1120px;
+  margin: 0 auto;
 }
 .marketing section { padding-top: 56px; }
 .marketing .lede { max-width: 34ch; }

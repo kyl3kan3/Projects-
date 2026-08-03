@@ -5,6 +5,7 @@ import { ActionForm } from "@/components/ActionForm";
 import { BeltBar } from "@/components/belt-bar";
 import { IconSignoffPen } from "@/components/icons";
 import { SectionHead } from "@/components/ui";
+import { BELT_PRESETS } from "@/lib/curricula";
 import { addRankAction, archiveProgramAction, createProgramAction, updateRankAction } from "./actions";
 
 export interface RankRow {
@@ -93,7 +94,7 @@ export function CurriculumEditor({
                       stripesTotal={rank.stripes}
                       classesDone={0}
                       classesRequired={0}
-                      showFigures={false}
+                      showProgress={false}
                     />
                   </div>
                   <p className="t-data fg-2" style={{ marginTop: 8 }}>
@@ -265,7 +266,7 @@ export function CurriculumEditor({
                         id={`nb-${program.id}`}
                         name="beltColorHex"
                         className="input input-mono"
-                        defaultValue="#4B2E5A"
+                        defaultValue={BELT_PRESETS.purple}
                       />
                     </div>
                   </div>

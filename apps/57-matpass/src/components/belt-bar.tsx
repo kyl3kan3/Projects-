@@ -34,6 +34,12 @@ export interface BeltBarProps {
   fillFrom?: number;
   /** Show the mono requirement figures at the right of the progress line. */
   showFigures?: boolean;
+  /**
+   * Show the progress hairline at all. A belt bar used purely to depict a rank —
+   * the curriculum ladder, a from -> to comparison — has no progress to report,
+   * and a track that reads 100% crimson under every row says the opposite.
+   */
+  showProgress?: boolean;
   /** Progress is met — the hairline reads green rather than crimson. */
   met?: boolean;
 }
@@ -50,6 +56,7 @@ export function BeltBar({
   seatIndex = 0,
   fillFrom,
   showFigures = true,
+  showProgress = true,
   met = false,
 }: BeltBarProps) {
   const band = safeBeltHex(beltColorHex);
@@ -88,28 +95,30 @@ export function BeltBar({
           );
         })}
       </div>
-      <div className="flex items-center gap-3" style={{ marginTop: 4 }}>
-        <div
-          className={`progress${met ? " progress-met" : ""}${
-            fillFrom === undefined ? "" : " progress-animate"
-          }`}
-          style={{ flex: 1 }}
-        >
-          <span
-            style={
-              {
-                transform: `scaleX(${fraction})`,
-                "--from-scale": fillFrom === undefined ? undefined : String(fillFrom),
-              } as React.CSSProperties
-            }
-          />
+      {showProgress ? (
+        <div className="flex items-center gap-3" style={{ marginTop: 4 }}>
+          <div
+            className={`progress${met ? " progress-met" : ""}${
+              fillFrom === undefined ? "" : " progress-animate"
+            }`}
+            style={{ flex: 1 }}
+          >
+            <span
+              style={
+                {
+                  transform: `scaleX(${fraction})`,
+                  "--from-scale": fillFrom === undefined ? undefined : String(fillFrom),
+                } as React.CSSProperties
+              }
+            />
+          </div>
+          {showFigures ? (
+            <span className="t-data fg-2" style={{ flex: "none" }}>
+              {classesRequired > 0 ? `${classesDone} / ${classesRequired}` : `${classesDone}`}
+            </span>
+          ) : null}
         </div>
-        {showFigures ? (
-          <span className="t-data fg-2" style={{ flex: "none" }}>
-            {classesRequired > 0 ? `${classesDone} / ${classesRequired}` : `${classesDone}`}
-          </span>
-        ) : null}
-      </div>
+      ) : null}
     </div>
   );
 }
@@ -132,12 +141,7 @@ export function BeltTransition({
   return (
     <div className="flex items-center gap-3">
       <div style={{ flex: 1, minWidth: 0 }}>
-        <BeltBar
-          {...from}
-          classesDone={0}
-          classesRequired={0}
-          showFigures={false}
-        />
+        <BeltBar {...from} classesDone={0} classesRequired={0} showProgress={false} />
         <p className="t-secondary fg-3" style={{ marginTop: 4 }}>
           {from.rankName}
           {from.stripesTotal > 0 ? ` · ${from.stripesEarned} stripe${from.stripesEarned === 1 ? "" : "s"}` : ""}
@@ -151,7 +155,7 @@ export function BeltTransition({
           {...to}
           classesDone={0}
           classesRequired={0}
-          showFigures={false}
+          showProgress={false}
           seatingStripe={animate}
           seatIndex={seatIndex}
         />

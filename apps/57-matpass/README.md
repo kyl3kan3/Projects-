@@ -41,20 +41,111 @@ Priced by active student count — the honest scale axis, and the one the catego
 
 ## MVP Feature List
 
-- [ ] Auth + school setup (Auth.js); roles (owner, instructor, front desk)
-- [ ] Programs + curricula: rank ladders per program (belt, stripe steps, display order, color), per-rank requirements (minimum classes since promotion, minimum days in rank, instructor sign-off flag)
-- [ ] Students: profile, program enrollments with current rank + promotion history, family grouping, photo, notes; CSV import from spreadsheets/incumbent exports
-- [ ] Kiosk check-in: tablet-at-the-door mode (device-token locked, no staff login exposed), student searches name or enters PIN, taps their class, done in <5 seconds; late/manual check-in from the desk
-- [ ] Class schedule: weekly recurring classes per program (day, time, instructor); check-ins attach to the nearest scheduled class
-- [ ] Progression engine: classes-since-promotion and days-in-rank computed from check-ins and promotion history; per-student progress bar toward next rank
-- [ ] Grading events: pick a date + programs, the eligibility list assembles itself (requirements met / near-miss with what's missing), invite/confirm candidates, run the event, batch-promote with one review screen — every promotion recorded with date, event, and grader
-- [ ] Promotion history: the student's rank timeline ("the wall and the record"); printable certificates data (name, rank, date) as CSV/PDF export
-- [ ] Family memberships + billing: households with multiple students, membership plans (per-student and family rates), Stripe subscriptions, failed-payment dunning states visible at the desk
-- [ ] Retention flags: attendance drop-off detection (student's own baseline vs recent weeks), flagged list with "last seen 19 days ago · was 3x/week", one-tap log-a-call/email outcome
-- [ ] Email announcements (school-wide or per program) with delivery status
-- [ ] Billing for MatPass itself (Stripe, three tiers, trial)
+All of it is built. What each item means in the shipped app, and where it lives:
+
+- [x] **Auth + school setup; roles (owner, instructor, front desk).** Email + password
+  (scrypt) with a signed JWT session cookie — the portfolio's convention rather than
+  ARCHITECTURE.md's Auth.js, with the same school-scoped session shape. Role gates in
+  `src/lib/auth.ts`: the desk checks students in and works flags but cannot record a
+  promotion or touch billing.
+- [x] **Programs + curricula.** Rank ladders with belt colour, stripe steps, display
+  order, minimum classes, minimum days in rank and an instructor sign-off flag.
+  Templates preloaded for BJJ adult and kids, karate (10-kyu), taekwondo and judo.
+  `src/lib/curricula.ts`, `/curriculum`.
+- [x] **Students.** Profile, per-program enrollments with current rank and promotion
+  history, family grouping, notes, kiosk PIN. CSV import that honours rank and
+  last-promoted columns and reports every row it could not read. `src/lib/roster.ts`,
+  `src/lib/csv.ts`, `/setup`, `/roster`.
+- [x] **Kiosk check-in.** `/kiosk/[deviceToken]` — device-token locked, no staff login
+  reachable, name search from three letters or a PIN, today's class pre-selected,
+  offline queue that syncs exactly once. Desk fallback at `/roster/checkin`.
+- [x] **Class schedule.** Weekly recurring classes per program with day, time,
+  duration and instructor; check-ins attach to the class that was actually running.
+  `src/lib/schedule.ts`, `/schedule`.
+- [x] **Progression engine.** Classes-since-promotion and days-in-rank computed from
+  the check-in ledger and promotion history — never from a stored status column — plus
+  the per-student belt bar and progress hairline. `src/lib/progression.ts`.
+- [x] **Grading events.** Date + programs in, a candidate list out: eligible, and
+  near-miss with the exact deltas. Invite by household email, confirm at the desk,
+  event-day promote / hold back / no-show, batch promotion behind a review sheet, every
+  promotion stamped with its date, event and grader. `src/lib/gradings.ts`, `/gradings`.
+- [x] **Promotion history.** The student's rank timeline, and certificate data as CSV
+  or a printable PDF. `/roster/[studentId]`, `/gradings/[id]/certificates`.
+- [x] **Family memberships + billing.** Households with several students, per-student
+  and family-flat plans, Stripe subscriptions on the school's own connected account,
+  and past-due state visible at the desk with a dunning ladder that stops.
+  `src/lib/billing.ts`, `/billing`.
+- [x] **Retention flags.** Drop-off measured against each student's own cadence, a call
+  sheet sorted worst-first, one-tap outcomes with a note, and flags that close
+  themselves when the student comes back. `src/lib/retention.ts`, `/retention`.
+- [x] **Email announcements** school-wide or per program, with a per-household delivery
+  outcome and a retry for the ones that failed. `src/lib/announcements.ts`, `/announce`.
+- [x] **Billing for MatPass itself** — three tiers, a 14-day trial, and student limits
+  that nudge rather than block. `/settings/plan`.
 
 Post-MVP (explicitly cut from v1): tournament/event ticketing, curriculum video content, belt-testing fee collection per event, SMS, native mobile apps (the kiosk is a web app on a tablet), point-of-sale/pro-shop, multi-brand franchise reporting.
+
+## Running it
+
+Postgres 14+, Redis (optional), Node 20+.
+
+```bash
+npm install
+cp .env.example .env            # then fill in the values it describes
+npm run db:generate             # only after changing src/db/schema.ts
+npm run db:migrate              # applies drizzle/*.sql
+npm run dev                     # http://localhost:3057
+```
+
+Only three variables are needed to boot: `DATABASE_URL`, `AUTH_SECRET` and
+`KIOSK_TOKEN_SECRET`. Everything else degrades honestly and says so on screen:
+
+| Missing | What happens |
+|---|---|
+| `RESEND_API_KEY` (or `DRY_RUN=1`) | Announcements, grading invitations and dunning notices are recorded and logged instead of sent. Delivery rows, bounce handling and retries are real. |
+| `STRIPE_SECRET_KEY` | Membership plans, subscriptions, past-due state and the dunning ladder all work; the Stripe-hosted pages are replaced by an in-app page that says in plain words that it is a development simulation, and it never asks for a card number. |
+| `REDIS_URL` | The nightly sweep runs unlocked, which is correct for a single process. |
+| `CRON_SECRET` | `/api/cron/tick` refuses to run at all. |
+
+Then:
+
+```bash
+npm run typecheck   # tsc --noEmit
+npm run craft       # the design and invariant rules a type-checker cannot see
+npm test            # domain logic; the database-backed suite skips without DATABASE_URL
+npm run build
+```
+
+To run the database-backed invariant tests (append-only promotions, kiosk sync
+idempotency, attendance-never-blocked-by-billing, the retention scan):
+
+```bash
+node --env-file=.env node_modules/.bin/tsx --test src/lib/db.test.ts
+```
+
+### The scheduled work
+
+Eligibility refresh, the retention scan, dunning notices and resuming a stalled
+announcement fan-out all live in `src/lib/sweeps.ts`, with two triggers and one
+implementation:
+
+- **Production:** `GET /api/cron/tick`, protected by `CRON_SECRET`, with a bounded
+  time budget. On Vercel add to `vercel.json`:
+  `{ "crons": [{ "path": "/api/cron/tick", "schedule": "0 8 * * *" }] }`.
+- **Development:** `npm run worker` runs the same functions in a loop, so a nightly
+  behaviour can be watched in a minute instead of at 3am. It takes a Redis lock so a
+  developer's worker and a cron invocation cannot both email the same parent.
+
+ARCHITECTURE.md specified long-lived BullMQ workers; the deployment target has no
+always-on process, so the queue became a cron-triggered route. Redis is still real and
+still load-bearing — it is what makes the lock possible.
+
+### Setting up the door tablet
+
+Settings → Kiosk devices → mint a link. Open it once on the tablet and add it to the
+home screen. The link is shown only at the moment it is created; if a tablet goes
+missing, revoke it — the next request from it fails even though its signature is still
+valid.
 
 ## Differentiation
 

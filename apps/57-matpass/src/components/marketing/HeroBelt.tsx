@@ -15,9 +15,10 @@
  */
 
 import { safeBeltHex, stripeColorFor } from "@/lib/belt";
+import { BELT_PRESETS } from "@/lib/curricula";
 
 export function HeroBelt() {
-  const band = safeBeltHex("#2B4C7E"); // blue belt, from the curriculum
+  const band = safeBeltHex(BELT_PRESETS.blue); // a blue belt, from the curriculum
   const stripe = stripeColorFor(band);
 
   return (

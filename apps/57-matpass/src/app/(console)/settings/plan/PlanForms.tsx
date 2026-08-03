@@ -2,8 +2,7 @@
 
 import { ActionForm } from "@/components/ActionForm";
 import { SectionHead } from "@/components/ui";
-import { PLANS, PLAN_ORDER } from "@/lib/plans";
-import type { PlanTier } from "@/db/schema";
+import { PLANS, PLAN_ORDER, type PlanTier } from "@/lib/plans";
 import { choosePlanAction, portalAction } from "../actions";
 
 export function PlanForms({

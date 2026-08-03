@@ -83,7 +83,7 @@ export function ComposeForm({
               <span className="t-body">Specific programs</span>
             </label>
             {scope === "programs" ? (
-              <div style={{ paddingLeft: 28, marginTop: 4 }}>
+              <div style={{ paddingLeft: 32, marginTop: 4 }}>
                 {programs.map((program) => (
                   <label
                     key={program.id}

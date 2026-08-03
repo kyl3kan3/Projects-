@@ -261,7 +261,7 @@ export function CandidateList({
                           seatIndex={index}
                         />
                       </div>
-                      <div className="chip-row" style={{ marginTop: 12 }}>
+                      <div className="chip-wrap" style={{ marginTop: 12 }}>
                         {(
                           [
                             ["promote", "Promote"],

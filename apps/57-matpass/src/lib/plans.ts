@@ -11,6 +11,13 @@
 
 import type { PlanTier } from "@/db/schema";
 
+/**
+ * Re-exported so client components can type a tier without importing the schema
+ * module — even as a type-only import, a client file naming `@/db/schema` is a
+ * step away from naming `@/db`.
+ */
+export type { PlanTier };
+
 export interface PlanDefinition {
   tier: PlanTier;
   name: string;

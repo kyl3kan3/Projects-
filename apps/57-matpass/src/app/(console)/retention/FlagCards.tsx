@@ -54,13 +54,19 @@ export function FlagCards({ flags }: { flags: FlagCardData[] }) {
             {flag.familyEmail ? ` · ${flag.familyEmail}` : ""}
             {flag.familyPhone ? ` · ${flag.familyPhone}` : ""}
           </p>
+          {!flag.familyEmail && !flag.familyPhone ? (
+            <p className="t-secondary amber" style={{ marginTop: 4 }}>
+              No contact on file for this household — there is no way to make the call.{" "}
+              <Link href="/billing">Add one</Link>.
+            </p>
+          ) : null}
           {flag.outcomeNote ? (
             <p className="t-secondary" style={{ marginTop: 8 }}>
               “{flag.outcomeNote}”{flag.handledByName ? ` — ${flag.handledByName}` : ""}
             </p>
           ) : null}
 
-          <div className="chip-row" style={{ marginTop: 12 }}>
+          <div className="chip-wrap" style={{ marginTop: 12 }}>
             {(
               [
                 ["contacted", "Contacted"],

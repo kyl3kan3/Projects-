@@ -8,6 +8,7 @@ import type { FormState } from "@/components/ActionForm";
 import { audit } from "@/lib/audit";
 import { requireCan } from "@/lib/auth";
 import { parseHex } from "@/lib/belt";
+import { BELT_PRESETS } from "@/lib/curricula";
 
 function fail(err: unknown): FormState {
   return { error: err instanceof Error ? err.message : "That did not work" };
@@ -55,7 +56,7 @@ export async function addRankAction(_prev: FormState, formData: FormData): Promi
   const { school, user } = await requireCan("edit_curriculum");
   const programId = String(formData.get("programId") ?? "");
   const name = String(formData.get("name") ?? "").trim();
-  const beltColorHex = String(formData.get("beltColorHex") ?? "#F2EFE6").trim();
+  const beltColorHex = String(formData.get("beltColorHex") ?? BELT_PRESETS.white).trim();
   const stripes = Number(formData.get("stripes") ?? 0);
   const minClasses = Number(formData.get("minClasses") ?? 0);
   const minDaysInRank = Number(formData.get("minDaysInRank") ?? 0);
@@ -64,7 +65,7 @@ export async function addRankAction(_prev: FormState, formData: FormData): Promi
   try {
     await assertProgram(school.id, programId);
     if (name.length < 2) throw new Error("Give the rank a name");
-    if (!parseHex(beltColorHex)) throw new Error("The belt colour needs to be a hex value like #2B4C7E");
+    if (!parseHex(beltColorHex)) throw new Error(`The belt colour needs to be a hex value like ${BELT_PRESETS.blue}`);
     if (!Number.isInteger(stripes) || stripes < 0 || stripes > 10) {
       throw new Error("Stripes must be a whole number from 0 to 10");
     }
@@ -126,7 +127,7 @@ export async function updateRankAction(_prev: FormState, formData: FormData): Pr
       throw new Error("Stripes must be a whole number from 0 to 10");
     }
     if (beltColorHex && !parseHex(beltColorHex)) {
-      throw new Error("The belt colour needs to be a hex value like #2B4C7E");
+      throw new Error(`The belt colour needs to be a hex value like ${BELT_PRESETS.blue}`);
     }
 
     // Reducing the stripe count below what somebody has already earned would

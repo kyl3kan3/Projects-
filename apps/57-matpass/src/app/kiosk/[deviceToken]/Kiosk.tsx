@@ -457,7 +457,7 @@ export function Kiosk({ token, deviceName }: { token: string; deviceName: string
               autoComplete="off"
               enterKeyHint="search"
               aria-label="Your name or PIN"
-              style={{ paddingLeft: 52 }}
+              style={{ paddingLeft: 56 }}
             />
           </div>
 

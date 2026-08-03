@@ -1,32 +1,66 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   DispatchDeck — design tokens. Generated from DESIGN.md; edit DESIGN.md first.
-   Obeys DESIGN_LANGUAGE.md: one rationed accent, hairlines not boxes,
-   no gradients or glow on controls, 4px spacing scale, fonts must load.
+   DispatchDeck — "The Cab at Dawn". The redline implementation of DESIGN.md.
+
+   Dark-only by choice, stated in DESIGN.md: the cab at dawn is the product's
+   hour, and the office view shares the same instrument world. One product, one
+   cockpit.
+
+   Obeys DESIGN_LANGUAGE.md v2.1 — no emoji, no gradient or glow on controls,
+   hairlines not borders, space before boxes, the 4px scale, exactly three radii,
+   one accent (hazard) rationed to <=10% of a screen.
+
+   ---------------------------------------------------------------------------
+   AA exception, measured. DESIGN_LANGUAGE.md's AA floor beats a specified hex.
+
+   Contrast measured against the two grounds, asphalt #16181B (L 0.0077) and
+   panel #1F2226 (L 0.0158), by the WCAG 2.1 relative-luminance formula:
+
+     linen   #F2F0EA   14.3 : 1 on panel   17.6 : 1 on asphalt   AAA
+     dim     #9EA0A0    6.4 : 1 on panel    7.7 : 1 on asphalt   AAA body
+     hazard  #CE8A2A    5.5 : 1 on panel    6.3 : 1 on asphalt   AA
+     moss    #5F8A5E    4.0 : 1 on panel    4.6 : 1 on asphalt   fails on panel
+     flare   #C25B4A    3.7 : 1 on panel    4.2 : 1 on asphalt   fails on both
+     faint   #5E6165    2.5 : 1 on panel    2.9 : 1 on asphalt   fails on both
+
+   Three tokens are therefore raised for TEXT use, keeping the same hue:
+
+     --color-faint      #5E6165 -> #888B8F   4.7 : 1 on panel, 5.3 : 1 on asphalt
+     --color-moss-text  #5F8A5E -> #74A372   5.5 : 1 on panel, 6.3 : 1 on asphalt
+     --color-flare-text #C25B4A -> #D97060   4.9 : 1 on panel, 5.6 : 1 on asphalt
+
+   DESIGN.md's original values survive as --color-*-mark and
+   --color-faint-disabled, used only where AA does not apply: 1-2px status marks
+   and rules (which need 3:1 as UI components and clear it), and disabled control
+   fills. No text in this app is painted in a value below 4.5:1.
    ========================================================================== */
 
 @theme {
-  /* Palette — exact values from DESIGN.md */
+  /* Palette — the exact values from DESIGN.md's table. */
   --color-asphalt: #16181b; /* App ground (the pre-dawn road) */
   --color-panel: #1f2226; /* Cards, sheets */
-  --color-line: #2c3035; /* Hairlines only */
-  --color-linen: #f2f0ea; /* Primary text; primary button fill */
+  --color-rule: #2c3035; /* Hairlines only */
+  --color-linen: #f2f0ea; /* Primary text; the only high-emphasis fill */
   --color-dim: #9ea0a0; /* Secondary text */
-  --color-faint: #5e6165; /* Tertiary, disabled */
-  --color-hazard: #ce8a2a; /* THE accent: active load thread, detention clock, focus (≤10%) */
-  --color-moss: #5f8a5e; /* Semantic: paid / on-time only */
-  --color-flare: #c25b4a; /* Semantic: overdue / failed only */
+  --color-hazard: #ce8a2a; /* THE accent: thread, detention clock, focus */
+  --color-moss-mark: #5f8a5e; /* paid / on-time, as a mark */
+  --color-flare-mark: #c25b4a; /* overdue / failed, as a mark */
 
-  /* Semantic aliases, so components never hardcode a hue name */
-  --color-bg: #16181b;
-  --color-surface: #1f2226;
-  --color-line: #2c3035;
-  --color-fg: #f2f0ea;
-  --color-fg-2: #9ea0a0;
-  --color-fg-3: #5e6165;
-  --color-accent: #ce8a2a;
-  --color-action: #f2f0ea;
+  /* Raised for AA at text sizes — see the measured table above. */
+  --color-faint: #888b8f;
+  --color-moss-text: #74a372;
+  --color-flare-text: #d97060;
+
+  /* Not text: disabled fills and pressed states. */
+  --color-faint-disabled: #5e6165;
+  --color-linen-press: #ded9d0;
+  --color-rule-press: #3a3f45;
+
+  /* Radii: exactly three (DESIGN.md — cards/inputs 8, chips 6, dots 999). */
+  --radius-card: 8px;
+  --radius-chip: 6px;
+  --radius-dot: 999px;
 
   --font-display: "Archivo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-sans: "Archivo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -38,60 +72,488 @@
 
 :root {
   color-scheme: dark;
+  /* 4px scale, DESIGN.md: 4 8 12 16 24 32 48. Screen gutter 20px per
+     DESIGN_LANGUAGE rule 5, which the mobile spec fixes at 20. */
+  --gutter: 20px;
   --tabbar-h: 56px;
+
+  --ground: var(--color-asphalt);
+  --surface: var(--color-panel);
+  --line: var(--color-rule);
+  --fg: var(--color-linen);
+  --fg-2: var(--color-dim);
+  --fg-3: var(--color-faint);
+  --accent: var(--color-hazard);
+  --good: var(--color-moss-text);
+  --good-mark: var(--color-moss-mark);
+  --bad: var(--color-flare-text);
+  --bad-mark: var(--color-flare-mark);
+  --action: var(--color-linen);
+  --on-action: var(--color-asphalt);
 }
 
-html,
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  border-color: var(--line);
+}
+
+html {
+  background: var(--ground);
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
-  background: var(--color-bg);
-  color: var(--color-fg);
+  margin: 0;
+  background: var(--ground);
+  color: var(--fg);
   font-family: var(--font-sans);
   font-size: 16px;
-  line-height: 1.55;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
+  min-height: 100dvh;
 }
 
-* { border-color: var(--color-line); }
+/* ------------------------------------------------------- type specimen --- */
+/* Exactly the roles in DESIGN.md's table, at the mobile sizes it names. */
 
-/* ---- Type roles (see the specimen table in DESIGN.md) ---- */
-.t-hero { font-family: var(--font-display); font-size: clamp(2rem, 8.5vw, 3.375rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 600; }
-.t-stat { font-family: var(--font-mono); font-size: clamp(2.125rem, 9.5vw, 3.25rem); line-height: 1.05; letter-spacing: -0.01em; font-weight: 500; font-variant-numeric: tabular-nums; }
-.t-h2 { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.01em; font-weight: 600; }
-.t-title { font-size: 1rem; line-height: 1.3; font-weight: 600; }
-.t-body { font-size: 1rem; line-height: 1.55; }
-.t-secondary { font-size: 0.8125rem; line-height: 1.45; color: var(--color-fg-2); }
-.t-label { font-size: 0.6875rem; line-height: 1.2; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-fg-3); }
-.t-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-
-/* ---- Hairline construction: space and rules, never nested boxes ---- */
-.hairline-t { border-top: 1px solid var(--color-line); }
-.hairline-b { border-bottom: 1px solid var(--color-line); }
-
-.card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-line);
-  border-radius: 12px;
+.t-display {
+  font-family: var(--font-display);
+  font-size: 2rem; /* 32/36 */
+  line-height: 2.25rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
-/* ---- Controls ---- */
+.t-hero {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 8.4vw, 3.25rem);
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.t-h2 {
+  font-family: var(--font-display);
+  font-size: 1.375rem; /* 22/28 */
+  line-height: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.t-title {
+  font-family: var(--font-display);
+  font-size: 1rem; /* 16/22 */
+  line-height: 1.375rem;
+  font-weight: 600;
+}
+
+.t-body {
+  font-size: 1rem; /* 16/24 */
+  line-height: 1.5rem;
+}
+
+.t-secondary {
+  font-size: 0.8125rem; /* 13/18 */
+  line-height: 1.125rem;
+  color: var(--fg-2);
+}
+
+.t-placard {
+  font-family: var(--font-display);
+  font-size: 0.6875rem; /* 11/14 */
+  line-height: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+
+.t-mono {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.8125rem;
+  line-height: 1.125rem;
+  letter-spacing: -0.01em;
+}
+
+.t-mono-lg {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9375rem; /* 15 */
+  line-height: 1.25rem;
+  letter-spacing: -0.01em;
+}
+
+.t-figure {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  font-size: 2rem;
+  line-height: 2.25rem;
+  letter-spacing: -0.02em;
+}
+
+/* ----------------------------------------- hairlines, space before boxes --- */
+
+.rule-t {
+  border-top: 1px solid var(--line);
+}
+.rule-b {
+  border-bottom: 1px solid var(--line);
+}
+
+/* A card is a framed object: sheets, grouped stat panels, media. Never nested. */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: var(--radius-chip);
+  border: 1px solid var(--line);
+  padding: 3px 8px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-dot);
+  flex: none;
+}
+
+/* ------------------------------------------------------------- controls --- */
+
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 48px; padding: 0 20px; border-radius: 10px;
-  font-weight: 600; font-size: 0.9375rem; line-height: 1;
-  transition: transform 120ms var(--ease-out-quart), background-color 120ms linear;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 16px;
+  border-radius: var(--radius-card);
+  border: 1px solid transparent;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  line-height: 1;
+  cursor: pointer;
+  background: none;
+  color: inherit;
+  transition:
+    transform 120ms var(--ease-out-quart),
+    background-color 120ms linear,
+    border-color 120ms linear;
 }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: var(--color-action); color: var(--color-bg); }
-.btn-secondary { background: transparent; color: var(--color-fg); border: 1px solid var(--color-line); }
 
-.focus-ring:focus-visible,
-a:focus-visible,
-button:focus-visible {
-  outline: 2px solid var(--color-accent);
+.btn:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+/* Solid off-white fill with asphalt text — no gradient, no glow, ever. */
+.btn-primary {
+  background: var(--action);
+  color: var(--on-action);
+}
+.btn-primary:active:not(:disabled) {
+  background: var(--color-linen-press);
+}
+.btn-primary:disabled {
+  background: var(--color-faint-disabled);
+  color: var(--ground);
+}
+
+.btn-secondary {
+  border-color: var(--line);
+  color: var(--fg);
+}
+.btn-secondary:active:not(:disabled) {
+  border-color: var(--color-rule-press);
+}
+.btn-secondary:disabled {
+  color: var(--fg-3);
+}
+
+.btn-quiet {
+  min-height: 44px;
+  padding: 0 12px;
+  color: var(--fg-2);
+}
+.btn-quiet:hover {
+  color: var(--fg);
+}
+
+/* The cab's advancing button: 56px, thumb zone, one action. */
+.btn-cab {
+  width: 100%;
+  min-height: 56px;
+  font-size: 1.0625rem;
+}
+
+.btn-danger {
+  border-color: var(--line);
+  color: var(--bad);
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  color: var(--fg);
+  background: var(--ground);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 12px;
+  width: 100%;
+  min-height: 48px;
+  /* 16px on mobile prevents iOS zoom-on-focus. */
+  font-size: 1rem;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--fg-3);
+}
+
+select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--fg-2) 50%),
+    linear-gradient(135deg, var(--fg-2) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) calc(50% + 2px),
+    calc(100% - 13px) calc(50% + 2px);
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 36px;
+}
+
+/* Figures are always mono and tabular, per the specimen. */
+input[inputmode="decimal"],
+input[inputmode="numeric"],
+input[type="date"],
+input[type="datetime-local"] {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
+  border-radius: var(--radius-chip);
 }
 
+a {
+  color: inherit;
+  text-decoration-color: var(--line);
+  text-underline-offset: 3px;
+}
+
+/* ------------------------------------------- the signature: hazard thread --- */
+/*
+   One continuous 2px hazard line down the left of the stop list, advancing past
+   each stop as timestamps stamp in. The thread IS the lifecycle — the same
+   element renders in the cab, the load detail and the landing device.
+ */
+
+.thread {
+  position: relative;
+  padding-left: 24px;
+}
+
+.thread::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  background: var(--line);
+  border-radius: var(--radius-dot);
+}
+
+.thread::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 6px;
+  width: 2px;
+  height: calc((100% - 12px) * var(--thread-progress, 0));
+  background: var(--accent);
+  border-radius: var(--radius-dot);
+  transition: height 160ms var(--ease-out-quart);
+}
+
+.thread-node {
+  position: relative;
+}
+
+/* The node sits on the thread, so it needs to paint over it. */
+.thread-node::before {
+  content: "";
+  position: absolute;
+  left: -24px;
+  top: 5px;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-dot);
+  background: var(--ground);
+  border: 2px solid var(--line);
+  box-sizing: border-box;
+}
+
+.thread-node[data-state="done"]::before {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.thread-node[data-state="here"]::before {
+  background: var(--ground);
+  border-color: var(--accent);
+}
+
+/* ------------------------------------------------------------- the stamp --- */
+/*
+   Every status advance stamps its timestamp in with a 120ms scale-settle,
+   1.04 -> 1.0. Nothing else in the product moves on its own.
+ */
+
+@keyframes stamp-in {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.stamp {
+  animation: stamp-in 120ms var(--ease-out-quart) both;
+}
+
+@keyframes page-stack {
+  from {
+    opacity: 0;
+    transform: translateY(6px) rotate(-0.4deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+  }
+}
+
+/* The packet build: three pages stacking, 80ms staggers. */
+.page-stack > * {
+  animation: page-stack 160ms var(--ease-out-quart) both;
+}
+.page-stack > *:nth-child(2) {
+  animation-delay: 80ms;
+}
+.page-stack > *:nth-child(3) {
+  animation-delay: 160ms;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reveal {
+  animation: fade-up 160ms var(--ease-out-quart) both;
+}
+
+/* Loading is skeleton rows in panel, with no shimmer (DESIGN.md). */
+.skeleton {
+  background: var(--surface);
+  border-radius: var(--radius-chip);
+  height: 14px;
+}
+
+/* --------------------------------------------------------------- layout --- */
+
+.screen {
+  padding: 24px var(--gutter) calc(var(--tabbar-h) + 32px + env(safe-area-inset-bottom));
+  margin: 0 auto;
+  max-width: 720px;
+}
+
+.screen-wide {
+  padding: 24px var(--gutter) calc(var(--tabbar-h) + 32px + env(safe-area-inset-bottom));
+  margin: 0 auto;
+  max-width: 1120px;
+}
+
+/* Wide content scrolls inside itself; the page body never scrolls sideways. */
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  background: color-mix(in srgb, var(--ground) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: 32px;
+  }
+  .screen,
+  .screen-wide {
+    padding-bottom: 48px;
+  }
+  .tabbar {
+    position: static;
+    background: none;
+    backdrop-filter: none;
+    border-top: 0;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 0;
+  }
+}
+
+/* ----------------------------------------------------- reduced motion --- */
+/*
+   Feature-complete, never punitive: the thread and every stamp render their
+   final state instantly, and the packet pages simply appear stacked.
+ */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .thread::after {
+    transition: none;
+  }
 }

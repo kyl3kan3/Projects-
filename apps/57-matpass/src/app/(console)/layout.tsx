@@ -19,7 +19,11 @@ export default async function ConsoleLayout({ children }: { children: React.Reac
           className="screen-plain flex items-center justify-between"
           style={{ paddingTop: 12, paddingBottom: 12, gap: 16 }}
         >
-          <Link href="/roster" className="flex items-center gap-2 fg" style={{ minWidth: 0 }}>
+          <Link
+            href="/roster"
+            className="flex items-center gap-2 fg head-target-text"
+            style={{ minWidth: 0 }}
+          >
             <span className="crimson" style={{ flex: "none" }}>
               <IconBeltBar size={22} />
             </span>
@@ -29,11 +33,16 @@ export default async function ConsoleLayout({ children }: { children: React.Reac
           </Link>
           <div className="flex items-center gap-3" style={{ flex: "none" }}>
             {trial.trialing && school.billingStatus === "trialing" ? (
-              <Link href="/settings/plan" className="t-data crimson">
+              <Link href="/settings/plan" className="t-data crimson head-target-text">
                 {trial.daysLeft}d trial
               </Link>
             ) : null}
-            <Link href="/settings" className="fg-2" aria-label={`Settings — signed in as ${user.name}`}>
+            <Link
+              href="/settings"
+              className="fg-2 head-target"
+              style={{ justifyContent: "flex-end" }}
+              aria-label={`Settings — signed in as ${user.name}`}
+            >
               <IconSettings size={22} />
             </Link>
           </div>
