@@ -14,7 +14,7 @@ run, a referral queue that deadlocked under launch-day load, magic-link login
 broken outright, certificate-expiry alerts that fired once and then went quiet
 forever. All were found by running the thing.
 
-## Verified working (28 of 74)
+## Verified working (29 of 74)
 
 Each was re-checked here after its build agent reported: line count, absence of
 unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
@@ -41,6 +41,7 @@ unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
 | 35 | ledgerlens | 10,794 | 96 | 94 |
 | 36 | bidboard | 13,785 | 74 | 95 |
 | 38 | duesdesk | 14,295 | 94 | 102 |
+| 42 | schemasentry | 13,164 | 88 | 130 |
 | 43 | paidwell | 11,358 | 82 | 147 |
 | 44 | tenantfile | 12,027 | 100 | 101 |
 | 45 | rosterrally | 16,282 | 96 | 132 |

@@ -2,7 +2,7 @@
   "name": "schemasentry",
   "version": "0.1.0",
   "private": true,
-  "description": "API breaking-change watchdog — diff OpenAPI specs between deploys, gate CI, alert Slack, generate contract tests, publish consumer changelogs",
+  "description": "API breaking-change watchdog \u2014 diff OpenAPI specs between deploys, gate CI, alert Slack, generate contract tests, publish consumer changelogs",
   "bin": {
     "schemasentry": "./dist/cli/index.js"
   },
@@ -12,7 +12,7 @@
     "start": "next start",
     "api": "tsx src/api/index.ts",
     "cli": "tsx src/cli/index.ts",
-    "lint": "eslint .",
+    "lint": "node tools/craft-check.mjs",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test src/**/*.test.ts",
     "db:generate": "drizzle-kit generate",
@@ -42,8 +42,6 @@
     "@types/react-dom": "^19.1.0",
     "dotenv": "^16.4.0",
     "drizzle-kit": "^0.30.0",
-    "eslint": "^9.24.0",
-    "eslint-config-next": "^15.3.0",
     "playwright": "^1.52.0",
     "tailwindcss": "^4.1.0",
     "tsx": "^4.19.0",
