@@ -22,11 +22,15 @@ build/
 coverage/
 .nyc_output/
 
-# Drizzle
-drizzle/meta/
+# Drizzle — migrations ARE tracked, drizzle/meta/ included. `db:migrate` reads
+# drizzle/meta/_journal.json to know which migrations have already run, so a
+# fresh clone with that directory ignored cannot migrate at all.
 
 # TypeScript
 *.tsbuildinfo
+
+# Local server pid files
+*.pid
 
 # Logs
 logs/

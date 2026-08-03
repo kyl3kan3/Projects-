@@ -22,11 +22,18 @@ build/
 coverage/
 .nyc_output/
 
-# Drizzle
-drizzle/meta/
+# Drizzle: the migrations AND drizzle/meta are tracked on purpose. `db:migrate`
+# reads drizzle/meta/_journal.json, so a fresh clone without it cannot migrate.
+drizzle/meta/*.bak
 
 # TypeScript
 *.tsbuildinfo
+
+# Local media store (the filesystem storage driver, used when R2 is unset)
+.uploads/
+
+# Local server pid from `next start & echo $! > .server.pid`
+.server.pid
 
 # Logs
 logs/

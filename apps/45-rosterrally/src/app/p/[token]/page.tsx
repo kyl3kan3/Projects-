@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ClaimForm, PayForm, ReleaseForm } from "./FamilyForms";
+import { FeedAddress } from "./FeedAddress";
 import { claimSlotAction, payBalanceAction, releaseClaimAction } from "./actions";
 import { IconCalendarGrid, IconCheck, IconEye, IconMapPin } from "@/components/icons";
 import { getFamilyPage } from "@/lib/family";
@@ -113,7 +114,13 @@ export default async function FamilyPage({ params }: { params: Promise<{ token: 
             </span>
             <span className="t-secondary block" style={{ color: "var(--fg-3)" }}>
               {child.divisionName}
-              {child.teamName ? ` · ${child.teamName}` : " · team to be assigned"}
+              {child.teamName
+                ? ` · ${child.teamName}`
+                : child.state === "canceled"
+                  ? " · withdrawn"
+                  : child.state === "waitlisted"
+                    ? ""
+                    : " · team to be assigned"}
               {child.jerseyNumber ? ` · #${child.jerseyNumber}` : ""}
               {child.waitlistPosition ? ` · waitlist #${child.waitlistPosition}` : ""}
             </span>
@@ -190,17 +197,18 @@ export default async function FamilyPage({ params }: { params: Promise<{ token: 
         <>
           <h2 className="t-label mt-8">Add it to your calendar</h2>
           {page.teams.map((team) => (
-            <div key={team.teamId} className="row">
-              <IconCalendarGrid size={18} style={{ color: "var(--accent)" }} />
-              <span className="min-w-0 flex-1">
-                <span className="t-title block">{team.teamName}</span>
-                <span className="t-secondary block break-all" style={{ color: "var(--fg-3)" }}>
-                  {env.appUrl}/api/ical/{team.feedToken}
-                </span>
-              </span>
-              <a className="btn-quiet" href={`/api/ical/${team.feedToken}`}>
-                Subscribe
-              </a>
+            <div key={team.teamId} className="py-3 hairline-b">
+              <div className="flex items-center gap-3">
+                <IconCalendarGrid size={18} style={{ color: "var(--accent)" }} />
+                <span className="t-title flex-1">{team.teamName}</span>
+                <a className="btn-quiet" href={`/api/ical/${team.feedToken}`}>
+                  Subscribe
+                </a>
+              </div>
+              <FeedAddress
+                url={`${env.appUrl}/api/ical/${team.feedToken}`}
+                label={`Calendar address for ${team.teamName}`}
+              />
             </div>
           ))}
           <p className="t-secondary mt-2">

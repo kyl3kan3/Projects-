@@ -7,10 +7,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "worker": "tsx src/worker/index.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test src/**/*.test.ts",
     "lint": "next lint",
+    "worker": "tsx src/worker/index.ts",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push"
   },
   "dependencies": {
     "next": "^15.1.0",
@@ -18,18 +21,14 @@
     "react-dom": "^19.0.0",
     "drizzle-orm": "^0.38.0",
     "postgres": "^3.4.0",
+    "jose": "^5.9.6",
     "@aws-sdk/client-cost-explorer": "^3.700.0",
     "@aws-sdk/client-sts": "^3.700.0",
     "@aws-sdk/client-s3": "^3.700.0",
     "@aws-sdk/client-ec2": "^3.700.0",
     "@aws-sdk/client-cloudwatch": "^3.700.0",
     "@slack/web-api": "^7.8.0",
-    "@slack/bolt": "^4.1.0",
-    "octokit": "^4.0.0",
-    "bullmq": "^5.30.0",
-    "ioredis": "^5.4.0",
     "stripe": "^17.5.0",
-    "recharts": "^2.15.0",
     "resend": "^4.0.0",
     "zod": "^3.24.0",
     "date-fns": "^4.1.0"
@@ -40,10 +39,15 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "tsx": "^4.19.0",
+    "dotenv": "^16.4.0",
+    "playwright": "^1.52.0",
     "drizzle-kit": "^0.30.0",
     "@tailwindcss/postcss": "^4.0.0",
     "tailwindcss": "^4.0.0",
     "eslint": "^9.0.0",
     "eslint-config-next": "^15.1.0"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

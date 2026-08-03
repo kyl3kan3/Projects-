@@ -2,6 +2,32 @@
 
 **QR menus that don't suck, one-tap 86ing, and menu-engineering analytics that show a restaurant which dishes actually pay the rent — $29-79/mo per location.**
 
+## Setup
+
+Needs Node 20+ and a Postgres 14+ database. Nothing else is required to boot: Stripe, Cloudflare R2 and Replicate each switch a feature from a local fallback to the real thing, and the settings screen tells you which mode you are in.
+
+```bash
+npm install
+cp .env.example .env.local     # fill in DATABASE_URL, APP_URL, AUTH_SECRET
+npm run db:migrate             # applies drizzle/ to the database
+npm run seed                   # optional: one demo restaurant with a real menu
+npm run dev                    # http://localhost:3000
+```
+
+`npm run seed` prints the credentials it created, the guest menu URL, and the staff PIN for the 86 board. It also points at `scripts/sample-toast-export.csv`, which imports cleanly on the Matrix screen.
+
+**Checks:**
+
+```bash
+npm run typecheck
+npm test          # Node's test runner via tsx; no test dependency
+npm run build
+```
+
+**Scheduled work.** `GET /api/cron/tick` runs the nightly auto-restore of 86'd dishes. Point a scheduler at it with `Authorization: Bearer $CRON_SECRET`; hourly is ideal so every location's own 4am rollover is honoured to within the hour, but the job is idempotent, so once a day also works. With `CRON_SECRET` unset the route refuses to run rather than defaulting to open. There is no separate worker process to operate.
+
+**Where things live.** `src/lib/` holds the domain logic and is where the tests point: `engineering.ts` (the quadrant maths), `pos-import.ts` (Toast/Square parsing and item matching), `dayparts.ts` and `time.ts` (service days and daypart windows), `eighty-six.ts` (the 86 path), `menu-data.ts` (the cached guest-menu read path), `photo-pipeline.ts` (the enhancement providers), `qr.ts` and `pdf.ts` (QR codes and printables).
+
 ## The Problem
 
 The menu is the highest-leverage document in a restaurant and the worst-managed one. It is the only page every single guest reads before spending money, and in most independent restaurants it is a laminated PDF that lags reality by weeks:
