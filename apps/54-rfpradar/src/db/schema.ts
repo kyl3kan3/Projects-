@@ -13,6 +13,7 @@
 
 import { sql } from "drizzle-orm";
 import {
+  bigint,
   boolean,
   index,
   integer,
@@ -199,7 +200,12 @@ export const pursuits = pgTable("pursuits", {
     .notNull()
     .default("watching"),
   ownerUserId: uuid("owner_user_id").references(() => users.id),
-  valueCents: integer("value_cents"),
+  /**
+   * Integer cents, never a float — and bigint, not integer: a $100M federal
+   * ceiling is 10,000,000,000 cents, which overflows int4 at $21.4M. Found by
+   * pursuing a real SAM.gov notice with a $25M–$100M band.
+   */
+  valueCents: bigint("value_cents", { mode: "number" }),
   outcomeNote: text("outcome_note"),
   closedAt: timestamp("closed_at", { withTimezone: true }),
   ...timestamps,
@@ -370,6 +376,8 @@ export interface FirmSettings {
   scoreThreshold?: number;
   /** ISO timestamp of the first failed payment, cleared when it succeeds. */
   pastDueSince?: string;
+  /** ISO timestamp a subscription was cancelled, so the read-only reason is honest. */
+  cancelledAt?: string;
   /** Onboarding cards the firm has finished (first-run screen). */
   onboarded?: { profile?: boolean; notify?: boolean; library?: boolean };
 }

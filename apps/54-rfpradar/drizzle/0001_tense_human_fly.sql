@@ -1,0 +1,1 @@
+ALTER TABLE "pursuits" ALTER COLUMN "value_cents" SET DATA TYPE bigint;

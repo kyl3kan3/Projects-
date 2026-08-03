@@ -22,8 +22,9 @@ build/
 coverage/
 .nyc_output/
 
-# Drizzle
-drizzle/meta/
+# Drizzle — drizzle/ and drizzle/meta/ are BOTH committed. `meta/_journal.json` is
+# what `db:migrate` reads to know which migrations have run; without it a fresh
+# clone cannot migrate at all.
 
 # TypeScript
 *.tsbuildinfo

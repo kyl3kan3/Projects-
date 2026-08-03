@@ -184,7 +184,7 @@ const SECTIONS: SectionSpec[] = [
 
 /** Where the coverage table stops and the form's prose begins. */
 const BLOCK_TERMINATOR =
-  /^(DESCRIPTION\s+OF\s+OPERATIONS|CERTIFICATE\s+HOLDER|CANCELLATION|AUTHORIZED\s+REPRESENTATIVE|ACORD\s+25|SHOULD\s+ANY)/i;
+  /^(DESCRIPTION\s+OF\s+OPERATIONS|CERTIFICATE\s+HOLDER|CANCELLATION|AUTHORIZED\s+REPRESENTATIVE|SHOULD\s+ANY)/i;
 
 /** The ADDL INSD / SUBR WVD columns, printed as Y / N / X or left blank. */
 function readCheckboxes(line: string): {
@@ -310,18 +310,23 @@ export function extractFromText(rawText: string): ExtractedCertificate {
     lines: string[];
   }
   const blocks: Block[] = [];
-  let open = true;
+  let tableOpen = true;
   for (const line of lines) {
+    // The terminator is checked FIRST. The description-of-operations box routinely
+    // contains the words "general liability", and treating that as a new policy
+    // block invented a fifth coverage row with every field at zero — which then
+    // dragged a perfectly readable certificate into the review queue.
+    if (blocks.length && BLOCK_TERMINATOR.test(line)) {
+      tableOpen = false;
+      continue;
+    }
+    if (!tableOpen) continue;
     const spec = SECTIONS.find((s) => s.head.test(line));
     if (spec) {
       blocks.push({ spec, lines: [line] });
-      open = true;
       continue;
     }
-    // The coverage table ends here; anything after it is prose and must not have
-    // its dollar amounts read as limits.
-    if (BLOCK_TERMINATOR.test(line)) open = false;
-    if (open && blocks.length) blocks[blocks.length - 1].lines.push(line);
+    if (blocks.length) blocks[blocks.length - 1].lines.push(line);
   }
 
   const out: ExtractedCoverage[] = [];

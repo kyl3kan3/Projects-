@@ -233,15 +233,20 @@ export const FIXTURES: ContractFixture[] = [
     title: "Northgate Retail Group — Master Services Agreement",
     counterparty: "Northgate Retail Group, Inc.",
     contractType: "msa",
+    // Hand-labelled from a read of the document. `payment_terms_over_30` rather than
+    // `_over_60` is deliberate: the clause says exactly sixty days, and the playbook's
+    // HIGH rung is *past* net-60.
     expectedFlags: [
-      "payment_terms_over_60",
+      "payment_terms_over_30",
       "ip_assigns_before_payment",
       "indemnity_not_mutual",
+      "indemnity_uncapped",
       "non_compete_present",
       "auto_renewal_short_notice",
       "liability_cap_missing",
       "late_fees_missing",
       "revisions_unlimited",
+      "termination_one_sided",
     ],
     text: HOSTILE_MSA,
   },

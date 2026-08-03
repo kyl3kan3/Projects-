@@ -1,37 +1,70 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   GreenTally — design tokens. Generated from DESIGN.md; edit DESIGN.md first.
-   Obeys DESIGN_LANGUAGE.md: one rationed accent, hairlines not boxes,
-   no gradients or glow on controls, 4px spacing scale, fonts must load.
+   GreenTally — design tokens, straight from DESIGN.md.
+   A field ledger, not an eco-brand: warm recycled paper, ink type, ruled
+   hairlines, and one moss green that appears only where a number is grounded
+   in evidence. No leaves, no globes, no gradient skies.
+
+   Obeys DESIGN_LANGUAGE.md v2.1: no emoji, no gradient or glow on controls,
+   space before boxes, hairlines not borders, the 4px spacing scale, three
+   radii, one accent under 10% of a screen, fonts that actually load.
+
+   ---- Documented deviation: the AA floor wins over four specified colours ----
+   DESIGN_LANGUAGE.md requires WCAG AA everywhere, and four of DESIGN.md's
+   values do not reach it at the sizes they are actually used. Measured against
+   the paper ground #F6F4ED:
+
+     text-2   #6E7365 → 4.44:1   FAILS AA for 13px secondary text
+     text-3   #A3A796 → 2.24:1   FAILS AA badly; specified for 11px labels
+     moss     #567D46 → 4.32:1   FAILS AA for link and figure text
+     amber    #C99038 → 2.53:1   FAILS AA and the 3:1 non-text floor
+
+   Raised, and measured again:
+
+     --color-text-2      #6A6F62 → 4.70:1  (AA, normal text)
+     --color-text-3      #898D7C → 3.07:1  (non-text marks only, never a word)
+     --color-moss-text   #517641 → 4.75:1  (AA, links and grounded figures)
+     --color-moss        #567D46 → 4.32:1  (rules, threads, strokes: above the
+                                            3:1 non-text floor, and DESIGN's hue)
+     --color-amber-line  #B07C22 → 3.32:1  (glyph strokes, underlines)
+     --color-amber-text  #925F17 → 4.93:1  (AA, "needs review" wording)
+     --color-amber       #C99038 → 2.53:1  (coverage-meter fills only, always
+                                            paired with a mono caption)
+     --color-red         #B4503E → 4.59:1  (AA as specified — unchanged)
    ========================================================================== */
 
 @theme {
-  /* Palette — exact values from DESIGN.md */
-  --color-paper: #f6f4ed; /* The ground. Every screen — a daylight, recycled-paper product */
-  --color-sheet: #fdfcf8; /* Report pages, review panels, sheets only — never list rows */
+  /* Palette — DESIGN.md, with the AA adjustments noted above */
+  --color-paper: #f6f4ed; /* The ground. Every screen */
+  --color-sheet: #fdfcf8; /* Report pages, review panels, sheets — never list rows */
   --color-hairline: #e4e0d2; /* 1px rules & framed-object borders — never darker */
-  --color-ink: #22261f; /* Primary text; primary button fill (paper text) */
-  --color-text-2: #6e7365; /* Secondary text, meta */
-  --color-text-3: #a3a796; /* Faint (placeholders, months without data) */
-  --color-moss: #567d46; /* THE accent. ≤10% of any screen: brand mark, verified figures, provenance threa */
-  --color-amber: #c99038; /* Needs-review / low-confidence states only */
-  --color-red: #b4503e; /* Rejected documents / validation failures only */
+  --color-ink: #22261f; /* Primary text; primary button fill */
+  --color-ink-press: #33382e; /* Primary button press */
+  --color-text-2: #6a6f62; /* Secondary text, meta (raised for AA) */
+  --color-text-3: #898d7c; /* Faint marks only, never text (raised for AA) */
+  --color-moss: #567d46; /* THE accent: rules, threads, strokes */
+  --color-moss-text: #517641; /* The accent as text (raised for AA) */
+  --color-amber: #c99038; /* Coverage-meter partial fill */
+  --color-amber-line: #b07c22; /* Needs-review glyphs and underlines */
+  --color-amber-text: #925f17; /* Needs-review wording */
+  --color-red: #b4503e; /* Rejected documents / validation failures */
+  --color-disabled: #d8d4c4; /* Disabled control fill */
+  --color-cell-empty: #edeae0; /* Coverage cell with no data */
 
   /* Semantic aliases, so components never hardcode a hue name */
   --color-bg: #f6f4ed;
   --color-surface: #fdfcf8;
   --color-line: #e4e0d2;
   --color-fg: #22261f;
-  --color-fg-2: #6e7365;
-  --color-fg-3: #a3a796;
+  --color-fg-2: #6a6f62;
+  --color-fg-3: #898d7c;
   --color-accent: #567d46;
+  --color-accent-text: #517641;
   --color-action: #22261f;
-  --color-warn: #c99038;
-  --color-bad: #b4503e;
 
-  --font-display: "Spectral", ui-serif, Georgia, serif;
-  --font-sans: "Spectral", ui-serif, Georgia, serif;
+  --font-display: "Spectral", ui-serif, Georgia, "Times New Roman", serif;
+  --font-sans: "Public Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
@@ -39,8 +72,17 @@
 }
 
 :root {
+  /* One daylight world, by choice: the report and the app share one paper. */
   color-scheme: light;
   --tabbar-h: 56px;
+  --gutter: 20px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  border-color: var(--color-line);
 }
 
 html,
@@ -52,48 +94,725 @@ body {
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
+  /* The page body never scrolls sideways; wide content scrolls inside itself. */
+  overflow-x: hidden;
 }
 
-* { border-color: var(--color-line); }
+a {
+  color: var(--color-accent-text);
+  text-decoration: none;
+}
 
-/* ---- Type roles (see the specimen table in DESIGN.md) ---- */
-.t-hero { font-family: var(--font-display); font-size: clamp(2rem, 8.5vw, 3.375rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 600; }
-.t-stat { font-family: var(--font-mono); font-size: clamp(2.125rem, 9.5vw, 3.25rem); line-height: 1.05; letter-spacing: -0.01em; font-weight: 500; font-variant-numeric: tabular-nums; }
-.t-h2 { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.01em; font-weight: 600; }
-.t-title { font-size: 1rem; line-height: 1.3; font-weight: 600; }
-.t-body { font-size: 1rem; line-height: 1.55; }
-.t-secondary { font-size: 0.8125rem; line-height: 1.45; color: var(--color-fg-2); }
-.t-label { font-size: 0.6875rem; line-height: 1.2; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-fg-3); }
-.t-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+/* ---- Type roles: the specimen table in DESIGN.md, verbatim ---- */
+.t-display {
+  font-family: var(--font-mono);
+  font-size: clamp(36px, 10vw, 56px);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+/* The unit rides at 40% of the figure, per DESIGN.md. */
+.t-display .unit {
+  font-size: 0.4em;
+  letter-spacing: 0;
+}
+.t-h1 {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 7vw, 40px);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+.t-h2 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  line-height: 1.2;
+  font-weight: 600;
+}
+.t-title {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+.t-body {
+  font-size: 16px;
+  line-height: 1.55;
+}
+.t-secondary {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-fg-2);
+}
+.t-label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-fg-2);
+}
+.t-data {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.t-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Layout ---- */
+.screen {
+  padding-inline: var(--gutter);
+  padding-bottom: calc(var(--tabbar-h) + 104px + env(safe-area-inset-bottom));
+  max-width: 680px;
+  margin-inline: auto;
+}
+.screen-plain {
+  padding-inline: var(--gutter);
+  padding-bottom: 40px;
+  max-width: 560px;
+  margin-inline: auto;
+}
+@media (min-width: 768px) {
+  :root {
+    --gutter: 32px;
+  }
+}
+@media (min-width: 1024px) {
+  .screen {
+    padding-bottom: 96px;
+    max-width: 1120px;
+  }
+}
 
 /* ---- Hairline construction: space and rules, never nested boxes ---- */
-.hairline-t { border-top: 1px solid var(--color-line); }
-.hairline-b { border-bottom: 1px solid var(--color-line); }
+.hairline-t {
+  border-top: 1px solid var(--color-line);
+}
+.hairline-b {
+  border-bottom: 1px solid var(--color-line);
+}
 
-.card {
+/* A panel frames a genuinely framed object: review panels, report pages. */
+.panel {
   background: var(--color-surface);
   border: 1px solid var(--color-line);
   border-radius: 12px;
 }
+.sheet {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 20px;
+}
 
 /* ---- Controls ---- */
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 48px; padding: 0 20px; border-radius: 10px;
-  font-weight: 600; font-size: 0.9375rem; line-height: 1;
-  transition: transform 120ms var(--ease-out-quart), background-color 120ms linear;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 120ms var(--ease-out-quart),
+    background-color 120ms linear,
+    border-color 120ms linear;
 }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: var(--color-action); color: var(--color-bg); }
-.btn-secondary { background: transparent; color: var(--color-fg); border: 1px solid var(--color-line); }
+.btn-full {
+  width: 100%;
+}
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.btn-primary {
+  background: var(--color-action);
+  color: var(--color-bg);
+  border: 1px solid var(--color-action);
+}
+.btn-primary:active:not(:disabled) {
+  background: var(--color-ink-press);
+  border-color: var(--color-ink-press);
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--color-fg);
+  border: 1px solid var(--color-line);
+}
+.btn-secondary:active:not(:disabled) {
+  border-color: #cfcaba;
+}
+.btn:disabled {
+  background: var(--color-disabled);
+  border-color: var(--color-disabled);
+  /* DESIGN.md specifies text-3 on the disabled fill; that measures 1.9:1 on #D8D4C4 and
+     the label is effectively invisible. #55594D is 4.8:1 — a disabled button still has to
+     say what it would do. */
+  color: #55594d;
+  cursor: not-allowed;
+}
+/* Quiet action: text-only moss, no underline, dims on press. */
+.btn-quiet {
+  background: none;
+  border: 0;
+  padding: 0;
+  height: auto;
+  min-height: 44px;
+  color: var(--color-accent-text);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+}
+.btn-quiet:active {
+  opacity: 0.8;
+}
+.btn-quiet-red {
+  color: var(--color-red);
+}
 
-.focus-ring:focus-visible,
-a:focus-visible,
-button:focus-visible {
+.input {
+  width: 100%;
+  height: 48px;
+  padding: 0 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  font-size: 16px;
+}
+.input-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.input::placeholder {
+  color: var(--color-fg-2);
+  opacity: 0.75;
+}
+.input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px rgb(86 125 70 / 0.25);
+}
+/* A field the reader was unsure about: amber underline, per DESIGN.md. */
+.input-low {
+  border-bottom-width: 2px;
+  border-bottom-color: var(--color-amber-line);
+}
+textarea.input {
+  height: auto;
+  min-height: 120px;
+  padding: 12px;
+  line-height: 1.5;
+  resize: vertical;
+}
+select.input {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--color-fg-2) 50%),
+    linear-gradient(135deg, var(--color-fg-2) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 21px,
+    calc(100% - 13px) 21px;
+  background-size:
+    5px 5px,
+    5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 36px;
+}
+label.field > span.t-label {
+  display: block;
+  margin-bottom: 8px;
+}
+
+/* Chips: height 36, radius 8, hairline; active = moss border + moss text. Never filled. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-line);
+  background: transparent;
+  color: var(--color-fg-2);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color 150ms linear,
+    border-color 150ms linear;
+}
+.chip[data-active="true"] {
+  border-color: var(--color-accent);
+  color: var(--color-accent-text);
+}
+.chip-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.chip-row::-webkit-scrollbar {
+  display: none;
+}
+
+*:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
+  border-radius: 4px;
 }
 
+/* ---- Rows: full-bleed, hairline-divided, never boxes ---- */
+.row {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  min-height: 56px;
+  padding: 10px 0;
+  position: relative;
+  border-bottom: 1px solid var(--color-line);
+  color: inherit;
+  text-align: left;
+  width: 100%;
+  background: none;
+}
+.row-plain {
+  min-height: 56px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-line);
+}
+
+/* Status marks. Each is also spelled out in words in the row — nothing is colour-only. */
+.mark-accepted {
+  color: var(--color-moss);
+}
+.mark-review {
+  color: var(--color-amber-line);
+}
+.mark-rejected {
+  color: var(--color-red);
+}
+
+/* ---- Coverage meter: 12 cells, 12px, radius 4, in a hairline track ---- */
+/* DESIGN.md specifies radius 4 for these cells specifically; it is the one radius
+   outside the 8/12/20 set, and only ever appears here. */
+.coverage-track {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 4px;
+  padding: 8px;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+}
+.coverage-cell {
+  height: 12px;
+  border-radius: 4px;
+  background: var(--color-cell-empty);
+  transition: background-color 80ms linear;
+}
+.coverage-cell[data-state="complete"] {
+  background: color-mix(in srgb, var(--color-ink) 85%, transparent);
+}
+.coverage-cell[data-state="partial"] {
+  background: var(--color-amber);
+}
+
+/* ---- Bottom tab bar ---- */
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background: color-mix(in srgb, var(--color-bg) 96%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-line);
+}
+.tabbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 600;
+  /* DESIGN.md says text-3 for inactive; at 10px that fails AA, so the AA floor
+     wins here too and inactive items use text-2. */
+  color: var(--color-fg-2);
+  text-decoration: none;
+  position: relative;
+}
+.tabbar-item[data-active="true"] {
+  color: var(--color-fg);
+}
+.tabbar-item[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  width: 2px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--color-accent);
+}
+
+/* ---- Pinned thumb-zone action ---- */
+.thumb-cta {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  z-index: 20;
+  padding: 12px var(--gutter) 16px;
+  background: linear-gradient(to top, var(--color-bg) 64%, transparent);
+  pointer-events: none;
+}
+.thumb-cta > * {
+  pointer-events: auto;
+  max-width: 640px;
+  margin-inline: auto;
+}
+@media (min-width: 1024px) {
+  .tabbar {
+    display: none;
+  }
+  .thumb-cta {
+    position: static;
+    padding: 24px 0 0;
+    background: none;
+  }
+}
+
+/* ==========================================================================
+   THE SIGNATURE — the provenance thread.
+   Tap a figure: a 1px moss thread draws downward from the digit over 240ms and
+   pins a provenance sheet. The tapped figure keeps a 1.5px moss underline while
+   the thread is open. Dismissing retracts it in 160ms. This is the only drawn
+   animation in the product.
+   ========================================================================== */
+.figure-button {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  position: relative;
+  text-align: inherit;
+}
+.figure-button[data-open="true"] {
+  box-shadow: inset 0 -1.5px 0 0 var(--color-moss);
+}
+.figure-button[data-grounded="true"] {
+  color: var(--color-accent-text);
+}
+
+@keyframes thread-draw {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+.thread {
+  display: block;
+  width: 1px;
+  height: 16px;
+  margin-left: 6px;
+  background: var(--color-moss);
+  transform-origin: top center;
+  animation: thread-draw 240ms var(--ease-out-quart) both;
+}
+
+@keyframes prov-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes prov-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+.prov-sheet {
+  animation: prov-in 240ms var(--ease-out-quart) both;
+}
+.prov-sheet[data-closing="true"] {
+  animation: prov-out 160ms var(--ease-in-out-soft) both;
+}
+
+/* ---- Row entrance: opacity + 4px rise, staggered 24ms, ≤8 at a time ---- */
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.row-in {
+  animation: row-in 240ms var(--ease-out-quart) both;
+}
+.row-in[data-i="1"] { animation-delay: 24ms; }
+.row-in[data-i="2"] { animation-delay: 48ms; }
+.row-in[data-i="3"] { animation-delay: 72ms; }
+.row-in[data-i="4"] { animation-delay: 96ms; }
+.row-in[data-i="5"] { animation-delay: 120ms; }
+.row-in[data-i="6"] { animation-delay: 144ms; }
+.row-in[data-i="7"] { animation-delay: 168ms; }
+
+/* ---- Extraction in progress: a 2px indeterminate hairline pulse ---- */
+@keyframes extract-pulse {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+.extracting-bar {
+  position: relative;
+  display: block;
+  height: 2px;
+  overflow: hidden;
+  background: var(--color-cell-empty);
+  border-radius: 999px;
+}
+.extracting-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: var(--color-fg-2);
+  animation: extract-pulse 1.2s var(--ease-in-out-soft) infinite;
+}
+
+/* ---- Hold-to-confirm: a 600ms fill behind the label, destructive actions only ---- */
+@keyframes hold-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.hold-progress {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--color-red) 16%, transparent);
+  transform-origin: left center;
+  transform: scaleX(0);
+  border-radius: 8px;
+}
+.hold-progress[data-holding="true"] {
+  animation: hold-fill 600ms linear both;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* A wide table scrolls inside itself; the page never scrolls sideways. */
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ==========================================================================
+   THE REPORT PAGE — square-cornered sheet with a hairline frame, on screen and
+   in print. The PDF is this component printed.
+   ========================================================================== */
+.report-page {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 0;
+  padding: 32px 24px;
+}
+.report-page + .report-page {
+  margin-top: 20px;
+}
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.report-table th {
+  text-align: left;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-fg-2);
+  padding: 0 8px 6px 0;
+  border-bottom: 1px solid var(--color-line);
+}
+.report-table td {
+  padding: 8px 8px 8px 0;
+  border-bottom: 1px solid var(--color-line);
+  vertical-align: top;
+}
+.report-table td.num,
+.report-table th.num {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  padding-right: 0;
+}
+.report-table th.num {
+  font-family: var(--font-sans);
+}
+.report-note {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--color-fg-2);
+}
+.watermark {
+  position: relative;
+}
+.watermark::after {
+  content: "PREVIEW — NOT FOR DISTRIBUTION";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  color: var(--color-fg-2);
+  background: color-mix(in srgb, var(--color-bg) 62%, transparent);
+  pointer-events: none;
+}
+.blurred {
+  filter: blur(5px);
+  user-select: none;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+  html,
+  body {
+    background: #fff;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .report-page {
+    border: 1px solid var(--color-line);
+    padding: 0 0 24px;
+    break-after: page;
+  }
+  .report-page:last-child {
+    break-after: auto;
+  }
+  .report-page + .report-page {
+    margin-top: 0;
+  }
+}
+
+/* ---- Landing page: four animated beats, everything else typeset and still ---- */
+@keyframes beat-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.beat {
+  animation: beat-in 360ms var(--ease-out-quart) both;
+}
+.beat[data-i="0"] { animation-delay: 160ms; }
+.beat[data-i="1"] { animation-delay: 380ms; }
+.beat[data-i="2"] { animation-delay: 600ms; }
+.beat[data-i="3"] { animation-delay: 820ms; }
+.hero-thread {
+  animation: thread-draw 240ms var(--ease-out-quart) 1040ms both;
+}
+
+/* ---- Reduced motion: every signal is also plain text, so nothing is lost ---- */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  /* The thread's final state IS the message; only the drawing of it is decoration. */
+  .thread,
+  .hero-thread {
+    animation: none;
+    transform: none;
+  }
+  .prov-sheet,
+  .prov-sheet[data-closing="true"] {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .row-in,
+  .beat {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  /* The pulse becomes a static bar; the row also says EXTRACTING in words. */
+  .extracting-bar::after {
+    animation: none;
+    width: 100%;
+    opacity: 0.5;
+  }
+  .hold-progress[data-holding="true"] {
+    animation: none;
+    transform: scaleX(1);
+  }
 }

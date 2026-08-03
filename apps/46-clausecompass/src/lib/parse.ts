@@ -155,73 +155,113 @@ interface RawPage {
   text: string;
 }
 
+/** A line that starts a new numbered subsection: "4.2 Moral Rights. …", "(a) …". */
+const SUBSECTION_START = /^(?:\d+\.\d+(?:\.\d+)*[.)]?|\([a-z]\)|\([ivx]+\))\s+\S/;
+
 function blocksFromPages(pages: RawPage[]): {
   blocks: ContractBlock[];
   fullText: string;
   sectionMap: SectionEntry[];
 } {
-  const blocks: ContractBlock[] = [];
-  const sectionMap: SectionEntry[] = [];
-  const chunks: string[] = [];
-  let offset = 0;
+  // Paragraphs are collected first, then merged across page breaks, and only then given
+  // offsets — a sentence that runs over a page boundary has to end up in one block, or
+  // the quote for that clause is a fragment starting mid-sentence.
+  const units: Array<{ page: number; text: string }> = [];
 
   for (const { page, text } of pages) {
     const paragraphs = foldChars(text)
       .replace(/\r\n?/g, "\n")
       .split(/\n\s*\n+/)
-      .flatMap((p) => splitLeadingHeadings(p))
-      .map((p) => p.trim())
+      .flatMap((p) => splitStructuralLines(p))
+      .map((p) => p.replace(/\s+/g, " ").trim())
       .filter((p) => p.length > 0);
 
     for (const para of paragraphs) {
-      const singleLine = para.replace(/\s+/g, " ").trim();
-      const h = headingOf(singleLine);
-      const isList = !h && /^([-•*]\s+|\(?[a-z]\)\s+)/.test(singleLine);
-      blocks.push({
-        page,
-        offset,
-        kind: h ? "heading" : isList ? "list" : "para",
-        text: singleLine,
-        ...(h && h.ref ? { ref: h.ref } : {}),
-      });
-      if (h) {
-        sectionMap.push({
-          ref: h.ref || `P${page}·${sectionMap.length + 1}`,
-          heading: h.heading,
-          blockIndex: blocks.length - 1,
-          page,
-        });
+      const previous = units[units.length - 1];
+      if (previous && continuesParagraph(previous.text, para)) {
+        previous.text = `${previous.text} ${para}`;
+        continue;
       }
-      chunks.push(singleLine);
-      offset += singleLine.length + 2; // the "\n\n" join
+      units.push({ page, text: para });
     }
+  }
+
+  const blocks: ContractBlock[] = [];
+  const sectionMap: SectionEntry[] = [];
+  const chunks: string[] = [];
+  let offset = 0;
+
+  for (const unit of units) {
+    const h = headingOf(unit.text);
+    const isList = !h && /^([-•*]\s+|\(?[a-z]\)\s+)/.test(unit.text);
+    blocks.push({
+      page: unit.page,
+      offset,
+      kind: h ? "heading" : isList ? "list" : "para",
+      text: unit.text,
+      ...(h && h.ref ? { ref: h.ref } : {}),
+    });
+    if (h) {
+      sectionMap.push({
+        ref: h.ref || `P${unit.page}·${sectionMap.length + 1}`,
+        heading: h.heading,
+        blockIndex: blocks.length - 1,
+        page: unit.page,
+      });
+    }
+    chunks.push(unit.text);
+    offset += unit.text.length + 2; // the "\n\n" join
   }
 
   return { blocks, fullText: chunks.join("\n\n"), sectionMap };
 }
 
 /**
- * Split a paragraph that begins with one or more heading lines. PDF text often
- * arrives as "4. PAYMENT\nClient shall pay…" in a single run.
+ * Is this paragraph the tail of the previous one?
+ *
+ * PDF text arrives one drawn line at a time with no blank lines, so a clause interrupted
+ * by a page break looks like two paragraphs. A continuation starts lower-case (or with a
+ * closing bracket) and follows text that has not finished its sentence.
  */
-function splitLeadingHeadings(paragraph: string): string[] {
+function continuesParagraph(previous: string, next: string): boolean {
+  if (/[.;:]$/.test(previous)) return false;
+  if (headingOf(previous)) return false;
+  return /^[a-z(“"']/.test(next);
+}
+
+/**
+ * Split a run of lines wherever the document's own structure changes: a heading line, or
+ * the start of a numbered subsection.
+ *
+ * Pasted text separates subsections with blank lines; a PDF does not. Without this, all of
+ * section 4 arrives as one block, block-level clause classification loses the distinction
+ * between 4.1 Assignment and 4.3 Contractor Materials, and the quote for the IP clause
+ * came out as the wrong sentence.
+ */
+function splitStructuralLines(paragraph: string): string[] {
   const lines = paragraph.split("\n");
   const out: string[] = [];
   let buffer: string[] = [];
+  const flush = () => {
+    if (buffer.length) out.push(buffer.join("\n"));
+    buffer = [];
+  };
   for (const line of lines) {
     const t = line.trim();
     if (!t) continue;
     if (t.length <= 90 && headingOf(t)) {
-      if (buffer.length) {
-        out.push(buffer.join("\n"));
-        buffer = [];
-      }
+      flush();
       out.push(t);
-    } else {
-      buffer.push(t);
+      continue;
     }
+    if (SUBSECTION_START.test(t)) {
+      flush();
+      buffer.push(t);
+      continue;
+    }
+    buffer.push(t);
   }
-  if (buffer.length) out.push(buffer.join("\n"));
+  flush();
   return out;
 }
 

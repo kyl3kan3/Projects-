@@ -54,6 +54,47 @@ Overage on subscriptions at $9/contract. Annual at 2 months free. Every tier car
 - [ ] Billing (Stripe): subscriptions + one-time per-contract checkout with credits
 - [ ] Disclaimer architecture: not-legal-advice acknowledgment at signup AND per report; no advice-shaped chat interface in v1 — the product reviews documents, it does not answer "what should I do?"
 
+---
+
+## Running it
+
+Node 20+ and a Postgres database. Nothing else is required to see a real review:
+without an Anthropic key, clause extraction runs on the built-in deterministic
+analyser and every report is stamped `local-rules-v1` rather than a model id.
+
+```bash
+cp .env.example .env.local          # fill DATABASE_URL, AUTH_SECRET, SHARE_TOKEN_SECRET
+npm install
+npm run db:migrate                  # schema + the two invariant constraints
+npm run db:seed                     # the built-in playbook and the eval fixtures
+npm run dev                         # http://localhost:3046
+```
+
+Then: create an account (the not-legal-advice acknowledgment is required, and the
+server enforces it), and buy a review. With no Stripe key configured you can set
+`ALLOW_DEV_CREDITS=1` to get a clearly-labelled "simulate a $19 purchase" button on
+the billing screen; it is ignored the moment a Stripe key exists. Upload a PDF or
+DOCX, paste the text, or run the labelled demo contract.
+
+| Command | What it does |
+|---|---|
+| `npm run dev` / `npm start` | The app on port 3046 |
+| `npm test` | Unit tests: parsing, anchoring, the analyser, the scorer, the gates, the email, the Stripe decisions. No infrastructure needed |
+| `npm run test:db` | Integration tests against `DATABASE_URL`: the schema invariants, the credits ledger, the whole pipeline, share links, the PDF |
+| `npm run eval` | The quality gate: flag recall, fabricated-quote count, determinism over five runs, and the explanation gates, over the committed fixtures. Non-zero exit on a regression |
+| `npm run db:migrate` | Apply migrations (`drizzle/`, including `0001_invariants.sql`) |
+| `npm run typecheck` / `npm run lint` / `npm run build` | The usual |
+
+**Background work.** A review runs one stage per request: the report screen advances
+its own contract while you watch it, and `/api/cron/tick` (protected by `CRON_SECRET`,
+refusing to run when it is unset) sweeps anything left mid-pipeline by a closed tab and
+deletes contracts past their retention window. `vercel.json` schedules it daily.
+
+**What ships without credentials.** Extraction and explanations fall back to the local
+rules and the playbook's own templates; email is logged instead of sent; checkout is
+unavailable and the billing screen says so. Every one of those states is visible in the
+product rather than silently degraded.
+
 Post-MVP (explicitly cut from v1): contract comparison/versioning, negotiation chat, template drafting, e-sign, clause benchmarking across corpus, team workflows/approvals, non-English contracts.
 
 ## Differentiation

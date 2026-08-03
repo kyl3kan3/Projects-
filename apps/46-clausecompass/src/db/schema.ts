@@ -134,6 +134,7 @@ export interface RuleComparator {
     | "lt"
     | "lte"
     | "eq"
+    | "ne"
     | "is_true"
     | "is_false"
     | "present" // a clause of this type exists at all

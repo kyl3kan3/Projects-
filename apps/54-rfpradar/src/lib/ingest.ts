@@ -401,8 +401,8 @@ export const htmlConnector: Connector = {
         const row = $(element);
         const text = (selector?: string) =>
           selector ? htmlToText(row.find(selector).first().html() ?? row.find(selector).first().text() ?? "") : "";
-        const title = text(selectors.title) || htmlToText(row.text()).split("\n")[0] ?? "";
-        const href = selectors.link ? row.find(selectors.link).first().attr("href") ?? "" : "";
+        const title = text(selectors.title) || (htmlToText(row.text()).split("\n")[0] ?? "");
+        const href = selectors.link ? (row.find(selectors.link).first().attr("href") ?? "") : "";
         const externalId = text(selectors.id) || href || title;
         if (!title || !externalId) return;
         notices.push({
@@ -678,6 +678,46 @@ export async function pollSource(sourceId: string, now: Date = new Date()): Prom
     const note = `Parsed ${upserted} of ${notices.length} notices; ${errors.length} failed (${truncate(errors[0], 120)}).`;
     const status = await markSourceHealth(source, "failed", note, now);
     return { sourceKey: source.key, upserted, changed, changedIds, status, note, sampled };
+  }
+
+  // A live state feed that returns 200 and parses to nothing is the classic
+  // silent-staleness case: the URL still resolves, the portal has changed its
+  // markup or moved the export, and a radar that reports "ok" looks calm while
+  // the firm misses everything from that state. Found in testing, where two
+  // portals answered with an HTML page where a CSV/RSS body used to be.
+  //
+  // The federal API is excluded: it is queried over a posted-date window, so
+  // zero notices genuinely means "nothing new was posted".
+  if (!sampled && notices.length === 0 && source.kind !== "api") {
+    // A source that has never once parsed and is allowed samples falls back to
+    // them, clearly labelled — that is a development environment with no route
+    // to the portal, not a regression. A source that used to work does not: it
+    // goes degraded/down with the note, because that is a connector to fix.
+    const samples =
+      sampleAllowed(config) && !source.lastSuccessAt ? fixtureNotices(source.key, now) : [];
+    if (samples.length > 0) {
+      notices = samples;
+      sampled = true;
+      failure = `Sample feed — the live feed answered but parsed 0 notices, and this source has never parsed successfully here. Showing ${samples.length} bundled sample notices, not live data.`;
+    } else {
+      const note =
+        "Fetched successfully but parsed 0 notices — the feed format or URL has probably changed. Connector update needed.";
+      const status = await markSourceHealth(source, "failed", note, now);
+      return { sourceKey: source.key, upserted: 0, changed: 0, changedIds: [], status, note, sampled };
+    }
+
+    for (const notice of notices) {
+      try {
+        const result = await upsertOpportunity(source.id, notice);
+        upserted += 1;
+        if (result.changed) {
+          changed += 1;
+          changedIds.push(result.opportunityId);
+        }
+      } catch (error) {
+        errors.push(error instanceof Error ? error.message : String(error));
+      }
+    }
   }
 
   if (sampled) {

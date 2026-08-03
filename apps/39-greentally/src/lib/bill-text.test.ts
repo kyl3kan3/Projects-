@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  slashOrder,
   parseBillDate,
   readBillText,
   readPeriod,
@@ -125,4 +126,27 @@ CCF used 1,240`,
   );
   assert.equal(r.quantity?.value.unit, "CCF");
   assert.equal(r.category?.value, "natural_gas_kwh");
+});
+
+test("a slashed range disambiguates itself from its unambiguous endpoint", () => {
+  // 08/31 cannot be a month, so 08/01 is August 1 and not January 8.
+  const p = readPeriod("Billing Period 08/01/2025 to 08/31/2025")!;
+  assert.deepEqual(p.value, { start: "2025-08-01", end: "2025-08-31" });
+  assert.ok(p.confidenceBp >= 9_500, "a self-disambiguating range is not a review item");
+
+  // And the other way round: a day-first range stays day-first.
+  const uk = readPeriod("Billing Period 31/08/2025 to 05/09/2025")!;
+  assert.deepEqual(uk.value, { start: "2025-08-31", end: "2025-09-05" });
+});
+
+test("a range that disambiguates nothing is still flagged", () => {
+  const p = readPeriod("Service Period: 03/04/2025 - 04/03/2025")!;
+  assert.ok(p.confidenceBp <= 6_400, "genuinely ambiguous dates reach a human");
+});
+
+test("slashOrder only claims an order the digits prove", () => {
+  assert.equal(slashOrder("08/31/2025"), "mdy");
+  assert.equal(slashOrder("31/08/2025"), "dmy");
+  assert.equal(slashOrder("03/04/2025"), null);
+  assert.equal(slashOrder("Mar 4, 2025"), null);
 });

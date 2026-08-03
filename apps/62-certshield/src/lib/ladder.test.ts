@@ -218,6 +218,20 @@ test("a certificate with no readable expiry is also chased monthly, not daily", 
 
 /* -------------------------------------------------------------- idempotence */
 
+test("an engagement already chased today is owed nothing more today", () => {
+  // The worker ticks every ten minutes. Without this, an engagement that is both
+  // deficient and past a renewal threshold would get two emails ten minutes apart.
+  const input = {
+    status: "deficient" as const,
+    soonestExpiry: "2026-09-02",
+    daysToExpiry: 30,
+    today: "2026-08-03",
+    sent: new Set(["deficiency:2026-09-02"]),
+  };
+  assert.deepEqual(nextChase(input), { kind: "renewal_t30", expiryCycle: "2026-09-02" });
+  assert.equal(nextChase({ ...input, chasedToday: true }), null);
+});
+
 test("running the ladder twice in one day sends nothing the second time", () => {
   const sent = new Set<string>();
   const input = {

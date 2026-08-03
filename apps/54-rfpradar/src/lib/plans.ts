@@ -226,7 +226,7 @@ export function accessState(
   now: Date = new Date(),
 ): AccessState {
   const planId = (firm.plan in PLANS ? firm.plan : "trial") as PlanId;
-  const settings = (firm.settings ?? {}) as { pastDueSince?: string };
+  const settings = (firm.settings ?? {}) as { pastDueSince?: string; cancelledAt?: string };
 
   if (planId === "trial") {
     const endsAt = firm.trialEndsAt;
@@ -241,7 +241,9 @@ export function accessState(
         active: false,
         readOnly: true,
         trialDaysLeft: 0,
-        reason: "Your 14-day trial has ended. Pick a plan to keep the morning scan running.",
+        reason: settings.cancelledAt
+          ? "Your subscription has ended. Pick a plan to start the morning scan again — your library is still exportable."
+          : `Your ${TRIAL_DAYS}-day trial has ended. Pick a plan to keep the morning scan running.`,
       };
     }
     return { planId, active: true, readOnly: false, trialDaysLeft: daysLeft, reason: null };

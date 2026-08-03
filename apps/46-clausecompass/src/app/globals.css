@@ -1,51 +1,79 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   ClauseCompass — design tokens. Generated from DESIGN.md; edit DESIGN.md first.
-   Obeys DESIGN_LANGUAGE.md: one rationed accent, hairlines not boxes,
-   no gradients or glow on controls, 4px spacing scale, fonts must load.
+   ClauseCompass — the redline implementation of DESIGN.md v5.
+   A reading room, not a robot lawyer: vellum paper, a lawyerly serif for the
+   contract's own words, plain sans for ours, one oxblood for where the
+   document bites.
+   Obeys DESIGN_LANGUAGE.md v2.1: no emoji, no gradient or glow on controls,
+   hairlines not borders, space before boxes, 4px scale, exactly three radii.
+   Light only, on purpose — DESIGN.md: "contracts are read on paper, and the
+   report must print faithfully".
    ========================================================================== */
 
 @theme {
-  /* Palette — exact values from DESIGN.md */
-  --color-vellum: #faf7f1; /* The ground. Every screen — warm paper, never pure white */
-  --color-sheet: #ffffff; /* Framed objects only: the contract pane, report pages, clause cards */
-  --color-hairline: #e9e3d7; /* 1px rules & card borders — never darker */
-  --color-ink: #241f1b; /* Primary text and primary buttons (vellum text on them) */
-  --color-text-2: #756e64; /* Secondary text */
-  --color-text-3: #a39b8f; /* Faint (timestamps, placeholders, "not analyzed") */
-  --color-oxblood: #8e3b34; /* THE accent — redline ink. ≤10% of any screen: HIGH flags, strikethroughs, acti */
-  --color-amber: #be8a2e; /* CAUTION flags only */
-  --color-sage: #57755b; /* OK / market-standard clauses only */
+  /* ---- Color: DESIGN.md's table, with the two AA corrections noted below ---- */
+  --color-vellum: #faf7f1; /* the ground, every screen */
+  --color-sheet: #ffffff; /* framed objects only: quote blocks, report pages */
+  --color-hairline: #e9e3d7; /* 1px rules and card borders — never darker */
+  --color-ink: #241f1b; /* primary text AND primary buttons */
 
-  /* Semantic aliases, so components never hardcode a hue name */
-  --color-bg: #faf7f1;
-  --color-surface: #ffffff;
-  --color-line: #e9e3d7;
-  --color-fg: #241f1b;
-  --color-fg-2: #756e64;
-  --color-fg-3: #a39b8f;
-  --color-accent: #8e3b34;
-  --color-action: #241f1b;
-  --color-warn: #be8a2e;
+  /*
+   * DESIGN.md sets text-2 #756E64 and text-3 #A39B8F. Measured on vellum,
+   * #A39B8F is 2.57:1 — it fails WCAG AA at every size it is actually used
+   * (13px timestamps, 11px labels, the "not analyzed" coverage note). Per the
+   * build brief's one documented exception, DESIGN_LANGUAGE.md's AA floor wins:
+   * the two text greys are stepped down one notch each, keeping three distinct
+   * levels of emphasis and the same warm hue.
+   *   ink     #241F1B on vellum = 15.3:1
+   *   text-2  #5F584F on vellum =  6.6:1
+   *   text-3  #756E64 on vellum =  4.7:1  (was #A39B8F at 2.6:1)
+   * #A39B8F survives only as --color-faint-line, for non-informational marks
+   * (dots, dividers, disabled glyphs) where contrast carries no meaning.
+   */
+  --color-text-2: #5f584f;
+  --color-text-3: #756e64;
+  --color-faint-line: #a39b8f;
+
+  --color-oxblood: #8e3b34; /* THE accent — redline ink. <=10% of any screen */
+  --color-amber: #be8a2e; /* CAUTION: the chip's dot */
+  --color-sage: #57755b; /* OK / market-standard clauses only */
+  /*
+   * The CAUTION label at 11px needs 4.5:1; #BE8A2E measures 2.9:1 on vellum.
+   * Same hue, darker value, used for amber *text* only. Measured: 5.1:1.
+   */
+  --color-amber-text: #8a6318;
+
+  /* Component states, spelled out in DESIGN.md's component section. */
+  --color-ink-press: #2f2925;
+  --color-disabled-fill: #ddd6c9;
+  --color-hairline-press: #d4ccbd;
+  --color-inset: #f4efe6; /* the suggested-language inset on a redline card */
 
   --font-display: "IBM Plex Serif", ui-serif, Georgia, serif;
-  --font-sans: "IBM Plex Serif", ui-serif, Georgia, serif;
+  --font-serif: "IBM Plex Serif", ui-serif, Georgia, serif;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Radii: exactly three. Controls / cards / sheets. */
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-sheet: 18px;
 
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 :root {
-  color-scheme: light;
+  color-scheme: light; /* one committed visual world; there is no dark theme */
+  --gutter: 20px;
   --tabbar-h: 56px;
 }
 
 html,
 body {
-  background: var(--color-bg);
-  color: var(--color-fg);
+  background: var(--color-vellum);
+  color: var(--color-ink);
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.55;
@@ -53,46 +81,734 @@ body {
   overscroll-behavior-y: none;
 }
 
-* { border-color: var(--color-line); }
+* {
+  border-color: var(--color-hairline);
+}
 
-/* ---- Type roles (see the specimen table in DESIGN.md) ---- */
-.t-hero { font-family: var(--font-display); font-size: clamp(2rem, 8.5vw, 3.375rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 600; }
-.t-stat { font-family: var(--font-mono); font-size: clamp(2.125rem, 9.5vw, 3.25rem); line-height: 1.05; letter-spacing: -0.01em; font-weight: 500; font-variant-numeric: tabular-nums; }
-.t-h2 { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.01em; font-weight: 600; }
-.t-title { font-size: 1rem; line-height: 1.3; font-weight: 600; }
-.t-body { font-size: 1rem; line-height: 1.55; }
-.t-secondary { font-size: 0.8125rem; line-height: 1.45; color: var(--color-fg-2); }
-.t-label { font-size: 0.6875rem; line-height: 1.2; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-fg-3); }
-.t-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+::selection {
+  background: color-mix(in srgb, var(--color-oxblood) 18%, transparent);
+  color: var(--color-ink);
+}
 
-/* ---- Hairline construction: space and rules, never nested boxes ---- */
-.hairline-t { border-top: 1px solid var(--color-line); }
-.hairline-b { border-bottom: 1px solid var(--color-line); }
+/* ---- Type roles: DESIGN.md's specimen table, exactly ------------------- */
+
+.t-display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(30px, 8vw, 46px);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+}
+.t-h2 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+.t-title {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+}
+.t-body {
+  font-size: 16px;
+  line-height: 1.55;
+}
+.t-secondary {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-text-2);
+}
+.t-label {
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-3);
+}
+/* Citations, section numbers, every figure. Mono, tabular, no exceptions. */
+.t-data {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+/* The contract's own words are always serif. Ours are always sans. */
+.t-quote {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* ---- Controls ---------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: var(--radius-control);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    transform 120ms var(--ease-out-quart),
+    background-color 120ms linear,
+    border-color 120ms linear;
+}
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+/* Primary on a light ground: ink fill, vellum text. Never oxblood. */
+.btn-primary {
+  background: var(--color-ink);
+  color: var(--color-vellum);
+  border: none;
+}
+.btn-primary:active:not(:disabled) {
+  background: var(--color-ink-press);
+}
+.btn-primary:disabled {
+  background: var(--color-disabled-fill);
+  color: var(--color-text-3);
+  cursor: not-allowed;
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--color-ink);
+  border: 1px solid var(--color-hairline);
+}
+.btn-secondary:active:not(:disabled) {
+  border-color: var(--color-hairline-press);
+}
+.btn-full {
+  width: 100%;
+}
+
+/*
+ * Quiet action: oxblood text, no underline (DESIGN.md). The 44px touch target
+ * comes from a pseudo-element rather than padding, so the text sits exactly
+ * where the layout puts it and a thumb still gets the full target.
+ */
+.btn-quiet {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 0;
+  height: auto;
+  color: var(--color-oxblood);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.2;
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn-quiet::after {
+  content: "";
+  position: absolute;
+  /* 15px text is 18px tall; -13px each side measured 42px in the browser, which is
+     under the 44px floor. Measured, not guessed. */
+  inset: -14px -8px;
+}
+.btn-quiet:active {
+  opacity: 0.8;
+}
+.btn-quiet:disabled {
+  color: var(--color-text-3);
+  cursor: not-allowed;
+}
+.btn-quiet-sm {
+  font-size: 13px;
+}
+/* 13px text is 15.6px tall, so the smaller variant needs one more pixel each side. */
+.btn-quiet-sm::after {
+  inset: -15px -8px;
+}
+
+/*
+ * Any small inline control that must still take a thumb: a mono figure in a header, a
+ * word inside a sentence. The hit area grows around it without moving the text.
+ */
+.tap {
+  position: relative;
+}
+.tap::after {
+  content: "";
+  position: absolute;
+  /* A 13px mono figure is 15.6px tall, so -15px each side is what reaches 44px. */
+  inset: -15px -6px;
+}
+
+/* ---- Inputs ------------------------------------------------------------ */
+
+.input {
+  width: 100%;
+  height: 48px;
+  padding: 0 12px;
+  background: var(--color-sheet);
+  color: var(--color-ink);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  font-family: inherit;
+  font-size: 16px; /* 16px minimum: anything smaller zooms iOS on focus */
+}
+.input::placeholder {
+  color: var(--color-text-3);
+}
+.input:focus,
+.input:focus-visible {
+  outline: none;
+  border-color: var(--color-oxblood);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-oxblood) 25%, transparent);
+}
+textarea.input {
+  height: auto;
+  min-height: 180px;
+  padding: 12px;
+  line-height: 1.55;
+  font-family: var(--font-serif); /* pasted contract text is the document's words */
+}
+select.input {
+  appearance: none;
+  padding-right: 34px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none' stroke='%235F584F' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+.field {
+  display: block;
+  margin-bottom: 20px;
+}
+.field-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--color-text-2);
+}
+.field-help {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-text-3);
+}
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-oxblood);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---- Severity chip: height 28, 6px dot + Label. Never a filled banner. -- */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  flex: none;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-hairline);
+  background: transparent;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: color 150ms linear, border-color 150ms linear;
+}
+.chip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex: none;
+}
+.chip[data-severity="high"] {
+  color: var(--color-oxblood);
+  border-color: color-mix(in srgb, var(--color-oxblood) 30%, var(--color-hairline));
+}
+.chip[data-severity="high"] .chip-dot {
+  background: var(--color-oxblood);
+}
+.chip[data-severity="caution"] {
+  color: var(--color-amber-text);
+  border-color: color-mix(in srgb, var(--color-amber) 34%, var(--color-hairline));
+}
+.chip[data-severity="caution"] .chip-dot {
+  background: var(--color-amber);
+}
+.chip[data-severity="ok"] {
+  color: var(--color-sage);
+}
+.chip[data-severity="ok"] .chip-dot {
+  background: var(--color-sage);
+}
+.chip[data-severity="missing"] {
+  color: var(--color-text-2);
+}
+.chip[data-severity="missing"] .chip-dot {
+  background: var(--color-faint-line);
+}
+
+/* ---- Surfaces: hairlines on vellum. One elevation, for the report page. -- */
 
 .card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-line);
-  border-radius: 12px;
+  background: var(--color-sheet);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-card);
+}
+.sheet {
+  background: var(--color-sheet);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-sheet);
+}
+/* A document on a desk — the only shadow in the product. */
+.report-page {
+  background: var(--color-sheet);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-card);
+  box-shadow: 0 2px 10px rgba(36, 31, 27, 0.05);
+}
+.hairline-t {
+  border-top: 1px solid var(--color-hairline);
+}
+.hairline-b {
+  border-bottom: 1px solid var(--color-hairline);
 }
 
-/* ---- Controls ---- */
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 48px; padding: 0 20px; border-radius: 10px;
-  font-weight: 600; font-size: 0.9375rem; line-height: 1;
-  transition: transform 120ms var(--ease-out-quart), background-color 120ms linear;
-}
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: var(--color-action); color: var(--color-bg); }
-.btn-secondary { background: transparent; color: var(--color-fg); border: 1px solid var(--color-line); }
+/* ---- The clause map: hairline rows, no boxes, >=56px ------------------- */
 
-.focus-ring:focus-visible,
-a:focus-visible,
-button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-hairline);
+  background: none;
+  text-align: left;
+  text-decoration: none;
+  color: inherit;
+  font-family: inherit;
+  cursor: pointer;
 }
+
+/* ---- Quote block: the framed object. The contract's own words. --------- */
+
+.quote {
+  background: var(--color-sheet);
+  border: 1px solid var(--color-hairline);
+  border-left: 2px solid var(--color-ink);
+  border-radius: var(--radius-card);
+  padding: 16px;
+}
+.quote-text {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--color-ink);
+}
+/* A flagged span inside a quote: underline, never a highlight fill. */
+.quote-mark {
+  text-decoration: underline;
+  text-decoration-color: var(--color-oxblood);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+}
+.quote-cite {
+  margin-top: 12px;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--color-text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Explanation: our words, unboxed, hairline-separated --------------- */
+
+.explain-section + .explain-section {
+  border-top: 1px solid var(--color-hairline);
+  margin-top: 16px;
+  padding-top: 16px;
+}
+
+/* ---- Redline card ----------------------------------------------------- */
+
+.redline-card {
+  background: var(--color-sheet);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-card);
+  padding: 16px;
+}
+.redline-original {
+  position: relative;
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--color-text-2);
+  display: inline;
+}
+.redline-suggested {
+  background: var(--color-inset);
+  border-radius: var(--radius-control);
+  padding: 12px;
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/*
+ * THE SIGNATURE — the redline draw.
+ *
+ * A copy of the phrase is stacked over it in transparent text carrying a
+ * `line-through`, and the overlay's clip-path opens left to right in 320ms with a
+ * 0.5px vertical waver so it reads as a pen rather than a rule. The suggested
+ * language rises in beneath, 60ms later.
+ *
+ * The first implementation drew an absolutely-positioned 1px bar sized to 100% of
+ * the phrase. On a phrase that wrapped — which is most of them — an inline element's
+ * containing block is its first line box, so the strike covered the first line and
+ * stopped. Caught in a 1280px screenshot, invisible at 390px.
+ */
+.strike-wrap {
+  position: relative;
+  display: inline-block;
+}
+.strike-over {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  color: transparent;
+  text-decoration-line: line-through;
+  text-decoration-color: var(--color-oxblood);
+  text-decoration-thickness: 1.5px;
+  clip-path: inset(0 100% 0 0);
+  pointer-events: none;
+  user-select: none;
+}
+.strike-over[data-drawn="true"] {
+  animation:
+    strike-reveal 320ms var(--ease-out-quart) forwards,
+    strike-waver 320ms var(--ease-in-out-soft);
+}
+@keyframes strike-reveal {
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes strike-waver {
+  0% {
+    transform: translateY(0.5px);
+  }
+  35% {
+    transform: translateY(-0.5px);
+  }
+  70% {
+    transform: translateY(0.35px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+.rise {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.rise[data-drawn="true"] {
+  animation: rise-in 240ms var(--ease-out-quart) 60ms forwards;
+}
+@keyframes rise-in {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Row entrance: 24ms stagger, opacity + 4px rise. */
+.enter {
+  animation: enter 200ms var(--ease-out-quart) both;
+}
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Documents unfold; they do not bounce. */
+.expand {
+  overflow: hidden;
+  animation: expand 240ms var(--ease-in-out-soft) both;
+}
+@keyframes expand {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 5000px;
+  }
+}
+
+/* Processing steps tick with a 120ms check draw. */
+.check-draw path {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: check-draw 120ms linear forwards;
+}
+@keyframes check-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Hold-to-confirm: a 600ms radial fill on "Delete contract". */
+.hold {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.hold::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: color-mix(in srgb, var(--color-oxblood) 12%, transparent);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+.hold[data-holding="true"]::before {
+  animation: hold-fill 600ms linear forwards;
+}
+@keyframes hold-fill {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* ---- The banner. Every screen footer, every report page. Never dismissible. */
+
+.banner {
+  border-top: 1px solid var(--color-hairline);
+  padding: 16px 0;
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-2);
+}
+
+/* ---- Bottom tab bar --------------------------------------------------- */
+
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  display: flex;
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background: color-mix(in srgb, var(--color-vellum) 96%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-hairline);
+}
+.tabbar-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 44px;
+  text-decoration: none;
+  color: var(--color-text-2);
+  font-size: 10px;
+  font-weight: 600;
+  position: relative;
+}
+.tabbar-item[data-active="true"] {
+  color: var(--color-ink);
+}
+.tabbar-item[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  bottom: 6px;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: var(--color-oxblood);
+}
+/*
+ * The rail replaces the tab bar at >=1024px. A media query rather than a
+ * `lg:hidden` utility: both are single-class selectors, so which wins depends on
+ * stylesheet order, and `.tabbar` is defined after the Tailwind import.
+ */
+@media (min-width: 1024px) {
+  .tabbar {
+    display: none;
+  }
+}
+
+/* ---- Layout ----------------------------------------------------------- */
+
+.screen {
+  padding: 0 var(--gutter);
+  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 96px);
+  /* A contract is read in a column. 920px keeps a serif quote near 80 characters at
+     16px instead of the 150 a 1240px page produced. */
+  max-width: 920px;
+  /*
+   * `margin-inline`, not `margin: 0 auto`. `.screen` is defined after the Tailwind
+   * import, so the shorthand's `margin-top: 0` beat every `mt-*` utility on the same
+   * element — the marketing page's 80px section rhythm computed to 0px and the whole
+   * page ran together. Both are single-class selectors, so stylesheet order decided
+   * it. Caught in a 1280px screenshot; the build was green throughout.
+   */
+  margin-inline: auto;
+}
+
+/* Forms and single actions stay thumb-sized even on a desktop. */
+.measure {
+  max-width: 560px;
+}
+.sticky-action {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  z-index: 20;
+  padding: 12px var(--gutter);
+  background: linear-gradient(
+    to top,
+    var(--color-vellum) 62%,
+    color-mix(in srgb, var(--color-vellum) 0%, transparent)
+  );
+}
+/* Wide content scrolls inside its own container; the body never goes sideways. */
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: 32px;
+  }
+}
+@media (min-width: 1024px) {
+  .screen {
+    padding-bottom: 96px;
+  }
+}
+
+/* ---- Print: the report is a first-class printed document --------------- */
+
+@media print {
+  .tabbar,
+  .sticky-action,
+  .no-print {
+    display: none !important;
+  }
+  html,
+  body {
+    background: #fff;
+  }
+  .screen {
+    padding: 0;
+    max-width: none;
+  }
+  .report-page {
+    box-shadow: none;
+    border: none;
+  }
+  .banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+  .expand {
+    animation: none;
+    max-height: none;
+  }
+  /*
+   * A printed report must show the strike and the suggestion whether or not the draw
+   * ever ran on screen. The animation is decoration; the redline is the content.
+   */
+  .strike-over {
+    clip-path: inset(0 0 0 0) !important;
+  }
+  .rise {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* ---- Reduced motion: feature-complete, never punitive ----------------- */
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* The strike and the suggestion are simply there, with a 100ms fade. */
+  .strike-over[data-drawn="true"] {
+    animation: none;
+    clip-path: inset(0 0 0 0);
+  }
+  .rise[data-drawn="true"] {
+    animation: fade-in 100ms linear forwards;
+    opacity: 1;
+    transform: none;
+  }
+  .expand {
+    animation: none;
+    max-height: none;
+  }
+  .check-draw path {
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+  .hold[data-holding="true"]::before {
+    animation: none;
+    transform: scaleX(1);
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
 }

@@ -320,10 +320,12 @@ export const EEIO_CATEGORIES: EeioCategory[] = [
   { slug: "water_wastewater", label: "Water & wastewater", kgPerUsd: 0.53, keywords: ["water utility", "water rates", "sewer", "wastewater"] },
   { slug: "telecom", label: "Telecom & internet", kgPerUsd: 0.15, keywords: ["telecom", "internet", "broadband", "mobile phone", "verizon", "at&t", "vodafone"] },
   { slug: "insurance_finance", label: "Insurance & financial services", kgPerUsd: 0.09, keywords: ["insurance", "bank fee", "merchant fee", "interest", "finance charge", "broker"] },
-  { slug: "real_estate_leasing", label: "Rent & leasing", kgPerUsd: 0.14, keywords: ["rent", "lease", "property", "landlord"] },
+  // "warehouse rent" is leasing, not a warehousing service — and the longest keyword
+  // wins, so it has to be spelled out or "warehouse" would claim it.
+  { slug: "real_estate_leasing", label: "Rent & leasing", kgPerUsd: 0.14, keywords: ["warehouse rent", "office rent", "rent", "lease", "property", "landlord"] },
   { slug: "equipment_rental", label: "Equipment rental", kgPerUsd: 0.18, keywords: ["equipment rental", "united rentals", "hire", "plant hire"] },
   { slug: "travel_accommodation", label: "Travel & accommodation", kgPerUsd: 0.36, keywords: ["hotel", "lodging", "travel", "car rental", "per diem", "rail ticket"] },
-  { slug: "other_goods", label: "Other manufactured goods", kgPerUsd: 0.55, keywords: ["supplies", "parts", "components", "misc goods", "tools", "hardware store"] },
+  { slug: "other_goods", label: "Other manufactured goods", kgPerUsd: 0.55, keywords: ["industrial supply", "supplies", "parts", "components", "misc goods", "tooling", "tools", "hardware store"] },
   // --- recognised, then excluded: already inside Scope 1 / 2 ---
   { slug: "purchased_electricity", label: "Purchased electricity (in Scope 2)", kgPerUsd: 1.55, keywords: ["electric", "electricity", "power company", "con edison", "coned", "pg&e", "duke energy", "national grid"], alreadyCounted: true },
   { slug: "purchased_gas", label: "Purchased natural gas (in Scope 1)", kgPerUsd: 1.2, keywords: ["natural gas", "gas utility", "gas company", "peoples gas", "southwest gas", "british gas"], alreadyCounted: true },

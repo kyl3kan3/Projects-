@@ -117,6 +117,9 @@ function textOf(value: unknown): string {
   if (Array.isArray(value)) return value.map(textOf).join(" ").trim();
   if (typeof value === "object") {
     const record = value as Record<string, unknown>;
+    // Portals wrap descriptions in CDATA about half the time; both shapes have
+    // to read the same or the keyword scorer sees an empty notice body.
+    if ("#cdata" in record) return textOf(record["#cdata"]);
     if ("#text" in record) return textOf(record["#text"]);
     if ("@_href" in record) return textOf(record["@_href"]);
     return "";

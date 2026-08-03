@@ -86,3 +86,51 @@ admin can put on a card.
 - **Receipts:** a real deficiency sentence and a chasing timeline (demo
   data, labeled).
 - **One CTA phrase, verbatim everywhere:** **"Start free — 14 days"**.
+
+## Setup
+
+Node 20 or newer, a Postgres database, and nothing else required.
+
+```bash
+npm install
+cp .env.example .env          # fill DATABASE_URL, SESSION_SECRET, LINK_TOKEN_SECRET
+npm run db:migrate            # reads .env itself
+npm run db:seed               # optional: a demo portfolio with real certificate PDFs
+npm run dev                   # http://localhost:3062
+```
+
+Only three variables are required. Everything else degrades honestly, and
+**Settings → "How this deployment is wired"** states in the UI which way each one
+went — a compliance tool that has quietly stopped sending email is worse than one
+that says so:
+
+| Unset | What happens instead |
+|---|---|
+| `ANTHROPIC_API_KEY` | Certificates are read by the built-in ACORD 25 grammar (`src/lib/acord.ts`). It handles text PDFs, reports per-field confidence honestly, and fails rather than guessing on a scan. |
+| `R2_*` | Certificate PDFs are stored as bytes in Postgres. Nothing is ever lost either way. |
+| `RESEND_API_KEY` (or `DRY_RUN=1`) | Chases are computed and written to the ledger, then logged instead of sent. Exactly-once behaviour is identical. |
+| `STRIPE_*` | The billing screen lists the plans without a checkout button. |
+| `REDIS_URL` | Parsing runs inline on upload and `GET /api/cron/tick` does the nightly pass. With Redis, `npm run worker` drains the queues instead. |
+
+`npm run db:seed` creates a demo portfolio — three properties, eight vendors, and a
+certificate file in every state the product handles (compliant, expiring,
+deficient, expired, awaiting review, a parse that failed, and a vendor with nothing
+on file). Sign in as `dana@harborridge.example` / `harborridge2026`. It refuses to
+run against a database that holds any other organisation.
+
+### Scripts
+
+| Command | What it does |
+|---|---|
+| `npm run dev` / `npm start` | The app on port 3062 |
+| `npm run worker` | The BullMQ worker: parse, evaluate, chase, binder, Stripe. Requires `REDIS_URL`. |
+| `npm test` | The domain suite: the compliance engine, the chasing ladder, the ACORD grammar, the model path, dates and money |
+| `npm run typecheck` / `npm run build` | `tsc --noEmit` / production build |
+| `npm run db:generate` / `db:migrate` / `db:seed` | Drizzle migrations and demo data |
+
+### Deployment
+
+Vercel + Neon + Upstash + R2. Use Neon's **pooled** connection string. `vercel.json`
+registers one daily cron on `/api/cron/tick`, which is the whole scheduler on Hobby;
+the tick is written to be correct at any frequency, so a worker running it every ten
+minutes and a cron running it once a day both behave.

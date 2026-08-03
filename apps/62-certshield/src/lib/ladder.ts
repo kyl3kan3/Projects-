@@ -49,6 +49,17 @@ export interface LadderInput {
   offsets?: number[];
   /** Rungs already in the ledger, as `${kind}:${expiryCycle}`. */
   sent: ReadonlySet<string>;
+  /**
+   * Has this engagement already been chased today?
+   *
+   * The "at most one email per engagement per pass" rule below is only worth
+   * anything if a pass is a day. The worker runs the tick every ten minutes, so
+   * without this an engagement that is both deficient and past a renewal threshold
+   * got its deficiency letter and then its renewal request ten minutes later —
+   * which is precisely the two-emails-in-one-minute outcome the rule exists to
+   * prevent. Found by walking 75 simulated days with two passes per day.
+   */
+  chasedToday?: boolean;
 }
 
 export interface DueChase {
@@ -83,12 +94,13 @@ export function ledgerKey(kind: ChaseKind, expiryCycle: string): string {
 /**
  * The single most urgent chase this engagement is owed today, or null.
  *
- * At most one email per engagement per pass, deliberately: an engagement that is
- * both deficient and 6 days from expiry gets one letter today and the renewal
- * request tomorrow, not two emails in the same minute. The letter carries the
- * upload link either way.
+ * At most one email per engagement per **day**, deliberately: an engagement that is
+ * both deficient and six days from expiry gets one letter today and the renewal
+ * request tomorrow, not two in the same minute. The letter carries the upload link
+ * either way, so nothing is lost by spreading them.
  */
 export function nextChase(input: LadderInput): DueChase | null {
+  if (input.chasedToday) return null;
   const offsets = normaliseOffsets(input.offsets);
   const { status, soonestExpiry, daysToExpiry, today, sent } = input;
 

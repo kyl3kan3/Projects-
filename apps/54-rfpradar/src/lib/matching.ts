@@ -15,7 +15,21 @@
  *     that state.
  */
 
-import { and, desc, eq, gte, inArray, isNull, lte, ne, or, sql } from "drizzle-orm";
+import {
+  and,
+  arrayOverlaps,
+  desc,
+  eq,
+  gte,
+  ilike,
+  inArray,
+  isNull,
+  lte,
+  ne,
+  or,
+  sql,
+  type SQL,
+} from "drizzle-orm";
 import { getDb } from "@/db";
 import {
   DEFAULT_SCORE_THRESHOLD,
@@ -29,6 +43,8 @@ import {
   type Opportunity,
 } from "@/db/schema";
 import { scoreOpportunity, type ScoreResult, type ScoringProfile } from "@/lib/scoring";
+
+export { DISMISS_REASONS } from "@/lib/scoring";
 
 /** How far back the scorer looks. Older open notices are already matched. */
 const CANDIDATE_WINDOW_DAYS = 120;
@@ -47,14 +63,24 @@ export function toScoringProfile(profile: KeywordProfile): ScoringProfile {
 }
 
 /**
- * Candidate notices for a profile: open, recent, and — when the profile has
- * keywords — narrowed by Postgres full-text search so a firm's keywords never
- * scan the whole shared store. The GIN index in the schema matches this
- * expression exactly.
+ * Candidate notices for a profile: open, recent, and carrying at least one
+ * signal the profile actually asked about.
  *
- * The FTS query is a pre-filter only. The score and its reasons come from the
- * pure scorer, which needs the notice text anyway, and which can say *where* a
- * phrase was found — something `@@` cannot.
+ * The signal test is a union, and getting it wrong is easy in a way that shows
+ * up as a silently empty audit view. Keyword full-text search alone is too
+ * narrow: a notice can be squarely relevant through NAICS with none of the
+ * firm's phrases in its summary — that is precisely the "42, suppressed, here
+ * is why" row a firm wants to see when it asks what got filtered. So the filter
+ * is `keyword FTS OR NAICS overlap OR PSC overlap OR agency name`, all of which
+ * Postgres can serve from an index.
+ *
+ * The same rule applies whether this is the ingestion fan-out (`onlyIds`) or a
+ * full profile rescore, so both paths produce the same matches — an asymmetry
+ * there means the radar disagrees with itself depending on which job ran last.
+ *
+ * The prefilter never decides a score. The number and its reasons come from the
+ * pure scorer, which needs the notice text anyway and can say *where* a phrase
+ * was found — something `@@` cannot.
  */
 async function candidateOpportunities(
   profile: KeywordProfile,
@@ -73,15 +99,31 @@ async function candidateOpportunities(
     conditions.push(inArray(opportunities.id, onlyIds));
   }
 
+  const signals: SQL[] = [];
   const terms = profile.keywords.map((k) => k.trim()).filter(Boolean);
-  if (terms.length > 0 && (!onlyIds || onlyIds.length === 0)) {
+  if (terms.length > 0) {
     // websearch_to_tsquery understands quoted phrases; OR them so one keyword
-    // hit is enough to make a notice a candidate.
+    // hit is enough. This expression matches the GIN index in the schema.
     const query = terms.map((term) => `"${term.replace(/"/g, "")}"`).join(" or ");
-    conditions.push(
+    signals.push(
       sql`to_tsvector('english', ${opportunities.title} || ' ' || ${opportunities.agency} || ' ' || ${opportunities.description}) @@ websearch_to_tsquery('english', ${query})`,
     );
   }
+  if (profile.naicsCodes.length > 0) {
+    signals.push(arrayOverlaps(opportunities.naicsCodes, profile.naicsCodes));
+  }
+  if (profile.pscCodes.length > 0) {
+    signals.push(arrayOverlaps(opportunities.pscCodes, profile.pscCodes));
+  }
+  for (const agency of profile.agencies.map((a) => a.trim()).filter(Boolean)) {
+    signals.push(ilike(opportunities.agency, `%${agency}%`));
+  }
+
+  // A profile with no keywords, codes, or agencies has nothing to match on. It
+  // scores 0 with a reason saying so, so there is no point loading the register.
+  if (signals.length === 0) return [];
+  const union = signals.length === 1 ? signals[0] : or(...signals);
+  if (union) conditions.push(union);
 
   return await db
     .select()
@@ -252,14 +294,6 @@ export async function markMatchSeen(firmId: string, matchId: string): Promise<vo
     .where(and(eq(matches.id, matchId), eq(matches.firmId, firmId), eq(matches.state, "new")));
 }
 
-export const DISMISS_REASONS = [
-  "Wrong vehicle",
-  "Too small",
-  "Wrong region",
-  "Not our work",
-  "No capacity",
-] as const;
-
 export async function dismissMatch(
   firmId: string,
   matchId: string,
@@ -307,6 +341,8 @@ export async function listMatches(
   firmId: string,
   options: {
     states?: Array<Match["state"]>;
+    /** Narrow to specific notices — how the "Watching" filter is expressed. */
+    opportunityIds?: string[];
     dueWithinDays?: number;
     limit?: number;
     now?: Date;
@@ -319,6 +355,10 @@ export async function listMatches(
   const conditions = [eq(matches.firmId, firmId)];
   if (options.states && options.states.length > 0) {
     conditions.push(inArray(matches.state, options.states));
+  }
+  if (options.opportunityIds) {
+    if (options.opportunityIds.length === 0) return [];
+    conditions.push(inArray(matches.opportunityId, options.opportunityIds));
   }
   if (typeof options.dueWithinDays === "number") {
     const horizon = new Date(now.getTime() + options.dueWithinDays * 86_400_000);

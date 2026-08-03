@@ -177,6 +177,10 @@ export const CLAUSE_KEYWORDS: Record<ClauseType, Array<[string, number]>> = {
     ["additional rounds", 5],
     ["as necessary to satisfy", 4],
   ],
+  // "Boilerplate" means accounted for and not scored by any playbook rule — the
+  // preamble, the insurance section, the general provisions. Without these the
+  // coverage strip called four ordinary sections "not analyzed", which reads as a
+  // gap in the review rather than as a section with nothing to score.
   boilerplate: [
     ["entire agreement", 6],
     ["severability", 6],
@@ -186,6 +190,14 @@ export const CLAUSE_KEYWORDS: Record<ClauseType, Array<[string, number]>> = {
     ["assignment of this agreement", 3],
     ["waiver", 4],
     ["headings", 4],
+    ["entered into as of", 6],
+    ["by and between", 4],
+    ["independent contractor", 6],
+    ["insurance", 5],
+    ["additional insured", 4],
+    ["relationship of the parties", 5],
+    ["no employment", 4],
+    ["taxes on amounts paid", 5],
   ],
   other: [],
 };

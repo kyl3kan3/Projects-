@@ -1,26 +1,49 @@
 /**
  * src/app/api/webhooks/stripe/route.ts
  *
- * Stripe webhook endpoint: one-time per-contract purchases, subscription
- * lifecycle, and credit grants. Verify, persist, enqueue — no business
- * logic inline.
+ * Stripe webhook. Verify the signature against the raw body, decide the effect, apply
+ * it, answer 200 quickly. All of the decision-making lives in `src/lib/stripe-events.ts`
+ * so it can be tested without a Stripe key.
  *
- * TODO:
- * - [ ] Verify signature with STRIPE_WEBHOOK_SECRET (raw body).
- * - [ ] Idempotency: unique event id, duplicate -> ack 200 and stop.
- * - [ ] checkout.session.completed (one-time): purchases row (1 credit),
- *       implicit account creation, kick the pending review if an upload
- *       is waiting.
- * - [ ] invoice.paid (subscriptions): monthly credit grant with period
- *       expiry.
- * - [ ] customer.subscription.updated/deleted: accounts.plan changes;
- *       credits ledger untouched (already-granted credits keep their
- *       expiry).
- * - [ ] charge.refunded: revoke unconsumed credits from that purchase.
- * - [ ] Return 200 in <1s; failures -> Sentry + Stripe retry.
+ * An unverifiable request is rejected with 400 and never inspected: an unsigned body is
+ * an instruction from a stranger to grant credits.
  */
 
-export async function POST(_req: Request): Promise<Response> {
-  // TODO: implement per ARCHITECTURE.md key flow 3
-  return new Response("Not implemented", { status: 501 });
+import { getStripe } from "@/lib/billing";
+import { env, stripeConfigured } from "@/lib/env";
+import {
+  applyStripeEffect,
+  decideStripeEffect,
+  type StripeEventShape,
+} from "@/lib/stripe-events";
+
+export async function POST(req: Request): Promise<Response> {
+  if (!stripeConfigured()) {
+    return new Response("Stripe is not configured on this deployment", { status: 503 });
+  }
+  const signature = req.headers.get("stripe-signature");
+  if (!signature) return new Response("Missing stripe-signature", { status: 400 });
+
+  const raw = await req.text();
+  let event: StripeEventShape;
+  try {
+    event = getStripe().webhooks.constructEvent(
+      raw,
+      signature,
+      env.stripeWebhookSecret,
+    ) as unknown as StripeEventShape;
+  } catch (err) {
+    console.warn("[stripe] signature verification failed", (err as Error)?.message);
+    return new Response("Invalid signature", { status: 400 });
+  }
+
+  try {
+    const effect = decideStripeEffect(event);
+    const result = await applyStripeEffect(event, effect);
+    return Response.json({ received: true, ...result });
+  } catch (err) {
+    // A 500 makes Stripe retry, which is what we want for a transient database error.
+    console.error("[stripe] failed to apply event", event.id, err);
+    return new Response("Failed to apply event", { status: 500 });
+  }
 }

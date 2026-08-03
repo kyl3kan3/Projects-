@@ -492,6 +492,22 @@ export function assertHasReasons(score: number, factors: ScoreFactor[]): ScoreFa
   return factors;
 }
 
+/**
+ * The dismissal vocabulary. Fixed, because free text cannot be counted, and the
+ * counts are what feed profile tuning ("4 dismissed for 'Wrong vehicle'" is a
+ * suggestion to narrow the vehicle filter).
+ *
+ * Lives here, in the pure module, so a client component can render the chips
+ * without dragging the database client into the browser bundle.
+ */
+export const DISMISS_REASONS = [
+  "Wrong vehicle",
+  "Too small",
+  "Wrong region",
+  "Not our work",
+  "No capacity",
+] as const;
+
 /** The reasons a match card shows before "+N more" — matched first, heaviest first. */
 export function topReasons(factors: ScoreFactor[], count = 2): ScoreFactor[] {
   const ordered = [...factors].sort((a, b) => {

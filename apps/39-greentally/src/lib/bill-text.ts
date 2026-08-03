@@ -67,7 +67,27 @@ function iso(y: number, m: number, d: number): string | null {
  * returned with a lower confidence by the caller — this is exactly the field that
  * must reach a human when the bill is not explicit.
  */
-export function parseBillDate(raw: string): { iso: string; ambiguous: boolean } | null {
+export type SlashOrder = "mdy" | "dmy";
+
+/**
+ * The ordering a slashed date proves on its own, or null when it proves nothing.
+ * `03/31/2025` proves month-first; `31/03/2025` proves day-first; `03/04/2025` proves
+ * neither and has to be resolved from context or reviewed by a person.
+ */
+export function slashOrder(raw: string): SlashOrder | null {
+  const m = /^(\d{1,2})[/](\d{1,2})[/](\d{2}|\d{4})$/.exec(raw.trim());
+  if (!m) return null;
+  const a = Number(m[1]);
+  const b = Number(m[2]);
+  if (a > 12 && b <= 12) return "dmy";
+  if (b > 12 && a <= 12) return "mdy";
+  return null;
+}
+
+export function parseBillDate(
+  raw: string,
+  order?: SlashOrder,
+): { iso: string; ambiguous: boolean } | null {
   const s = raw.trim().replace(/,/g, " ").replace(/\s+/g, " ");
 
   // 2025-03-01
@@ -101,12 +121,20 @@ export function parseBillDate(raw: string): { iso: string; ambiguous: boolean } 
     const a = Number(m[1]);
     const b = Number(m[2]);
     const yr = m[3].length === 2 ? 2000 + Number(m[3]) : Number(m[3]);
-    if (a > 12 && b <= 12) {
+    const own = slashOrder(s);
+    // The date's own evidence beats a hint; a hint beats nothing; US convention is the
+    // last resort and is reported as ambiguous so a human can check it.
+    const decided = own ?? order ?? null;
+    if (decided === "dmy") {
       const v = iso(yr, b, a);
       return v ? { iso: v, ambiguous: false } : null;
     }
+    if (decided === "mdy") {
+      const v = iso(yr, a, b);
+      return v ? { iso: v, ambiguous: false } : null;
+    }
     const v = iso(yr, a, b);
-    return v ? { iso: v, ambiguous: b <= 12 && a <= 12 } : null;
+    return v ? { iso: v, ambiguous: true } : null;
   }
 
   return null;
@@ -139,9 +167,27 @@ export function readPeriod(text: string): ReadField<{ start: string; end: string
   }
   if (!m) return null;
 
-  const a = parseBillDate(m[1]);
-  const b = parseBillDate(m[2]);
+  let a = parseBillDate(m[1]);
+  let b = parseBillDate(m[2]);
   if (!a || !b) return null;
+
+  /**
+   * A range disambiguates itself. "08/01/2025 to 08/31/2025" has an unambiguous second
+   * endpoint — 31 cannot be a month — which fixes the ordering convention for the first,
+   * and a human reads it that way without hesitating. Without this, every US gas bill with
+   * a slashed range landed in the review queue at 64% with both dates read correctly.
+   */
+  const aOrder = slashOrder(m[1]);
+  const bOrder = slashOrder(m[2]);
+  if (a.ambiguous && bOrder) {
+    const fixed = parseBillDate(m[1], bOrder);
+    if (fixed) a = fixed;
+  }
+  if (b.ambiguous && aOrder) {
+    const fixed = parseBillDate(m[2], aOrder);
+    if (fixed) b = fixed;
+  }
+
   if (b.iso <= a.iso) return null;
   if (a.ambiguous || b.ambiguous) confidence = Math.min(confidence, 6_400);
 
@@ -191,6 +237,10 @@ export function readQuantity(
   const labelled = [
     { re: /(?:total|billed|metered)\s+(?:usage|consumption|kwh|energy)[^0-9\n]{0,20}/i, bp: 9_700 },
     { re: /(?:kwh|therms?|ccf|mcf|m³|m3)\s+(?:used|usage|consumed|billed|delivered)[^0-9\n]{0,20}/i, bp: 9_700 },
+    // "Gas used 812 therms" / "Electricity you used 4,182 kWh" — the commonest phrasing on
+    // a US utility bill, and without it every gas bill fell one rung below the
+    // auto-accept threshold and filled the review queue with readings that were right.
+    { re: /(?:gas|electricity|energy|fuel)\s+(?:you\s+)?(?:used|usage|consumed|delivered)[^0-9\n]{0,20}/i, bp: 9_700 },
     { re: /(?:you used|usage this period|total (?:gas|electricity|energy))[^0-9\n]{0,24}/i, bp: 9_500 },
   ];
 

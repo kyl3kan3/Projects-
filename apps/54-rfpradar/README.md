@@ -102,3 +102,62 @@ In priority order:
 3. **GovWin/HigherGov move downmarket.** Mitigation: the wedge is the combined discovery + scorecard + library at a self-serve price; enterprise vendors' sales economics resist $199/mo; win the segment's communities before they look down.
 4. **Answer-library trust.** Firms hesitate to centralize proposal content. Mitigation: link-and-snapshot immutability, per-block permissions, export-everything-anytime (the anti-lock-in promise is the lock-in), SOC2 on the growth-phase roadmap.
 5. **Seasonal/cyclical pipelines.** Government fiscal-year rhythms concentrate RFP volume. Mitigation: annual pricing aligned to BD budgets; the library and win/loss history keep value alive between cycles; enterprise-RFP coverage smooths the curve.
+
+## Setup
+
+Everything below assumes Node 20+ and a Postgres you can reach. The app and the
+worker share one codebase and one `.env`.
+
+```bash
+npm install
+cp .env.example .env.local          # the Next.js app reads .env.local, the worker reads either
+```
+
+Fill in `.env.local`. The minimum to boot is `DATABASE_URL`, `AUTH_SECRET`, and
+`APP_URL`; everything else degrades honestly rather than crashing (see the notes
+below). Then:
+
+```bash
+npm run db:migrate          # creates the schema, including the full-text index
+npm run db:seed-sources     # registers SAM.gov + the five launch states
+npm run dev                 # http://localhost:3000
+```
+
+Sign up, build a keyword profile, and the first scored matches appear on the
+radar immediately — the profile form rescores on save rather than waiting for
+tomorrow's poll.
+
+### Background work: two shapes, same code
+
+The recurring jobs (`poll-sources`, `score-matches`, `morning-scan`,
+`deadline-reminders`, `refresh-staleness`, `process-stripe-event`) live in
+`src/lib/jobs.ts` and can be driven two ways:
+
+- **With Redis** — `npm run worker` runs BullMQ workers with repeatable
+  schedules, retries, and a dead-letter queue. This is the shape ARCHITECTURE.md
+  describes, and the one to deploy if you want hourly federal polling.
+- **Without Redis** — `GET /api/cron/tick` runs the same job bodies inline on a
+  bounded time budget. `vercel.json` schedules it hourly. It is protected by
+  `CRON_SECRET` and **refuses to run when that variable is unset**.
+
+Both are safe to run at once: every scheduled send is claimed through a unique
+dedupe key before it happens, so an overlapping tick sends nothing twice.
+
+### What each optional credential changes
+
+| Unset | What happens |
+|---|---|
+| `SAM_GOV_API_KEY` | The federal source cannot be polled. With `sampleFallback` on (the default in `db:seed-sources`) it serves bundled **sample** notices, flags itself `degraded`, and the radar prints "Sample feed — …" verbatim. Nothing is ever presented as live data. |
+| `REDIS_URL` | `npm run worker` refuses to start and tells you to use the cron route instead. |
+| `RESEND_API_KEY` | `DRY_RUN` defaults to true: the morning scan and reminders are composed in full and logged instead of sent, and the UI says so rather than showing a green tick. |
+| `STRIPE_SECRET_KEY` / `STRIPE_PRICE_*` | The billing page says Stripe is not configured and disables checkout. Everything else works; plan state stays whatever the database says. |
+| `ICS_TOKEN_SECRET` | Falls back to `AUTH_SECRET`, so a single-secret dev setup works. |
+| A firm's Slack webhook | Email-only. The scan still sends. |
+
+### Checks
+
+```bash
+npm run typecheck
+npm test                    # Node's test runner via tsx; the db-backed tests skip without DATABASE_URL
+npm run build
+```

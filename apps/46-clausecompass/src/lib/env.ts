@@ -102,12 +102,14 @@ export function emailConfigured(): boolean {
 }
 
 /**
- * Dev-only credit grants. The $19 checkout is the only way to buy a review in
- * production; with no Stripe key configured and NODE_ENV !== production, the
- * billing screen offers a clearly-labelled simulated purchase so the pipeline can
- * be exercised locally. Both conditions must hold — an unconfigured production
- * deploy must not hand out free reviews.
+ * Simulated purchases, for running the pipeline without Stripe.
+ *
+ * Stripe Checkout is the only way to buy a review unless a deployment *opts in* with
+ * `ALLOW_DEV_CREDITS=1` and has no Stripe key at all. Two conditions, both explicit:
+ * keying this off `NODE_ENV` alone would have made it invisible in a production build
+ * (which is where it was first needed) while still arming it in any environment that
+ * happened not to set NODE_ENV.
  */
 export function devCreditsAllowed(): boolean {
-  return process.env.NODE_ENV !== "production" && !stripeConfigured();
+  return process.env.ALLOW_DEV_CREDITS === "1" && !stripeConfigured();
 }

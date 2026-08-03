@@ -1,52 +1,93 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   RFPRadar — design tokens. Generated from DESIGN.md; edit DESIGN.md first.
-   Obeys DESIGN_LANGUAGE.md: one rationed accent, hairlines not boxes,
-   no gradients or glow on controls, 4px spacing scale, fonts must load.
+   RFPRadar — design tokens, generated from DESIGN.md. Edit DESIGN.md first.
+
+   Obeys DESIGN_LANGUAGE.md v2.1: one rationed accent, hairlines not boxes,
+   no gradients or glow on controls, 4px spacing scale, three radii, no emoji,
+   fonts that actually load.
+
+   Committed to a single light world by choice (DESIGN.md, "Color law"): this
+   is the morning register, read in daylight. There is no dark theme in v1.
    ========================================================================== */
 
 @theme {
-  /* Palette — exact values from DESIGN.md */
+  /* ---- Palette: the exact values from DESIGN.md ---- */
   --color-register: #f6f6f4; /* The ground. Every screen — official cool paper */
   --color-card: #fdfdfb; /* Match cards, scorecards, library blocks only */
   --color-hairline: #e3e3dd; /* 1px dividers & panel borders — never darker */
   --color-ink: #212832; /* Primary text AND primary button fill */
-  --color-ink-2: #606a76; /* Secondary text */
-  --color-ink-3: #98a0ab; /* Faint (notice ids, fetch times, placeholders) */
-  --color-federal: #3b5b85; /* THE accent. ≤10% of any screen: fit scores, links, active states, focus rings, */
+  --color-ink-2: #606a76; /* Secondary text — 5.08:1 on register, AA */
+  --color-federal: #3b5b85; /* THE accent, <=10% of a screen — 6.44:1, AA */
   --color-green: #3d855e; /* Won / go verdict / on-schedule only */
   --color-amber: #b4862e; /* Due soon / conditional / stale block only */
-  --color-red: #b04c3e; /* Overdue / no-go / source down only */
+  --color-red: #b04c3e; /* Overdue / no-go / source down only — 4.91:1, AA */
+
+  /* ------------------------------------------------------------------------
+     The one documented deviation from DESIGN.md's palette.
+     (AGENT_BRIEF hard rule 4: where a specified grey fails WCAG AA at the size
+     it is actually used, DESIGN_LANGUAGE.md's AA floor wins — raise the token,
+     measure it, and say so here.)
+
+     DESIGN.md specifies `ink-3: #98A0AB` for notice ids, fetch times and
+     placeholders. Measured against the `register` ground (#F6F6F4) that is
+     **2.44:1** — it fails AA (4.5:1) and even the 3:1 large-text floor. Those
+     are 11-13px mono data rows: the most-read text in the product.
+
+     Raised to #68727F, measured at **4.51:1**. It keeps a real step down from
+     `ink-2` (5.08:1) so the hierarchy survives, and every notice id is legible.
+
+     The same measurement retires `green` and `amber` from small text: #3D855E
+     is 4.11:1 and #B4862E is 3.04:1 on this ground. The originals stay for the
+     things that are not text — the 6px dot in a status pill, a progress track,
+     a rule — and the `-text` variants below carry the 11px labels.
+     ---------------------------------------------------------------------- */
+  --color-ink-3: #68727f; /* was #98A0AB (2.44:1) — AA floor wins, now 4.51:1 */
+  --color-green-text: #35754f; /* 5.09:1 — pill labels, verdict text */
+  --color-amber-text: #8a6415; /* 4.96:1 — "DUE SOON", "REVIEW BEFORE USE" */
 
   /* Semantic aliases, so components never hardcode a hue name */
-  --color-bg: #f6f6f4;
-  --color-surface: #fdfdfb;
-  --color-line: #e3e3dd;
-  --color-fg: #212832;
-  --color-fg-2: #606a76;
-  --color-fg-3: #98a0ab;
-  --color-accent: #3b5b85;
-  --color-action: #212832;
-  --color-ok: #3d855e;
-  --color-warn: #b4862e;
-  --color-bad: #b04c3e;
+  --color-bg: var(--color-register);
+  --color-surface: var(--color-card);
+  --color-line: var(--color-hairline);
+  --color-fg: var(--color-ink);
+  --color-fg-2: var(--color-ink-2);
+  --color-fg-3: var(--color-ink-3);
+  --color-accent: var(--color-federal);
+  --color-action: var(--color-ink);
 
   --font-display: "Public Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-sans: "Public Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "Overpass Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
+  /* Motion tokens (DESIGN_LANGUAGE.md) */
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring-snappy: cubic-bezier(0.2, 1.35, 0.4, 1);
+  --ease-spring-gentle: cubic-bezier(0.25, 1.1, 0.35, 1);
 }
 
 :root {
   color-scheme: light;
+  /* 4px scale: 4 · 8 · 12 · 16 · 20 · 24 · 32 · 40 · 56 · 80 */
+  --gutter: 20px;
   --tabbar-h: 56px;
+  --press: #2b3440; /* primary button press fill (DESIGN.md) */
+  --press-line: #ccccc4; /* secondary button press border */
+  --disabled: #d9d9d2;
 }
 
-html,
+* {
+  border-color: var(--color-line);
+  min-width: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
+  margin: 0;
   background: var(--color-bg);
   color: var(--color-fg);
   font-family: var(--font-sans);
@@ -56,46 +97,448 @@ body {
   overscroll-behavior-y: none;
 }
 
-* { border-color: var(--color-line); }
+::selection {
+  background: color-mix(in srgb, var(--color-federal) 22%, transparent);
+}
 
-/* ---- Type roles (see the specimen table in DESIGN.md) ---- */
-.t-hero { font-family: var(--font-display); font-size: clamp(2rem, 8.5vw, 3.375rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 600; }
-.t-stat { font-family: var(--font-mono); font-size: clamp(2.125rem, 9.5vw, 3.25rem); line-height: 1.05; letter-spacing: -0.01em; font-weight: 500; font-variant-numeric: tabular-nums; }
-.t-h2 { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.01em; font-weight: 600; }
-.t-title { font-size: 1rem; line-height: 1.3; font-weight: 600; }
-.t-body { font-size: 1rem; line-height: 1.55; }
-.t-secondary { font-size: 0.8125rem; line-height: 1.45; color: var(--color-fg-2); }
-.t-label { font-size: 0.6875rem; line-height: 1.2; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-fg-3); }
-.t-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+/* ---- Type roles: the specimen table in DESIGN.md ---- */
+.t-display {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 8.5vw, 3.375rem);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  font-weight: 600;
+}
+.t-stat {
+  font-family: var(--font-mono);
+  font-size: clamp(2.125rem, 9.5vw, 3.25rem);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.t-h2 {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+.t-title {
+  font-size: 1rem;
+  line-height: 1.3;
+  font-weight: 600;
+}
+.t-body {
+  font-size: 1rem;
+  line-height: 1.55;
+}
+.t-secondary {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--color-fg-2);
+}
+.t-label {
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-fg-3);
+}
+.t-mono {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.2;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.t-score {
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  line-height: 1;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-federal);
+}
 
-/* ---- Hairline construction: space and rules, never nested boxes ---- */
-.hairline-t { border-top: 1px solid var(--color-line); }
-.hairline-b { border-bottom: 1px solid var(--color-line); }
+/* ---- Hairlines, not borders. Space before boxes. ---- */
+.hair-t {
+  border-top: 1px solid var(--color-line);
+}
+.hair-b {
+  border-bottom: 1px solid var(--color-line);
+}
 
+/* Full-bleed hairline-divided rows: deadlines, factor rows, seats. */
+.rows > * + * {
+  border-top: 1px solid var(--color-line);
+}
+
+/* A card is a framed object: match cards, scorecards, library blocks. Never
+   nested inside another card (DESIGN_LANGUAGE rule 4). */
 .card {
   background: var(--color-surface);
   border: 1px solid var(--color-line);
   border-radius: 12px;
 }
 
+.sheet {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 20px;
+}
+
 /* ---- Controls ---- */
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 48px; padding: 0 20px; border-radius: 10px;
-  font-weight: 600; font-size: 0.9375rem; line-height: 1;
-  transition: transform 120ms var(--ease-out-quart), background-color 120ms linear;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  line-height: 1;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    transform 120ms var(--ease-out-quart),
+    background-color 120ms linear,
+    border-color 120ms linear;
 }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: var(--color-action); color: var(--color-bg); }
-.btn-secondary { background: transparent; color: var(--color-fg); border: 1px solid var(--color-line); }
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.btn-compact {
+  height: 40px;
+  padding: 0 14px;
+  font-size: 0.875rem;
+}
+.btn-primary {
+  background: var(--color-action);
+  color: var(--color-register);
+}
+.btn-primary:active:not(:disabled) {
+  background: var(--press);
+}
+.btn-primary:disabled {
+  background: var(--disabled);
+  color: var(--color-ink-3);
+  cursor: not-allowed;
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--color-ink);
+  border-color: var(--color-line);
+}
+.btn-secondary:active:not(:disabled) {
+  border-color: var(--press-line);
+}
+.btn-secondary:disabled {
+  color: var(--color-ink-3);
+  cursor: not-allowed;
+}
+/* Quiet action: text only, federal, no underline; press dims to 80%. */
+.btn-quiet {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 0;
+  padding: 0;
+  min-height: 44px;
+  color: var(--color-federal);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn-quiet:active {
+  opacity: 0.8;
+}
+.btn-quiet:disabled {
+  color: var(--color-ink-3);
+  cursor: not-allowed;
+}
 
-.focus-ring:focus-visible,
+.input,
+.select,
+.textarea {
+  width: 100%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  padding: 0 12px;
+  height: 48px;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  color: var(--color-ink);
+}
+.textarea {
+  height: auto;
+  min-height: 120px;
+  padding: 12px;
+  line-height: 1.55;
+  resize: vertical;
+}
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--color-ink-3);
+}
+.input:focus-visible,
+.select:focus-visible,
+.textarea:focus-visible {
+  outline: none;
+  border-color: var(--color-federal);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-federal) 25%, transparent);
+}
+.select {
+  appearance: none;
+  padding-right: 34px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none' stroke='%2368727F' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M5 8l5 5 5-5'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+
+/* Filter chips: New / Watching / Due soon / All */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-line);
+  background: transparent;
+  color: var(--color-ink-2);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    color 150ms linear,
+    border-color 150ms linear;
+}
+.chip[aria-current="true"] {
+  border-color: var(--color-federal);
+  color: var(--color-federal);
+}
+
+/* Status pill: 6px dot + 11px label. Never colour-only — the word is the state. */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid var(--color-line);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.pill-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex: none;
+}
+
+/* The one accent-filled element on the radar: a 4px hairline track. */
+.track {
+  height: 4px;
+  /* Radius 8 like every other control; on a 4px-tall bar the browser clamps it
+     to 2px, so this stays inside the three-radius budget. */
+  border-radius: 8px;
+  background: var(--color-line);
+  overflow: hidden;
+}
+.track > span {
+  display: block;
+  height: 100%;
+  background: var(--color-federal);
+  border-radius: 8px;
+}
+
+/* Focus: designed, 2px offset ring in the accent (DESIGN_LANGUAGE). */
 a:focus-visible,
-button:focus-visible {
-  outline: 2px solid var(--color-accent);
+button:focus-visible,
+[tabindex]:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--color-federal);
   outline-offset: 2px;
+  border-radius: 4px;
 }
 
+/* ---- Bottom tab bar ---- */
+.tabbar {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 40;
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  background: color-mix(in srgb, var(--color-card) 96%, transparent);
+  backdrop-filter: saturate(1.1) blur(8px);
+  border-top: 1px solid var(--color-line);
+}
+.tabbar a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: var(--color-ink-3);
+  text-decoration: none;
+  font-size: 0.625rem;
+  font-weight: 600;
+  position: relative;
+}
+.tabbar a[aria-current="page"] {
+  color: var(--color-ink);
+}
+.tabbar a[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  bottom: 6px;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: var(--color-federal);
+}
+
+/* ==========================================================================
+   The signature — the 6am find, in four beats (DESIGN.md).
+   1. the scan line stamps in mono            (opacity + 4px slide, 160ms)
+   2. the top match slides in, score counts   (300ms — see ScoreCounter.tsx)
+   3. the top two reasons typeset themselves  (staggered 40ms, opacity only)
+   4. the deadline chip lands                 (spring-snappy)
+   Lower-ranked matches follow as a plain 24ms staggered list. Under 1.2s.
+   ========================================================================== */
+
+@keyframes stamp-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes typeset-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes chip-land {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.beat-stamp {
+  animation: stamp-in 160ms var(--ease-out-quart) both;
+}
+.beat-card {
+  animation: stamp-in 300ms var(--ease-out-quart) both;
+  animation-delay: 120ms;
+}
+.beat-reason {
+  animation: typeset-in 200ms linear both;
+}
+.beat-chip {
+  animation: chip-land 320ms var(--ease-spring-snappy) both;
+  animation-delay: 460ms;
+}
+/* Plain staggered list for everything after the one card that gets ceremony. */
+.beat-row {
+  animation: stamp-in 200ms var(--ease-out-quart) both;
+}
+
+/* ---- Reduced motion: feature-complete, never punitive (DESIGN.md) ----
+   The scan stamp and the score go straight to their final state with a <=100ms
+   fade, the reasons appear whole, the deadline chip appears already placed.
+   Nothing is motion-only: score, verdict and countdown are always plain text,
+   so a collapsed animation loses the flourish and nothing else. */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 100ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 100ms !important;
+    scroll-behavior: auto !important;
+  }
+  .beat-stamp,
+  .beat-card,
+  .beat-reason,
+  .beat-row {
+    animation-name: typeset-in;
+  }
+  .beat-chip {
+    animation: typeset-in 100ms linear both;
+  }
+}
+
+/* ---- Layout helpers ---- */
+.screen {
+  padding: 0 var(--gutter);
+  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 24px);
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+/* Wide content scrolls inside its own container; the body never scrolls
+   sideways (DESIGN_LANGUAGE, mobile-first). */
+.scroll-x {
+  overflow-x: auto;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Keyword hits in the notice reader — underlined in federal, 2px offset. */
+.hit {
+  text-decoration: underline;
+  text-decoration-color: var(--color-federal);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: 32px;
+  }
 }
