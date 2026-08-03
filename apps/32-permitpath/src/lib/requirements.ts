@@ -27,7 +27,6 @@ import {
 } from "@/db/schema";
 import { recordAudit } from "@/lib/audit";
 import { appError } from "@/lib/errors";
-import { totalCents } from "@/lib/format";
 
 export interface RecordWithContext {
   record: RequirementRecord;
@@ -331,9 +330,4 @@ export async function fileCoverageRequest(input: {
     organizationId: input.organizationId,
     metadata: { jobType: input.jobType },
   });
-}
-
-/** Total of a record's fee schedule, in integer cents. */
-export function recordFeeTotalCents(record: Pick<RequirementRecord, "fees">): number {
-  return totalCents(record.fees);
 }

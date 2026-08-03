@@ -77,7 +77,14 @@ function importedPackages(dir) {
       if (!/\.(ts|tsx|js|jsx|mjs|cjs|astro)$/.test(e.name)) continue;
       // Lint/test config isn't part of the build; ignore what it imports.
       if (/^(eslint|vitest|jest|playwright)\.config\./.test(e.name)) continue;
-      const src = fs.readFileSync(full, "utf8");
+      // Strip comments first. Prose quite reasonably contains phrases like
+      // `distinguishing "reformatted" from "load calculation now required"`, which
+      // the specifier patterns below read as an import of a package by that name.
+      // Two apps produced such a warning before this, and a phantom missing
+      // dependency is exactly the kind of thing that sends an agent hunting.
+      const src = fs.readFileSync(full, "utf8")
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/^[ \t]*\/\/.*$/gm, "");
       const specs = [
         ...src.matchAll(/\bfrom\s+["']([^"']+)["']/g),
         ...src.matchAll(/\brequire\(\s*["']([^"']+)["']\s*\)/g),
@@ -87,7 +94,11 @@ function importedPackages(dir) {
       for (const s of specs) {
         if (s.startsWith(".") || s.startsWith("@/") || s.startsWith("~/") || s.startsWith("node:")) continue;
         const name = s.startsWith("@") ? s.split("/").slice(0, 2).join("/") : s.split("/")[0];
-        if (name) found.add(name);
+        // Must actually be spellable as a package. Prose in a string literal can
+        // still slip through — `it("separates 'predictable' from 'reliable'")` reads
+        // as an import of `reliable` — so treat the "imported but not declared"
+        // note as a lead, not a fact.
+        if (name && /^(@[a-z0-9._-]+\/)?[a-z0-9._-]+$/.test(name)) found.add(name);
       }
     }
   };

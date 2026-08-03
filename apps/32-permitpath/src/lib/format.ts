@@ -144,9 +144,3 @@ function dayLabel(day: Date, now: Date = new Date()): string {
   if (diff === 1) return "Yesterday";
   return longDate(day);
 }
-
-/** Title-case a slug or enum value for display without inventing a dictionary. */
-export function humanize(value: string): string {
-  const s = value.replace(/[_-]+/g, " ").trim();
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}

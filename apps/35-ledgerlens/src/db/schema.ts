@@ -270,6 +270,12 @@ export const extractions = pgTable(
     lineSummary: text("line_summary"),
     suggestedCategorySlug: text("suggested_category_slug"),
     confidence: jsonb("confidence").$type<FieldConfidence>().notNull().default({}),
+    /**
+     * Field → the text the value was read from. "Tap any number to see where it came
+     * from" is a first-class promise in DESIGN.md, and a promise the UI cannot keep
+     * unless the evidence is stored beside the value.
+     */
+    provenance: jsonb("provenance").$type<Record<string, string>>().notNull().default({}),
     overallConfidenceBp: integer("overall_confidence_bp").notNull().default(0),
     durationMs: integer("duration_ms").notNull().default(0),
     costMicrocents: integer("cost_microcents").notNull().default(0),

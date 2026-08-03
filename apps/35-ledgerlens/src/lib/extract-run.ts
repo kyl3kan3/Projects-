@@ -226,14 +226,14 @@ export async function extractDocument(
   }
 
   const applied = await applyExtraction(doc, org, outcome, policy);
-  await writeExtraction(doc, org, extractor, attempt, outcome, applied.decision, applied.categorySlug);
+  await writeExtraction(doc, org, extractor, attempt, outcome, applied, applied.categorySlug);
   await bumpUsage(org.id, period, { extracted: 1, costMicrocents: cost });
   void firstRunId;
 
   return {
     documentId,
-    outcome: applied.decision.status,
-    reason: applied.decision.status === "rejected" ? applied.decision.reason : undefined,
+    outcome: applied.status,
+    reason: applied.status === "rejected" ? applied.reason : undefined,
     costMicrocents: cost,
     durationMs: duration,
   };
@@ -256,11 +256,16 @@ async function countAttempts(documentId: string): Promise<number> {
  * flagged — which is the "learned rule makes month six quiet" mechanism, expressed
  * as arithmetic.
  */
+export type DecidedExtraction = Decision & {
+  categorySlug: string | null;
+  confidence: FieldConfidence;
+};
+
 async function decideFor(
   organizationId: string,
   outcome: Extract<ExtractionOutcome, { ok: true }>,
   policy: ConfidencePolicy,
-): Promise<Decision & { categorySlug: string | null; confidence: FieldConfidence }> {
+): Promise<DecidedExtraction> {
   const result = outcome.result;
   const normalized = result.vendor ? normalizeVendor(result.vendor) : "";
   let ruleSlug: string | null = null;
@@ -273,6 +278,10 @@ async function decideFor(
     modelSlug: result.suggestedCategory,
     modelConfidence: result.confidence.category ?? 0,
     hintSlug: normalized ? categoryHintFor(normalized) : null,
+    // A rule exists only because a human confirmed an entry for this exact normalised
+    // vendor before. That is corroboration from the operator's own books, and it is why
+    // the second receipt from a known supplier does not ask again.
+    vendorKnown: ruleSlug !== null,
     hasVendor: Boolean(result.vendor),
     hasDate: Boolean(result.docDate),
     hasTotal: result.totalCents !== null,
@@ -287,6 +296,8 @@ interface BuildDecisionInput {
   modelSlug: string | null;
   modelConfidence: number;
   hintSlug: string | null;
+  /** The org has already confirmed an entry for this normalised vendor. */
+  vendorKnown: boolean;
   hasVendor: boolean;
   hasDate: boolean;
   hasTotal: boolean;
@@ -294,10 +305,20 @@ interface BuildDecisionInput {
   policy: ConfidencePolicy;
 }
 
+/**
+ * Confidence in a vendor name that matches one the operator has already vouched for.
+ *
+ * Not a rubber stamp: it only applies when `normalizeVendor` maps the printed name onto
+ * an existing vendor record that carries a human-established rule. Recognising a name
+ * from your own supplier list is genuinely stronger evidence than reading it cold, and
+ * this is the arithmetic behind "month six is quieter than month one".
+ */
+const KNOWN_VENDOR_CONFIDENCE = 0.96;
+
 export function buildDecision(
   modelConfidence: FieldConfidence,
   input: BuildDecisionInput,
-): Decision & { categorySlug: string | null; confidence: FieldConfidence } {
+): DecidedExtraction {
   const category = resolveCategory({
     ruleSlug: input.ruleSlug,
     modelSlug: input.modelSlug,
@@ -307,6 +328,9 @@ export function buildDecision(
   });
 
   const confidence: FieldConfidence = { ...modelConfidence };
+  if (input.vendorKnown && typeof confidence.vendor === "number") {
+    confidence.vendor = Math.max(confidence.vendor, KNOWN_VENDOR_CONFIDENCE);
+  }
   if (category.source === "rule") confidence.category = 1;
   else if (category.source === "model") confidence.category = input.modelConfidence;
   else confidence.category = input.modelConfidence || (category.slug ? 0.6 : 0);
@@ -334,7 +358,7 @@ async function applyExtraction(
   org: Organization,
   outcome: Extract<ExtractionOutcome, { ok: true }>,
   policy: ConfidencePolicy,
-): Promise<{ decision: Decision; categorySlug: string | null; confidence: FieldConfidence }> {
+): Promise<DecidedExtraction> {
   const db = getDb();
   const result = outcome.result;
   const decided = await decideFor(org.id, outcome, policy);
@@ -495,6 +519,7 @@ async function writeExtraction(
       lineSummary: r.lineSummary,
       suggestedCategorySlug: categorySlug ?? r.suggestedCategory,
       confidence: decision ? confidenceOf(decision) : r.confidence,
+      provenance: r.provenance as Record<string, string>,
       overallConfidenceBp: toBp(decision?.overall ?? 0),
     })
     .returning({ id: extractions.id });

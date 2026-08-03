@@ -103,3 +103,64 @@ In priority order:
 4. **Jurisdictions publish better portals.** Gov-side software (Symbium, Accela upgrades) slowly improves first-party UX. Mitigation: the cross-jurisdiction layer is the product -- one interface, one change log, one expiry calendar across every AHJ a contractor touches. Better municipal websites make our crawls easier, not our product obsolete.
 5. **Crawl fragility and access.** Municipal sites are brittle, occasionally hostile to bots, and sometimes paper-only. Mitigation: polite crawling (identified user agent, low frequency), human curation as the fallback pipeline for uncrawlable jurisdictions, and never auto-publishing a diff without review.
 6. **PermitFlow moves downmarket.** A funded competitor could ship a cheap specialty-trades tier. Mitigation: speed in the niche, the contribution network they'd have to bootstrap from zero, and pricing/positioning built for the 12-truck shop they'd have to re-learn. Accept the risk consciously: their incentives (venture returns) point upmarket.
+
+## Setup
+
+Requires Node 20+ and a Postgres database. Nothing else is mandatory: the app runs
+without Stripe, without Resend, and without a Mapbox token, and says so on screen
+wherever that changes what you see.
+
+```bash
+npm install
+cp .env.example .env.local           # fill in DATABASE_URL and AUTH_SECRET
+npm run db:migrate                   # applies drizzle/ against DATABASE_URL
+npm run db:seed                      # the 50-jurisdiction launch corpus
+npm run dev                          # http://localhost:3032
+```
+
+Then sign up. The trial is 14 days and starts immediately; watch a jurisdiction,
+create a job, and the checklist is generated from the current requirement record and
+pinned to that version.
+
+To reach the curation console, grant yourself curator access after signing up:
+
+```bash
+npm run db:seed -- --curator=you@example.com
+```
+
+### What the corpus contains
+
+`npm run db:seed` inserts the launch curation set: every incorporated city and town
+in Maricopa County, the Pinal County communities the metro spills into, both
+counties' unincorporated areas, the four tribal communities inside the valley, three
+utility interconnection authorities, four fire districts, two county agencies and two
+state authorities — 50 in all, with a verified requirement record for every job type
+each of them covers, monitored source URLs, four version chains with real diffs, and
+three crawl diffs waiting in the review queue. It is idempotent: re-running updates
+jurisdiction metadata and never overwrites a record that already has a verifier's
+name on it.
+
+### Background work
+
+Crawling monitored pages, diffing them into the review queue, planning the expiry
+ladder and sending due alerts are one bounded pass, driven either by a cron-triggered
+route or by a long-lived process:
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3032/api/cron/tick
+npm run worker      # the identical pass on an interval, for Railway/Fly
+```
+
+`vercel.json` schedules the route hourly (which needs a Vercel plan above Hobby —
+Hobby runs cron once a day, which is fine for the expiry ladder and slow for a
+72-hour crawl cycle). The route refuses every request when `CRON_SECRET` is unset
+rather than defaulting to open: an open trigger here emails real contractors and
+crawls other people's servers.
+
+### Checks
+
+```bash
+npm run typecheck
+npm test            # node:test via tsx, no test dependency
+npm run build
+```

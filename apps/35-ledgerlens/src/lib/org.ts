@@ -111,9 +111,12 @@ export async function categoryBySlug(slug: string): Promise<Category | null> {
 
 /* ---------------------------------------------------------------- periods --- */
 
-/** The period an organisation is currently in, in *its* timezone. */
-export function currentPeriod(org: Pick<Organization, "timeZone">): Period {
-  return periodOf(today(org.timeZone));
+/**
+ * The period an organisation is currently in, in *its* timezone. `asOf` lets a test
+ * or a sweep pin the date without waiting for a calendar month to pass.
+ */
+export function currentPeriod(org: Pick<Organization, "timeZone">, asOf?: string): Period {
+  return periodOf(asOf ?? today(org.timeZone));
 }
 
 export async function usageFor(organizationId: string, period: Period): Promise<UsageCounter> {

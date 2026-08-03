@@ -19,6 +19,7 @@
  */
 
 import { and, asc, desc, eq, gte, isNotNull, isNull, lt, lte, ne, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { getDb } from "@/db";
 import {
   categories,
@@ -56,6 +57,7 @@ import {
   putObject,
 } from "@/lib/storage";
 import { renderCoverPdf } from "@/lib/close-pdf";
+import { effectiveDateBetween } from "@/lib/periods";
 
 /* ------------------------------------------------------------------- rows --- */
 
@@ -133,17 +135,19 @@ export interface CloseGate {
  * unreadable scan received in March cannot be allowed to block April forever.
  */
 export async function closeGate(organizationId: string, period: Period): Promise<CloseGate> {
+  const originalLine = alias(lineItems, "original_line");
   const rows = await getDb()
     .selectDistinct({ id: documents.id })
     .from(reviewItems)
     .innerJoin(documents, eq(documents.id, reviewItems.documentId))
     .leftJoin(lineItems, eq(lineItems.documentId, documents.id))
+    .leftJoin(originalLine, eq(originalLine.documentId, documents.duplicateOfId))
     .where(
       and(
         eq(reviewItems.organizationId, organizationId),
         isNull(reviewItems.resolvedAt),
         ne(documents.status, "duplicate"),
-        sql`coalesce(${lineItems.docDate}::text, to_char(${documents.receivedAt}, 'YYYY-MM-DD')) between ${periodStart(period)} and ${periodEnd(period)}`,
+        effectiveDateBetween(lineItems.docDate, originalLine.docDate, period),
       ),
     );
   return { clean: rows.length === 0, blockingDocuments: rows.length, blockingIds: rows.map((r) => r.id) };
@@ -276,13 +280,22 @@ export async function buildPeriodSummary(
     byCategory.set(key, entry);
   }
 
-  // Unreviewed and rejected documents that belong to this period.
+  // Unreviewed, rejected and duplicate documents that belong to this period.
+  //
+  // "Belong" is the effective date from `lib/periods`: this document's own reading,
+  // else the reading of the document it duplicates, else the day it arrived. The middle
+  // fallback matters — merging a duplicate deletes its line item, and without it a
+  // March duplicate would silently reappear in April's document count.
+  const originalLine = alias(lineItems, "original_line");
   const status = await db
     .select({
       status: documents.status,
       id: documents.id,
       vendor: vendors.displayName,
       amountCents: lineItems.amountCents,
+      // The subquery aliases review_items as `ri`, and the outer column is written
+      // qualified, so this cannot bind to the subquery's own scope and silently
+      // return zero forever.
       openReviews: sql<number>`(
         select count(*) from review_items ri
         where ri.document_id = ${documents.id} and ri.resolved_at is null
@@ -290,11 +303,12 @@ export async function buildPeriodSummary(
     })
     .from(documents)
     .leftJoin(lineItems, eq(lineItems.documentId, documents.id))
+    .leftJoin(originalLine, eq(originalLine.documentId, documents.duplicateOfId))
     .leftJoin(vendors, eq(vendors.id, lineItems.vendorId))
     .where(
       and(
         eq(documents.organizationId, organizationId),
-        sql`coalesce(${lineItems.docDate}::text, to_char(${documents.receivedAt}, 'YYYY-MM-DD')) between ${periodStart(period)} and ${periodEnd(period)}`,
+        effectiveDateBetween(lineItems.docDate, originalLine.docDate, period),
       ),
     );
 

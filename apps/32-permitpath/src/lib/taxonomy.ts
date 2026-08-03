@@ -124,7 +124,3 @@ export function isJobType(value: string): value is JobType {
 export function jobTypeLabel(code: string): string {
   return isJobType(code) ? JOB_TYPE_META[code].label : code;
 }
-
-export function jobTypesForTrade(trade: Trade): JobTypeMeta[] {
-  return JOB_TYPES.map((c) => JOB_TYPE_META[c]).filter((m) => m.trade === trade);
-}

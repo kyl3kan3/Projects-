@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="LedgerLens">
+  <rect width="64" height="64" rx="14" fill="#20261F"/>
+  <g stroke="#F7F6F1" stroke-width="3" stroke-linecap="round" fill="none">
+    <path d="M16 20h24M16 30h24M16 40h14"/>
+  </g>
+  <path d="M16 50h32" stroke="#2E7D5B" stroke-width="3.5" stroke-linecap="round"/>
+</svg>

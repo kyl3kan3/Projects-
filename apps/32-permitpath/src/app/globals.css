@@ -1,0 +1,747 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   PermitPath — design tokens, straight from DESIGN.md.
+   A municipal record room with the lights on: manila paper, dense ink,
+   hairline rules, one brick-red stamp that appears only when a fact is
+   verified.
+
+   Obeys DESIGN_LANGUAGE.md v2.1: no emoji, no gradient or glow on controls,
+   space before boxes, hairlines not borders, the 4px spacing scale, three
+   radii (8 / 12 / 18), one accent under 10% of a screen, fonts that load.
+   ========================================================================== */
+
+@theme {
+  /* Palette — exact values from DESIGN.md */
+  --color-manila: #f1ebdd; /* The ground. Every screen */
+  --color-bond: #faf6ec; /* Requirement cards, sheets, the tab bar */
+  --color-hairline: #dbd2be; /* 1px rules and card borders — never darker */
+  --color-ink: #2a251c; /* Primary text; the only high-emphasis fill */
+  --color-ink-press: #40382a; /* Pressed state of ink fills */
+  --color-ink-2: #6e6553; /* Secondary text */
+  --color-ink-3: #a29881; /* Faint: timestamps, placeholders, disabled */
+  --color-brick: #a8552f; /* THE accent: the stamp, verified, links, focus */
+  --color-ochre: #a97b26; /* Pending / at-risk / in-review only */
+  --color-signal-red: #8f2b21; /* Expired / stop-work / failed inspection only */
+
+  /* Semantic aliases, so components never hardcode a hue name */
+  --color-bg: var(--color-manila);
+  --color-surface: var(--color-bond);
+  --color-line: var(--color-hairline);
+  --color-fg: var(--color-ink);
+  --color-fg-2: var(--color-ink-2);
+  --color-fg-3: var(--color-ink-3);
+  --color-accent: var(--color-brick);
+  --color-action: var(--color-ink);
+  --color-action-press: var(--color-ink-press);
+  --color-action-fg: var(--color-bond);
+  --color-secondary-press: #c7bca4;
+
+  --font-display: "Source Serif 4", ui-serif, Georgia, serif;
+  --font-sans:
+    "Public Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Spline Sans Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+:root {
+  color-scheme: light;
+  --tabbar-h: 56px;
+  --gutter: 20px;
+}
+
+/* The dark counterpart from DESIGN.md. Accents hold in both themes; the
+   primary button flips to bond fill with ink text. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --color-bg: #211d15;
+    --color-surface: #2a251c;
+    --color-line: #3a3427;
+    --color-fg: #f1ebdd;
+    --color-fg-2: #b6ac95;
+    --color-fg-3: #8b8069;
+    --color-action: #faf6ec;
+    --color-action-press: #e7e0d0;
+    --color-action-fg: #2a251c;
+    --color-secondary-press: #4a4232;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  border-color: var(--color-line);
+}
+
+html,
+body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+  /* The page body never scrolls sideways; wide content scrolls inside itself. */
+  overflow-x: hidden;
+}
+
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+/* ---- Type roles: the specimen table in DESIGN.md, verbatim ---- */
+.t-display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(32px, 8.5vw, 54px);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+.t-h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.25;
+  letter-spacing: -0.005em;
+}
+.t-title {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+}
+.t-body {
+  font-size: 16px;
+  line-height: 1.55;
+}
+.t-secondary {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-fg-2);
+}
+.t-label {
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-fg-3);
+}
+/* Every fee, date, permit number and recency stamp: mono, tabular, always. */
+.t-data {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.t-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Layout ---- */
+.screen {
+  padding-inline: var(--gutter);
+  padding-bottom: calc(var(--tabbar-h) + 96px + env(safe-area-inset-bottom));
+  max-width: 720px;
+  margin-inline: auto;
+}
+.screen-wide {
+  max-width: 1120px;
+}
+@media (min-width: 768px) {
+  :root {
+    --gutter: 32px;
+  }
+}
+@media (min-width: 1024px) {
+  .screen {
+    padding-bottom: 96px;
+    max-width: 1120px;
+  }
+}
+
+/* ---- Hairline construction: space and rules, never nested boxes ---- */
+.hairline-t {
+  border-top: 1px solid var(--color-line);
+}
+.hairline-b {
+  border-bottom: 1px solid var(--color-line);
+}
+
+/* A card frames a genuinely framed object: a requirement record, a sheet. */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 12px;
+  padding: 16px;
+}
+.sheet {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 18px;
+  padding: 20px;
+}
+
+/* ---- Controls ---- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 120ms var(--ease-out-quart),
+    background-color 120ms linear,
+    border-color 120ms linear;
+}
+.btn-full {
+  width: 100%;
+}
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.btn-primary {
+  background: var(--color-action);
+  color: var(--color-action-fg);
+  border: 1px solid var(--color-action);
+}
+.btn-primary:active:not(:disabled) {
+  background: var(--color-action-press);
+  border-color: var(--color-action-press);
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--color-fg);
+  border: 1px solid var(--color-line);
+}
+.btn-secondary:active:not(:disabled) {
+  border-color: var(--color-secondary-press);
+}
+.btn:disabled {
+  background: var(--color-line);
+  border-color: var(--color-line);
+  color: var(--color-fg-3);
+  cursor: not-allowed;
+}
+/* Quiet action: text only, brick, no underline, dims on press. */
+.btn-quiet {
+  background: none;
+  border: 0;
+  padding: 0;
+  height: auto;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-accent);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+}
+.btn-quiet:active {
+  opacity: 0.8;
+}
+.btn-quiet-sm {
+  font-size: 13px;
+  min-height: 32px;
+}
+
+.input {
+  width: 100%;
+  height: 48px;
+  padding: 0 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  font-size: 16px;
+}
+.input::placeholder {
+  color: var(--color-fg-3);
+}
+.input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px rgb(168 85 47 / 0.25);
+}
+textarea.input {
+  height: auto;
+  min-height: 88px;
+  padding: 12px;
+  line-height: 1.5;
+}
+select.input {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--color-fg-3) 50%),
+    linear-gradient(135deg, var(--color-fg-3) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 21px,
+    calc(100% - 13px) 21px;
+  background-size:
+    5px 5px,
+    5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 36px;
+}
+.input-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Chips: one horizontally scrolling row, never wrapped. */
+.chiprow {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+.chiprow::-webkit-scrollbar {
+  display: none;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-line);
+  background: var(--color-surface);
+  color: var(--color-fg-2);
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color 150ms linear,
+    border-color 150ms linear;
+}
+.chip[data-active="true"] {
+  border: 1.5px solid var(--color-accent);
+  color: var(--color-accent);
+}
+
+*:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---- Rows: full-bleed, hairline-divided, never boxes ---- */
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: 56px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--color-line);
+  color: inherit;
+  text-align: left;
+  width: 100%;
+  background: none;
+}
+.row-tap {
+  cursor: pointer;
+}
+
+/* The verification control: a hairline ring that becomes the stamp. */
+.stamp-ring {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  margin: -8px 0 -8px -10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: var(--color-fg-3);
+}
+.stamp-ring-open {
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+}
+.stamp-ring-na {
+  width: 18px;
+  height: 2px;
+  background: var(--color-fg-3);
+}
+.stamp-glyph {
+  color: var(--color-accent);
+}
+
+/* ---- Status pills ---- */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.pill-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+  flex: none;
+}
+.pill-neutral {
+  color: var(--color-fg-3);
+}
+.pill-pending {
+  color: var(--color-ochre);
+}
+.pill-issued {
+  color: var(--color-brick);
+}
+.pill-expired {
+  color: var(--color-signal-red);
+}
+/* Stop-work is the only bordered pill — it should look like a notice. */
+.pill-stop {
+  color: var(--color-signal-red);
+  border: 1.5px solid var(--color-signal-red);
+}
+
+/* ---- Alert banner: a notice pinned to the board, no radius ---- */
+.banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  margin-inline: calc(var(--gutter) * -1);
+  padding: 16px var(--gutter);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-line);
+  border-bottom: 1px solid var(--color-line);
+  text-align: left;
+}
+.banner-enter {
+  animation: banner-down 200ms var(--ease-in-out-soft) both;
+}
+@keyframes banner-down {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---- Bottom tab bar ---- */
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background: color-mix(in srgb, var(--color-surface) 96%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-line);
+}
+.tabbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-weight: 600;
+  font-size: 10px;
+  color: var(--color-fg-3);
+  position: relative;
+}
+.tabbar-item[data-active="true"] {
+  color: var(--color-fg);
+}
+.tabbar-item[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  top: 5px;
+  width: 2px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--color-accent);
+}
+
+/* ---- Pinned thumb-zone action ---- */
+.thumb-cta {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  z-index: 20;
+  padding: 12px var(--gutter) 16px;
+  background: linear-gradient(to top, var(--color-bg) 62%, transparent);
+  pointer-events: none;
+}
+.thumb-cta > * {
+  pointer-events: auto;
+  max-width: 680px;
+  margin-inline: auto;
+}
+@media (min-width: 1024px) {
+  .tabbar {
+    display: none;
+  }
+  .thumb-cta {
+    position: static;
+    padding: 24px 0 0;
+    background: none;
+  }
+}
+
+/* ==========================================================================
+   The signature: the jurisdiction stamp.
+   A hand stamp landing — scale 1.4 -> 1.0 with -2deg -> 0deg in one 240ms
+   ease-out-quart move, while the row's mono recency fades in. Nothing else
+   in the product animates like this.
+   ========================================================================== */
+@keyframes stamp-settle {
+  from {
+    opacity: 0;
+    transform: scale(1.4) rotate(-2deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+.stamp-settle {
+  animation: stamp-settle 240ms var(--ease-out-quart) both;
+}
+@keyframes recency-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.recency-in {
+  animation: recency-in 240ms linear both;
+}
+
+/* The header sweep, when the last item stamps. */
+@keyframes sweep-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes sweep-fade {
+  to {
+    opacity: 0;
+  }
+}
+.sweep {
+  display: block;
+  height: 1.5px;
+  background: var(--color-accent);
+  transform-origin: left center;
+  animation:
+    sweep-draw 240ms var(--ease-out-quart) both,
+    sweep-fade 400ms linear 240ms both;
+}
+/* Reduced motion keeps a plain brick underline instead of drawing one. */
+.sweep-static {
+  display: block;
+  height: 1.5px;
+  background: var(--color-accent);
+}
+
+/* Row entrance: opacity plus a 4px y-slide, staggered 24ms. */
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.row-in {
+  animation: row-in 240ms var(--ease-out-quart) both;
+}
+
+/* Hold-to-confirm for destructive actions: a 600ms radial fill. */
+@keyframes hold-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.hold-progress {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--color-signal-red) 18%, transparent);
+  transform-origin: left center;
+  transform: scaleX(0);
+  border-radius: 8px;
+}
+.hold-progress[data-holding="true"] {
+  animation: hold-fill 600ms linear both;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Wide content — the version history table, the raw diff — scrolls in itself. */
+.scroll-x {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+.diff {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre;
+}
+.diff-add {
+  color: var(--color-brick);
+}
+.diff-del {
+  color: var(--color-signal-red);
+}
+
+/* ==========================================================================
+   Reduced motion: every animated signal is also plain text — the mono recency
+   stamp and the pill copy carry the meaning without any movement.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .stamp-settle {
+    animation: recency-in 100ms linear both;
+  }
+  .sweep {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .row-in,
+  .banner-enter {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .hold-progress[data-holding="true"] {
+    animation: none;
+    transform: scaleX(1);
+  }
+}
+
+/* ==========================================================================
+   Landing page — the four animated beats (MARKETING_PLAYBOOK.md law 6):
+   the stamp landing on the hero record, the change pipeline drawing itself,
+   the coverage numbers arriving, and the arithmetic writing out. Everything
+   between beats is static and typeset like a notice board.
+   ========================================================================== */
+.landing-stamp {
+  display: inline-flex;
+  animation: stamp-settle 240ms var(--ease-out-quart) 420ms both;
+}
+.landing-recency {
+  color: var(--color-fg-3);
+  animation: recency-in 240ms linear 620ms both;
+}
+.landing-step {
+  flex: none;
+  width: 1.5px;
+  align-self: stretch;
+  background: var(--color-accent);
+  transform-origin: top center;
+  animation: step-draw 240ms var(--ease-out-quart) both;
+}
+@keyframes step-draw {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+.landing-stat,
+.landing-math {
+  animation: row-in 240ms var(--ease-out-quart) both;
+}
+
+/* The sticky mobile CTA: a conversion feature, not an engineering nicety. */
+.landing-sticky {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  padding: 12px var(--gutter) calc(12px + env(safe-area-inset-bottom));
+  background: color-mix(in srgb, var(--color-surface) 96%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-line);
+}
+.landing-sticky > * {
+  max-width: 680px;
+  margin-inline: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-stamp,
+  .landing-recency,
+  .landing-step,
+  .landing-stat,
+  .landing-math {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}

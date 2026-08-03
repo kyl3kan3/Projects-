@@ -25,7 +25,7 @@ export interface CategorySeed {
 
 /**
  * The seed set, aligned to IRS Schedule C (Form 1040) Part II line numbers. Fuel is
- * a separate category from "Car & truck" even though both land on line 9, because
+ * a separate category (not folded into Car & truck) even though both land on line 9, because
  * an operator who buys diesel weekly wants to see the diesel.
  */
 export const CATEGORY_SEEDS: CategorySeed[] = [
@@ -82,7 +82,10 @@ export function normalizeVendor(raw: string): string {
   // Punctuation to spaces, then collapse. Keep & and - inside words (sherwin-williams).
   s = s.replace(/[^a-z0-9&\- ]+/g, " ");
   s = s.replace(/\s+/g, " ").trim();
-  // Bare trailing digits left over from "home depot 1234".
+  // A standalone run of three or more digits is a store or terminal number, and
+  // everything after it on the line is location: "home depot 1234 denver co" is the
+  // same merchant as "home depot". Three digits, not two, so "76 station" survives.
+  s = s.replace(/\s\d{3,}\b.*$/, "");
   s = s.replace(/\s+\d{2,}$/, "");
   // A trailing US state abbreviation is location, not identity.
   s = s.replace(

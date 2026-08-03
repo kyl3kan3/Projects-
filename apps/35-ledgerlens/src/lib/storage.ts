@@ -314,6 +314,14 @@ export async function createSignedUploadUrl(
   return { uploadUrl: `${env.appUrl}/api/uploads/put?${params.toString()}`, key, direct: false };
 }
 
+/**
+ * A direct presigned GET, when the driver can issue one. Used only by `/api/files` to
+ * redirect instead of proxying; the filesystem driver returns null and the route streams.
+ */
+export async function presignGet(key: string, ttlSeconds: number): Promise<string | null> {
+  return driver().presignGet(key, ttlSeconds);
+}
+
 /** Test seam — resets the memoised driver after env changes. */
 export function resetStorageDriver(): void {
   _driver = null;

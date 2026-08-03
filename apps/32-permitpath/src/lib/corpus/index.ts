@@ -99,14 +99,3 @@ export function composeRecords(seed: JurisdictionSeed, jurisdictionIndex: number
     };
   });
 }
-
-/** How many records the launch corpus contains, for the coverage copy. */
-export function corpusSize(): { jurisdictions: number; records: number; curated: number } {
-  let records = 0;
-  let curated = 0;
-  JURISDICTION_SEEDS.forEach((seed) => {
-    records += coveredJobTypes(seed).length;
-    if (seed.coverage === "curated") curated += 1;
-  });
-  return { jurisdictions: JURISDICTION_SEEDS.length, records, curated };
-}

@@ -22,8 +22,11 @@ build/
 coverage/
 .nyc_output/
 
-# Drizzle
-drizzle/meta/
+# Drizzle: drizzle/ (including drizzle/meta/) is committed on purpose. Without
+# drizzle/meta/_journal.json a fresh clone cannot run `db:migrate` at all.
+
+# Local object storage (the filesystem driver, when R2 is not configured)
+.data/
 
 # TypeScript
 *.tsbuildinfo

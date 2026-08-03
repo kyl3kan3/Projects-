@@ -29,7 +29,7 @@ import {
   type Vendor,
 } from "@/db/schema";
 import { audit } from "@/lib/audit";
-import { isIsoDate } from "@/lib/dates";
+import { isIsoDate, periodOf, type Period } from "@/lib/dates";
 import { ValidationError } from "@/lib/errors";
 import { CATEGORY_SLUGS, normalizeVendor } from "@/lib/categorize";
 import { learnFromCorrection, upsertVendor } from "@/lib/vendors";
@@ -142,6 +142,8 @@ export interface ConfirmResult {
   documentId: string;
   correctedFields: ReviewField[];
   learnedRule: boolean;
+  /** The period the confirmed entry landed in — the inbox to send the operator to. */
+  period: Period;
 }
 
 /**
@@ -252,6 +254,7 @@ export async function confirmDocument(
     .select()
     .from(reviewItems)
     .where(and(eq(reviewItems.documentId, documentId), isNull(reviewItems.resolvedAt)));
+  const categoryWasFlagged = open.some((item) => item.field === "category");
   for (const item of open) {
     const wasCorrected = corrected.includes(item.field);
     await db
@@ -270,10 +273,20 @@ export async function confirmDocument(
       .where(eq(reviewItems.id, item.id));
   }
 
-  // The rule. Learned from a *correction* to the category — an accepted suggestion
-  // teaches nothing, because the operator did not assert anything new.
+  /**
+   * The rule.
+   *
+   * Learned whenever the operator *resolves* an uncertain category — whether they
+   * corrected the suggestion or accepted it. Both are the same assertion about their
+   * own books ("Home Depot is Supplies"), and only counting the corrections was a real
+   * bug: it meant the common case (the suggestion was right, one tap) taught nothing,
+   * so the identical receipt was flagged again next month and the "gets quieter with
+   * use" promise never came true.
+   *
+   * A category that was never in question is not re-learned — nothing new was asserted.
+   */
   const vendorId = updates.vendorId ?? existing.vendorId;
-  if (corrected.includes("category") && vendorId && categoryId) {
+  if ((categoryWasFlagged || corrected.includes("category")) && vendorId && categoryId) {
     await learnFromCorrection(organizationId, vendorId, categoryId, userId);
     learnedRule = true;
   }
@@ -289,7 +302,12 @@ export async function confirmDocument(
     correctedFields: corrected,
   });
 
-  return { documentId, correctedFields: corrected, learnedRule };
+  return {
+    documentId,
+    correctedFields: corrected,
+    learnedRule,
+    period: periodOf(updates.docDate ?? existing.docDate),
+  };
 }
 
 async function vendorName(vendorId: string): Promise<string> {

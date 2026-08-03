@@ -94,3 +94,74 @@ In priority order:
 4. **Email deliverability and ingestion abuse.** The forwarding address is an open inbox. Mitigation: per-org addresses with signed tokens, sender verification, size/type limits, spam scoring before the extraction queue, and hard caps per plan.
 5. **Cost blowout on document volume.** A user forwarding their whole mailbox could spike API costs. Mitigation: plan caps with soft queueing, pre-filtering non-financial documents with a cheap classifier pass, and per-org rate limits.
 6. **Category liability.** Users may treat categorization as tax advice. Mitigation: Schedule-C-aligned categories with plain disclaimers, accountant review positioned as the final step -- LedgerLens prepares, a professional files.
+
+## Running it locally
+
+```bash
+# 1. Dependencies (from the repo root, which shares one toolchain)
+node tools/link-deps.mjs apps/35-ledgerlens --kit web
+
+# 2. Environment
+cp .env.example .env.local     # DATABASE_URL and AUTH_SECRET are the only required values
+
+# 3. Database
+npm run db:migrate
+
+# 4. Run
+npm run dev                    # http://localhost:3035
+```
+
+Then sign up. You get a forwarding address and a camera, and nothing else to
+configure.
+
+**What works without cloud credentials.** Every path in the MVP list runs on a
+laptop with only Postgres:
+
+- **No `R2_*` set** — originals go to a filesystem driver under
+  `LOCAL_STORAGE_DIR`. Same content-addressed keys, same signed-URL-only access;
+  the camera's signed `PUT` lands on `/api/uploads/put` instead of on R2.
+- **No `ANTHROPIC_API_KEY`** — extraction falls back to a deterministic reader.
+  For an emailed invoice it genuinely parses the text (vendor, date, total, tax,
+  line items) with honest per-field confidence. For a *photo* it cannot see
+  anything, so it produces a stable low-confidence reading that always lands in
+  the review queue. Every document names the reader that produced it.
+- **No `RESEND_API_KEY`, or `DRY_RUN=1`** — digests, close emails and review
+  nudges are logged with their exact copy instead of being delivered.
+- **No `STRIPE_SECRET_KEY`** — the billing screen shows the plans and explains
+  that checkout is unavailable. Plan gating still applies.
+
+**Forwarding an email locally.** The inbound webhook verifies an Svix-style
+signature and refuses everything while `RESEND_WEBHOOK_SECRET` is unset. To post
+a test message, sign the body the way Resend does:
+
+```bash
+BODY='{"to":"docs+your-slug@in.ledgerlens.app","subject":"Fwd: invoice","text":"SHELL OIL 574288\nInvoice date: 2026-03-12\nTotal   64.55\n"}'
+TS=$(date +%s); ID=msg_local
+SIG=$(printf '%s.%s.%s' "$ID" "$TS" "$BODY" \
+  | openssl dgst -sha256 -mac HMAC -macopt "key:$(echo -n "$RESEND_WEBHOOK_SECRET" | sed s/^whsec_// | base64 -d)" -binary \
+  | base64)
+curl -X POST localhost:3035/api/webhooks/inbound-email \
+  -H "content-type: application/json" -H "svix-id: $ID" \
+  -H "svix-timestamp: $TS" -H "svix-signature: v1,$SIG" --data "$BODY"
+```
+
+**Scheduled work.** Extraction, the monthly close, the review-nudge ladder and
+the weekly digest all live in one idempotent sweep:
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" localhost:3035/api/cron/tick
+```
+
+In production that is a once-daily Vercel cron (`vercel.json`). Running it more
+often is harmless: extraction claims each document with a conditional `UPDATE`,
+closes are versioned rebuilds, and every email is behind a unique key pinned to a
+fixed date. `npm run worker` runs the same sweep on an interval for hosts that
+have always-on processes, and is not required on Vercel.
+
+### Checks
+
+```bash
+npm run typecheck
+npm test
+npm run build
+```

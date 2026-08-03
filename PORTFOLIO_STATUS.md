@@ -14,7 +14,7 @@ run, a referral queue that deadlocked under launch-day load, magic-link login
 broken outright, certificate-expiry alerts that fired once and then went quiet
 forever. All were found by running the thing.
 
-## Verified working (24 of 74)
+## Verified working (26 of 74)
 
 Each was re-checked here after its build agent reported: line count, absence of
 unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
@@ -33,8 +33,10 @@ unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
 | 17 | trustbadge | 8,831 | 88 | 163 |
 | 24 | tradelog | 10,789 | 102 | 197 |
 | 28 | clientdock | 9,273 | 84 | 66 |
+| 32 | permitpath | 12,143 | 92 | 63 |
 | 33 | crewclock | 9,707 | 78 | 139 |
 | 34 | menulift | 10,803 | 83 | 97 |
+| 35 | ledgerlens | 10,794 | 96 | 94 |
 | 36 | bidboard | 13,785 | 74 | 95 |
 | 38 | duesdesk | 14,295 | 94 | 102 |
 | 43 | paidwell | 11,358 | 82 | 147 |
@@ -99,7 +101,8 @@ These are environment limits, not omissions, and they apply to every app above:
   their layout checked by reading rendered HTML and CSS rather than by looking at
   a screen. Every app that *did* drive Chromium (`28-clientdock`, `33-crewclock`,
   `34-menulift`, `36-bidboard`, `43-paidwell`, `45-rosterrally`, `47-shelfsense`,
-  `48-formforge`, `49-grantgrid`) found real defects nothing else
+  `48-formforge`, `49-grantgrid`), and every app built since has used one as a
+  matter of course found real defects nothing else
   would have caught — overlapping elements, sub-44px touch targets, a meter
   rendering the wrong figure before JS ran, a whole palette tree-shaken out of the
   built CSS while the build stayed green. Assume the untested ones are similar.

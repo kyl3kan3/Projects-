@@ -155,11 +155,6 @@ export function hasRuleChangeAlerts(plan: Plan): boolean {
   return plan !== "crew";
 }
 
-/** CSV export and the 2-business-day re-verification SLA are Regional only. */
-export function hasPriorityVerification(plan: Plan): boolean {
-  return plan === "regional";
-}
-
 /* ---- Contribution credits -------------------------------------------- */
 
 /** $10 per accepted edit, per README's crowdsourcing note. Integer cents. */

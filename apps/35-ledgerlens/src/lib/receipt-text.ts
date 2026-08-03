@@ -55,10 +55,20 @@ const TAX_LABELS: { re: RegExp; confidence: number }[] = [
   { re: new RegExp(String.raw`\b(?:sales\s+tax|tax|vat|gst|hst)\b[^\n\d]{0,20}(${AMOUNT})`, "i"), confidence: 0.86 },
 ];
 
+/**
+ * Explicit vendor labels, strongest first.
+ *
+ * A bare `From:` is deliberately NOT here. On a *forwarded* email the From header is the
+ * operator's own address, so treating it as the vendor would file every forwarded invoice
+ * under the operator's own name — confidently, which is the worst kind of wrong.
+ */
 const VENDOR_LABELS = [
-  /(?:^|\n)\s*(?:vendor|merchant|sold\s+by|bill\s+from|from|supplier|store)\s*[:\-]\s*([^\n]{2,60})/i,
-  /(?:^|\n)\s*(?:receipt|invoice)\s+from\s+([^\n]{2,60})/i,
+  /(?:^|\n)\s*(?:vendor|merchant|sold\s+by|bill\s+from|supplier|store\s+name)\s*[:\-]\s*([^\n]{2,60})/i,
+  /(?:^|\n)\s*(?:receipt|invoice|statement)\s+from\s+([^\n]{2,60})/i,
 ];
+
+/** "March 12, 2026" on its own line is a date, not a merchant. */
+const BARE_DATE_LINE = /^[A-Za-z]{3,9}\.?\s+\d{1,2}(?:st|nd|rd|th)?,?\s+\d{4}$/;
 
 const NOISE_LINE =
   /^(?:receipt|invoice|statement|tax invoice|thank you|customer copy|merchant copy|order confirmation|your receipt|payment receipt)\b/i;
@@ -152,20 +162,32 @@ function guessVendorFromLines(text: string): ParsedField<string> | null {
       if (value) return { value, confidence: 0.94, evidence: m[0].trim() };
     }
   }
-  // Fall back to the first line that looks like a name rather than a heading, an
-  // address or a number. A receipt prints the merchant at the top; an email
-  // forwards it under a subject line, so a couple of leading lines get skipped.
+  // Fall back to the first line that looks like a merchant name rather than a heading,
+  // a street address, or a priced line item. A receipt prints the merchant at the top;
+  // an email forwards it under headers, so those are skipped by name.
+  //
+  // A store number in the name is fine ("THE HOME DEPOT #4412") — what disqualifies a
+  // line is being *mostly* digits, starting with a house number, or ending in a price.
   const lines = text
     .split(/\r?\n/)
     .map((l) => l.trim())
     .filter(Boolean);
   for (const line of lines.slice(0, 8)) {
     if (NOISE_LINE.test(line)) continue;
-    if (/^(?:subject|to|from|date|sent|cc|reply-to)\s*:/i.test(line)) continue;
-    if (/\d{3,}/.test(line)) continue;
+    if (/^(?:subject|to|from|date|sent|cc|reply-to|order|ref|tel|phone)\b/i.test(line)) continue;
     if (/[$€£]/.test(line)) continue;
+    if (/\d[.,]\d{2}\s*$/.test(line)) continue;
+    if (/^\d/.test(line)) continue; // a street address, or a numeric date
+    if (BARE_DATE_LINE.test(line)) continue;
     if (line.length < 3 || line.length > 48) continue;
     if (!/[A-Za-z]{3}/.test(line)) continue;
+    // The digit ratio is measured on the name *without* its store or terminal number:
+    // "SHELL OIL 574288" is a perfectly ordinary merchant line, and judging it on the raw
+    // ratio threw the whole document away as "no vendor".
+    const stripped = line.replace(/#\s*\d+/g, " ").replace(/\s\d{3,}\b/g, " ").trim();
+    const digits = (stripped.match(/\d/g) ?? []).length;
+    if (digits / Math.max(1, stripped.length) > 0.35) continue;
+    if (!/[A-Za-z]{3}/.test(stripped)) continue;
     const value = cleanVendor(line);
     if (value) return { value, confidence: 0.68, evidence: line };
   }

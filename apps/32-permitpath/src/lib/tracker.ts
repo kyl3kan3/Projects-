@@ -15,6 +15,7 @@
  */
 
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
+import type { PgUpdateSetSource } from "drizzle-orm/pg-core";
 import { getDb } from "@/db";
 import {
   inspections,
@@ -29,6 +30,7 @@ import {
   type StatusEvent,
 } from "@/db/schema";
 import { appError } from "@/lib/errors";
+import { STATUS_LABEL } from "@/lib/statuses";
 
 const DAY_MS = 86_400_000;
 
@@ -51,14 +53,6 @@ export function allowedTransitions(from: ApplicationStatus): ApplicationStatus[]
 export function canTransition(from: ApplicationStatus, to: ApplicationStatus): boolean {
   return allowedTransitions(from).includes(to);
 }
-
-export const STATUS_LABEL: Record<ApplicationStatus, string> = {
-  not_submitted: "Not submitted",
-  in_review: "In review",
-  issued: "Issued",
-  expired: "Expired",
-  stop_work: "Stop-work",
-};
 
 /**
  * What the row should say right now. An issued permit past its expiry reads
@@ -185,7 +179,7 @@ export async function transitionApplication(input: {
     { status: input.to, at: now.toISOString(), by: input.actor, note: input.note?.trim() || undefined },
   ];
 
-  const patch: Partial<typeof permitApplications.$inferInsert> = {
+  const patch: PgUpdateSetSource<typeof permitApplications> = {
     status: input.to,
     statusHistory: history,
     updatedAt: sql`now()`,

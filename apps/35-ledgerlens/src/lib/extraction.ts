@@ -468,12 +468,15 @@ export function deterministicExtractor(now: () => Date = () => new Date()): Extr
       // No text at all: a photo. Produce a stable, plausible reading with honest
       // confidence — this is the path that fills the review queue in a local
       // checkout, and every field in it is flagged.
-      const [a, b, c, d] = hashInts(input.contentHash);
+      const [a, b, c] = hashInts(input.contentHash);
       const vendor = STANDIN_VENDORS[a % STANDIN_VENDORS.length];
       const totalCents = 480 + (((b << 8) ^ c) % 41_520);
       const taxCents = Math.round((totalCents * 825) / 10_000);
-      const day = new Date(now().getTime() - (d % 12) * 86_400_000);
-      const docDate = day.toISOString().slice(0, 10);
+      // The capture date, not a date scattered across the last fortnight: a receipt is
+      // almost always photographed the day it is issued, and a stand-in that quietly
+      // files photos into the previous month is worse than one that guesses "today" and
+      // flags it for confirmation.
+      const docDate = now().toISOString().slice(0, 10);
       const hint = categoryHintFor(normalizeVendor(vendor));
 
       return {
@@ -487,10 +490,12 @@ export function deterministicExtractor(now: () => Date = () => new Date()): Extr
           currency: "USD",
           lineSummary: null,
           suggestedCategory: hint,
-          confidence: { vendor: 0.71, date: 0.9, total: 0.58, tax: 0.54, category: hint ? 0.62 : 0 },
+          confidence: { vendor: 0.71, date: 0.86, total: 0.58, tax: 0.54, category: hint ? 0.62 : 0 },
           provenance: {
             vendor: "read from the top of the receipt",
+            date: "assumed to be the day you photographed it — please confirm",
             total: "read from the TOTAL line",
+            tax: "read from the tax line",
           },
         },
         raw: { extractor: "deterministic", mode: "image-standin", contentHash: input.contentHash },
