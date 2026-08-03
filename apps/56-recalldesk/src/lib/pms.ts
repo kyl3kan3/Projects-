@@ -448,7 +448,9 @@ export function classifyVisitKind(raw: string): "hygiene" | "other" {
 
 /** Recall interval cells: "6", "6 months", "0006", "12M". */
 export function parseInterval(raw: string): number | null {
-  const m = /(\d{1,2})/.exec(raw.trim());
+  // Zero-padded ("0004") is common in Dentrix exports, so match the whole run of
+  // digits rather than the first two.
+  const m = /(\d+)/.exec(raw.trim());
   if (!m) return null;
   const n = Number(m[1]);
   return n >= 1 && n <= 24 ? n : null;

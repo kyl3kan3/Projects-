@@ -20,8 +20,9 @@ build/
 # Testing
 coverage/
 
-# Drizzle
-drizzle/meta/
+# Drizzle — meta/ MUST be committed: it holds _journal.json, without which a
+# fresh clone cannot run db:migrate.
+!drizzle/meta/
 
 # TypeScript
 *.tsbuildinfo

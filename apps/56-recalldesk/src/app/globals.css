@@ -1,0 +1,685 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   RecallDesk — "Operatory-clean". The redline implementation of DESIGN.md:
+   cool porcelain grounds, graphite ink, and rinse-water aqua used only where
+   the schedule fills.
+
+   Obeys DESIGN_LANGUAGE.md v2.1: no emoji, no gradient or glow on controls,
+   hairlines not borders, space before boxes, the 4px scale, exactly three
+   radii, one accent rationed to <=10% of a screen. Light only, on purpose
+   (DESIGN.md) — this is a front-desk tool used under office lighting.
+
+   ---------------------------------------------------------------------------
+   CONTRAST, measured against the porcelain ground #F4F6F7 (and against card
+   #FCFDFD, which is always higher). Per the build brief's one documented
+   exception, where a DESIGN.md grey fails WCAG AA at the size it is actually
+   used, DESIGN_LANGUAGE's AA floor wins: the token is raised, measured, and
+   said so here. Three needed a decision.
+
+     ink       #20282C  13.8:1  AAA. Body, headings, primary button fill.
+     ink-2     #647076   4.7:1  AA. Secondary text at 13px — as specified.
+     ink-3     #96A0A5   2.5:1  FAILS. DESIGN.md uses it for the overdue row's
+                                "last visit Nov 2024 · due since May" line and
+                                for timestamps — text that carries meaning at
+                                13px. Kept ONLY for decoration that never
+                                stands alone (the week-strip's hollow slot dot,
+                                the 3-6mo bucket dot, disabled control text on
+                                the disabled fill). Tertiary *text* uses ink-2.
+     aqua      #3F8FA0   3.4:1  Passes the 3:1 graphics floor, so it is kept
+                                exactly as specified for focus rings, filled
+                                slots, dots and washes. For aqua-coloured TEXT
+                                (quiet actions, links, the active chip's label,
+                                the ATTRIBUTED pill) it fails, so those use
+                                aqua-text #33747F (4.9:1) — same hue, one step
+                                down in lightness.
+     green     #3E7E58   4.5:1  A whisker under the floor at 4.47; raised to
+                                #3B7854 (4.8:1), hue held.
+     amber     #B3873A   3.0:1  FAILS for the anomaly sentences and the
+                                MID-SEQUENCE pill label where DESIGN.md uses
+                                it. Kept for the 6-12mo bucket dot (graphics,
+                                3:1); amber-text #8A6828 (4.7:1) carries the
+                                words.
+     red       #B04B3E   4.9:1  AA. Used as specified for text and dots.
+   ========================================================================== */
+
+@theme {
+  /* Palette — DESIGN.md's table, with the AA corrections noted above. */
+  --color-porcelain: #f4f6f7; /* The ground. Every screen */
+  --color-card: #fcfdfd; /* Patient cards, report panels, sheets only */
+  --color-hairline: #e0e5e7; /* 1px dividers & panel borders — never darker */
+  --color-ink: #20282c; /* Primary text AND primary button fill */
+  --color-ink-2: #647076; /* Secondary text, and tertiary text (see above) */
+  --color-ink-3: #96a0a5; /* Decoration only — never meaning-carrying text */
+  --color-aqua: #3f8fa0; /* THE accent: filled slots, rings, marks (<=10%) */
+  --color-aqua-text: #33747f; /* Aqua-coloured text, AA-corrected */
+  --color-green: #3b7854; /* Booked / kept / consent-on only */
+  --color-red: #b04b3e; /* Overdue 24mo+ / bounced / opted-out only */
+  --color-amber: #b3873a; /* 6-12mo bucket dot / mid-sequence mark */
+  --color-amber-text: #8a6828; /* Amber-coloured text, AA-corrected */
+
+  /* Press and disabled states, so no component mixes its own. */
+  --color-ink-press: #2b343a;
+  --color-hairline-press: #c9d0d3;
+  --color-disabled: #d6dbdd;
+  --color-aqua-wash: #eaf2f4; /* 12% aqua on porcelain: the filled slot */
+
+  --font-display: var(--font-sans-loaded), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: var(--font-sans-loaded), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-mono-loaded), ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Exactly three radii (DESIGN.md): controls / cards / sheets. */
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-sheet: 20px;
+
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+:root {
+  color-scheme: light; /* one visual world; there is no dark theme in v1 */
+  --gutter: 20px;
+  --tabbar-h: 56px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  border-color: var(--color-hairline);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+html,
+body {
+  background: var(--color-porcelain);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+}
+
+/* The page body never scrolls sideways; wide content scrolls inside itself. */
+body {
+  overflow-x: hidden;
+}
+
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ---- Type roles: the specimen table in DESIGN.md, exactly ---- */
+
+.t-display {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 8.5vw, 3.375rem);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  font-weight: 700;
+}
+
+.t-stat {
+  font-family: var(--font-mono);
+  font-size: clamp(2.125rem, 9.5vw, 3.25rem);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.t-h2 {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  font-weight: 700;
+}
+
+.t-title {
+  font-size: 1rem;
+  line-height: 1.3;
+  font-weight: 500;
+}
+
+.t-body {
+  font-size: 1rem;
+  line-height: 1.55;
+  font-weight: 400;
+}
+
+.t-secondary {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  font-weight: 400;
+  color: var(--color-ink-2);
+}
+
+.t-label {
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-2);
+}
+
+.t-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  font-size: 0.8125rem;
+  line-height: 1.2;
+}
+
+/* Money is mono tabular, always. Cents render at 60% (DESIGN.md hero stat). */
+.t-cents {
+  font-size: 0.6em;
+}
+
+/* ---- Hairline construction: space and rules, never nested boxes ---- */
+
+.hairline-t {
+  border-top: 1px solid var(--color-hairline);
+}
+
+.hairline-b {
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.card {
+  background: var(--color-card);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-card);
+}
+
+.sheet {
+  background: var(--color-card);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-sheet);
+}
+
+/* ---- Controls ---- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: var(--radius-control);
+  border: 1px solid transparent;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 120ms var(--ease-out-quart),
+    background-color 120ms linear,
+    border-color 120ms linear;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  background: var(--color-ink);
+  color: var(--color-porcelain);
+}
+
+.btn-primary:active {
+  background: var(--color-ink-press);
+}
+
+.btn-primary:disabled,
+.btn-primary[aria-disabled="true"] {
+  background: var(--color-disabled);
+  color: var(--color-ink-3);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--color-ink);
+  border-color: var(--color-hairline);
+}
+
+.btn-secondary:active {
+  border-color: var(--color-hairline-press);
+}
+
+.btn-quiet {
+  background: none;
+  border: none;
+  padding: 0;
+  min-height: 44px;
+  color: var(--color-aqua-text);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  cursor: pointer;
+}
+
+.btn-quiet:active {
+  opacity: 0.8;
+}
+
+.input {
+  width: 100%;
+  background: var(--color-card);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  min-height: 48px;
+  padding: 0 12px;
+  font-size: 1rem; /* >=16px: iOS must not zoom on focus */
+  color: var(--color-ink);
+}
+
+textarea.input {
+  padding: 12px;
+  line-height: 1.55;
+  min-height: 120px;
+  resize: vertical;
+}
+
+select.input {
+  appearance: none;
+  padding-right: 32px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--color-ink-2) 50%),
+    linear-gradient(135deg, var(--color-ink-2) 50%, transparent 50%);
+  background-position:
+    calc(100% - 17px) 21px,
+    calc(100% - 12px) 21px;
+  background-size:
+    5px 5px,
+    5px 5px;
+  background-repeat: no-repeat;
+}
+
+.input::placeholder {
+  color: var(--color-ink-2);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-aqua);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-aqua) 25%, transparent);
+}
+
+/* Focus is designed: a 2px offset ring in the accent, everywhere, always. */
+:focus-visible {
+  outline: 2px solid var(--color-aqua);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---- Chips: bucket filters and window pickers ---- */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-card);
+  color: var(--color-ink);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    color 150ms linear,
+    border-color 150ms linear;
+}
+
+.chip[aria-pressed="true"],
+.chip[data-active="true"] {
+  border-color: var(--color-aqua);
+  color: var(--color-aqua-text);
+}
+
+.chip-lg {
+  min-height: 44px;
+  padding: 0 14px;
+}
+
+/* ---- Status pill: 28px, 6px dot + label ---- */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-card);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.pill::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+
+.pill-green {
+  color: var(--color-green);
+}
+.pill-amber {
+  color: var(--color-amber-text);
+}
+.pill-red {
+  color: var(--color-red);
+}
+.pill-aqua {
+  color: var(--color-aqua-text);
+}
+.pill-quiet {
+  color: var(--color-ink-2);
+}
+
+/* ---- Rows: full-bleed, hairline-divided, no boxes ---- */
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-hairline);
+  width: 100%;
+  text-align: left;
+  background: none;
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.dot-amber {
+  background: var(--color-amber);
+}
+.dot-red {
+  background: var(--color-red);
+}
+.dot-quiet {
+  background: var(--color-ink-3);
+}
+.dot-aqua {
+  background: var(--color-aqua);
+}
+
+/* ---- The week-strip and the chair-fill signature ---- */
+
+.week-strip {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.slot {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-porcelain);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.slot-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-ink-3);
+  background: transparent;
+}
+
+.slot-initials {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 500;
+  color: var(--color-aqua-text);
+  letter-spacing: 0.02em;
+}
+
+.slot[data-filled="true"] {
+  background: var(--color-aqua-wash);
+  animation: slot-fill 200ms var(--ease-out-quart) both;
+}
+
+.slot[data-filled="true"] .slot-dot {
+  border-color: var(--color-aqua);
+  background: var(--color-aqua);
+}
+
+.slot[data-filled="true"] .slot-initials {
+  animation: seat 120ms var(--ease-out-quart) 200ms both;
+}
+
+@keyframes slot-fill {
+  from {
+    background: var(--color-porcelain);
+  }
+  to {
+    background: var(--color-aqua-wash);
+  }
+}
+
+@keyframes seat {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Beat 4: the receipt line rises 16px and settles. */
+.receipt-line {
+  animation: receipt 320ms var(--ease-out-quart) 320ms both;
+}
+
+@keyframes receipt {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Rows enter with a 24ms stagger, opacity + 4px only — rosters never bounce. */
+.enter {
+  animation: enter 200ms var(--ease-out-quart) both;
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Hold-to-confirm: 600ms fill, for do-not-contact and import rollback. */
+.hold {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.hold::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--color-red);
+  opacity: 0.16;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.hold[data-holding="true"]::after {
+  animation: hold-fill 600ms linear both;
+}
+
+@keyframes hold-fill {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* ---- Layout scaffolding ---- */
+
+.screen {
+  padding: 0 var(--gutter);
+  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 88px);
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  background: color-mix(in srgb, var(--color-card) 96%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-hairline);
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: var(--color-ink-2);
+  font-size: 0.625rem;
+  font-weight: 500;
+  position: relative;
+}
+
+.tab[data-active="true"] {
+  color: var(--color-ink);
+}
+
+.tab[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  bottom: 6px;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: var(--color-aqua);
+}
+
+/* The thumb-zone primary action, above the tab bar. */
+.thumb-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  z-index: 19;
+  padding: 8px var(--gutter) 12px;
+  background: linear-gradient(
+    to top,
+    var(--color-porcelain) 60%,
+    color-mix(in srgb, var(--color-porcelain) 0%, transparent)
+  );
+}
+
+.thumb-bar .btn {
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .screen {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+}
+
+/* ---- Reduced motion: complete, never punitive (DESIGN.md) ---- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* The slot is simply filled; the counter swaps; the receipt line is in place.
+     Every state that motion carried is also plain text and a pill. */
+  .slot[data-filled="true"] {
+    animation: none;
+    background: var(--color-aqua-wash);
+  }
+
+  .hold[data-holding="true"]::after {
+    animation: none;
+    transform: scaleX(1);
+  }
+}

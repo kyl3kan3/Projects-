@@ -28,6 +28,7 @@ import {
   kioskDevices,
   programs,
   ranks,
+  retentionFlags,
   schools,
   students,
   type KioskDevice,
@@ -35,8 +36,13 @@ import {
 import { audit } from "@/lib/audit";
 import { env } from "@/lib/env";
 import { computeProgress, type Progress } from "@/lib/progression";
-import { resolveClassForCheckin, slotsForPrograms } from "@/lib/schedule";
-import { dayKey } from "@/lib/time";
+import {
+  nearestSlot,
+  resolveClassForCheckin,
+  slotLabel,
+  slotsForPrograms,
+} from "@/lib/schedule";
+import { dayKey, zonedParts } from "@/lib/time";
 
 function secretKey(): Uint8Array {
   return new TextEncoder().encode(env.kioskTokenSecret);
@@ -258,9 +264,7 @@ async function enrollmentViews(
 
   const programIds = [...new Set(enrolled.map((e) => e.programId))];
   const slots = await slotsForPrograms(programIds);
-  const { zonedParts } = await import("@/lib/time");
   const nowParts = zonedParts(now, timezone);
-  const { nearestSlot, slotLabel } = await import("@/lib/schedule");
 
   const counts = await checkinCountsSince(enrolled.map((e) => ({ id: e.enrollment.id, since: e.enrollment.promotedAt })));
 
@@ -436,10 +440,7 @@ export async function recordCheckin(input: {
   if (classScheduleId) {
     const slots = await slotsForPrograms([row.programId]);
     const slot = slots.find((s) => s.id === classScheduleId);
-    if (slot) {
-      const { slotLabel } = await import("@/lib/schedule");
-      classLabel = slotLabel(slot);
-    }
+    if (slot) classLabel = slotLabel(slot);
   }
 
   return {
@@ -456,7 +457,6 @@ export async function recordCheckin(input: {
 }
 
 async function autoRecoverOnCheckin(studentId: string, schoolId: string): Promise<void> {
-  const { retentionFlags } = await import("@/db/schema");
   const db = getDb();
   const updated = await db
     .update(retentionFlags)

@@ -14,7 +14,7 @@ run, a referral queue that deadlocked under launch-day load, magic-link login
 broken outright, certificate-expiry alerts that fired once and then went quiet
 forever. All were found by running the thing.
 
-## Verified working (34 of 74)
+## Verified working (35 of 74)
 
 Each was re-checked here after its build agent reported: line count, absence of
 unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
@@ -42,6 +42,7 @@ unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
 | 36 | bidboard | 13,785 | 74 | 95 |
 | 37 | safetydeck | 13,657 | 107 | 71 |
 | 38 | duesdesk | 14,295 | 94 | 102 |
+| 39 | greentally | 14,124 | 94 | 130 |
 | 42 | schemasentry | 13,164 | 88 | 130 |
 | 43 | paidwell | 11,358 | 82 | 147 |
 | 44 | tenantfile | 12,027 | 100 | 101 |
@@ -83,32 +84,23 @@ build had been hiding:
 Formforge's test count reads 184 because it carries two suites: 151 unit tests and
 33 integration tests needing a real database (`npm run test:db`).
 
-## Built, gates pass, MVP coverage unconfirmed (1)
+## Partially built, interrupted (5)
 
-| # | App | Lines | Files | Tests |
-|---|-----|------:|------:|------:|
-| 39 | greentally | 14,124 | 94 | 130 |
+An extended run of `529 Overloaded` API errors killed every agent in batch 5, most
+of them more than once. Their work is preserved and resumable, not finished:
+`56-recalldesk` (~4,000 lines, cut off writing ranking and template-merge) and
+`57-matpass` (~3,600, cut off in the kiosk check-in) have real domain layers;
+`59-dispatchdeck`, `65-listingloop` and `69-unitkeeper` were killed at or near
+startup and are still scaffold-sized.
 
-A sustained run of `529 Overloaded` API errors killed seven agents in one stretch.
-Most died at startup having done nothing, but `39-greentally` was killed twice
-during its final verification pass, after its code was complete.
+## Not built (34)
 
-So the gates were re-run here and all pass — typecheck, 130 tests, a green
-production build, no unimplemented stubs, and every item on its README MVP list has
-a route behind it. What is missing is the agent's own report, which is the part that
-says *which* MVP items were exercised end to end and what could not be verified.
-Nobody has confirmed this one works, so it does not go in the list above.
+Scaffolds that compile and do nothing. Most are "partial" — complete data model,
+design tokens and build config, no business logic. Ten are near-empty (under 60
+source lines):
 
-Its abandoned `.env.local` and pidfile were removed here; the dev server they
-referred to had already exited.
-
-## Not built (50)
-
-Scaffolds that compile and do nothing. 42 are "partial" — complete data model,
-design tokens and build config, no business logic. 8 are near-empty:
-
-`08-subsage` · `10-streakly` · `13-inboxpilot` · `21-lingoloop` · `40-formcoach`
-· `52-stimtrack` · `53-splitkit` · `54-kindesk`
+`08-subsage` · `10-streakly` · `11-driftoff` · `13-inboxpilot` · `16-parseflow`
+· `21-lingoloop` · `29-mailprobe` · `53-splitkit` · `54-kindesk`
 
 `07-mergemate` was in that near-empty group (about 5 lines) and is now built, so a
 from-scratch stub is no harder for an agent than filling in a partial scaffold.
@@ -156,13 +148,12 @@ These are environment limits, not omissions, and they apply to every app above:
 - **Visual correctness.** Chromium *is* available here — but a mistake in
   `tools/AGENT_BRIEF.md` told the first batch otherwise, so most of these apps had
   their layout checked by reading rendered HTML and CSS rather than by looking at
-  a screen. Every app that *did* drive Chromium (`28-clientdock`, `33-crewclock`,
-  `34-menulift`, `36-bidboard`, `43-paidwell`, `45-rosterrally`, `47-shelfsense`,
-  `48-formforge`, `49-grantgrid`), and every app built since has used one as a
-  matter of course found real defects nothing else
+  a screen. Every app that *did* drive Chromium found real defects nothing else
   would have caught — overlapping elements, sub-44px touch targets, a meter
   rendering the wrong figure before JS ran, a whole palette tree-shaken out of the
-  built CSS while the build stayed green. Assume the untested ones are similar.
+  built CSS while the build stayed green. Every app built since `28-clientdock`
+  has driven one as a matter of course; assume the earlier ones have similar
+  problems still in them.
 
 ## Regenerating this
 

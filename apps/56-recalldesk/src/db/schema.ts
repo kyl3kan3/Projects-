@@ -276,6 +276,31 @@ export const importFiles = pgTable("import_files", {
     .defaultNow(),
 });
 
+/**
+ * What a commit did to each patient, so a rollback is exact rather than
+ * approximate. `previous` holds only the fields the importer is allowed to write,
+ * and is the pre-commit value; for a created patient it is empty and the row is
+ * deleted on rollback instead.
+ */
+export const importChanges = pgTable(
+  "import_changes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    importId: uuid("import_id")
+      .notNull()
+      .references(() => imports.id, { onDelete: "cascade" }),
+    patientId: uuid("patient_id")
+      .notNull()
+      .references(() => patients.id, { onDelete: "cascade" }),
+    action: text("action", { enum: ["created", "updated"] }).notNull(),
+    previous: jsonb("previous").$type<Record<string, unknown>>().notNull().default({}),
+  },
+  (t) => [
+    uniqueIndex("import_changes_unique").on(t.importId, t.patientId),
+    index("import_changes_import_idx").on(t.importId),
+  ],
+);
+
 /** Saved column mappings, per location and PMS — "map it once" (README). */
 export const mappingPresets = pgTable(
   "mapping_presets",

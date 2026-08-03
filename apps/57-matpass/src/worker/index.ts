@@ -1,40 +1,74 @@
 /**
- * src/worker/index.ts
+ * src/worker/index.ts — `npm run worker`.
  *
- * Long-lived BullMQ worker process (deployed separately from the Next.js
- * app; `npm run worker`). Owns everything time-based.
+ * ARCHITECTURE.md specified a long-lived BullMQ process for the nightly work.
+ * The deployment target does not have one: Vercel functions are invoked, they do
+ * not run, and Hobby cron fires once a day. So the scheduled work lives in
+ * `src/lib/sweeps.ts` and has two triggers — `/api/cron/tick` in production, and
+ * this process in development, where waiting until 3am to find out whether the
+ * retention scan works is no way to build anything.
  *
- * Queues/jobs:
- * - refresh-eligibility: nightly per school + after promotion batches —
- *   src/lib/progression.refreshEligibility().
- * - retention-scan: nightly per school — src/lib/retention.scanSchool().
- * - send-announcement: fan out per family via Resend with deliveries rows.
- * - dunning-notices: on invoice.payment_failed + daily follow-up; hosted
- *   payment-update links; escalates to a desk task after 2 failures.
- * - process-stripe-event: apply platform + connect events from
- *   webhook_events, idempotent by event id.
- * - export-report: roster/promotions/attendance CSV or certificate-data
- *   PDF to R2, signed link surfaced in-app.
+ * One implementation, two triggers. Nothing here is a second code path.
  *
- * TODO:
- * - [ ] Wire queues + workers with ioredis connection from env.redisUrl.
- * - [ ] Repeatable schedules per school timezone (nightly jobs run at
- *       school-local 3am).
- * - [ ] DRY_RUN=1 short-circuits outbound email + Stripe mutations with
- *       structured logs.
- * - [ ] Dead-letter queue + Sentry on repeated failures.
- * - [ ] Graceful shutdown: drain active jobs on SIGTERM before exit.
+ * The Redis dependency ARCHITECTURE.md asked for is still real and still load-
+ * bearing: the sweep takes a `SET NX PX` lock (src/lib/lock.ts) so a developer's
+ * worker and a cron invocation cannot both mail the same past-due parent. With no
+ * REDIS_URL the worker says so and carries on.
  */
 
-export const QUEUES = {
-  refreshEligibility: "refresh-eligibility",
-  retentionScan: "retention-scan",
-  sendAnnouncement: "send-announcement",
-  dunningNotices: "dunning-notices",
-  processStripeEvent: "process-stripe-event",
-  exportReport: "export-report",
-} as const;
+import { loadEnvLocal } from "@/lib/load-env";
 
-export function startWorker(): Promise<void> {
-  throw new Error("Not implemented");
+loadEnvLocal();
+
+import { closeDb } from "@/db";
+import { closeLock, redisStatus, withSweepLock } from "@/lib/lock";
+import { runSweeps, type SweepSummary } from "@/lib/sweeps";
+
+const INTERVAL_MS = Number(process.env.WORKER_INTERVAL_MS ?? 60_000);
+
+export async function runOnce(): Promise<SweepSummary | null> {
+  const { ran, reason, result } = await withSweepLock("sweeps", 120_000, () =>
+    runSweeps({ budgetMs: 55_000 }),
+  );
+  if (!ran) {
+    console.info(`[worker] skipped — ${reason}`);
+    return null;
+  }
+  return result;
+}
+
+export async function startWorker(): Promise<void> {
+  const redis = await redisStatus();
+  console.info(
+    redis.configured
+      ? `[worker] redis ${redis.reachable ? "reachable" : "configured but unreachable"} — sweeps are locked`
+      : "[worker] no REDIS_URL — running unlocked (single process assumed)",
+  );
+
+  let stopping = false;
+  const stop = async () => {
+    if (stopping) return;
+    stopping = true;
+    console.info("[worker] draining and shutting down");
+    await closeLock();
+    await closeDb();
+    process.exit(0);
+  };
+  process.on("SIGINT", stop);
+  process.on("SIGTERM", stop);
+
+  console.info(`[worker] started, sweeping every ${INTERVAL_MS}ms`);
+  while (!stopping) {
+    try {
+      const summary = await runOnce();
+      if (summary) console.info("[worker] tick", summary);
+    } catch (err) {
+      console.error("[worker] sweep failed", err);
+    }
+    await new Promise((resolve) => setTimeout(resolve, INTERVAL_MS));
+  }
+}
+
+if (process.argv[1] && process.argv[1].includes("worker")) {
+  void startWorker();
 }

@@ -8,6 +8,13 @@
       "when": 1785757228384,
       "tag": "0000_previous_quicksilver",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1785757228385,
+      "tag": "0001_append_only",
+      "breakpoints": true
     }
   ]
 }

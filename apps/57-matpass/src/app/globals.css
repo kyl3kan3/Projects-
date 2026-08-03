@@ -1,35 +1,54 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   MatPass — design tokens. Generated from DESIGN.md; edit DESIGN.md first.
-   Obeys DESIGN_LANGUAGE.md: one rationed accent, hairlines not boxes,
-   no gradients or glow on controls, 4px spacing scale, fonts must load.
+   MatPass — the redline implementation of DESIGN.md v5.
+
+   The dojo wall, kept honestly: gi-canvas grounds, charcoal ink, and crimson
+   used the way a belt uses its colour — rarely, and only where rank lives.
+   Obeys DESIGN_LANGUAGE.md v2.1: no emoji, no gradient or glow on controls,
+   hairlines not borders, space before boxes, the 4px scale, exactly three
+   radii, one rationed accent, fonts that load.
+
+   ── Two documented deviations from DESIGN.md's hexes, both forced by the
+      WCAG AA floor, which DESIGN_LANGUAGE.md ranks above a specified value:
+
+   1. `ink-3` was #9E9A92 — 2.57:1 on canvas. It carries 11px labels, 13px
+      timestamps and input placeholders, all of which need 4.5:1. Raised to
+      #736F67 = 4.58:1 on canvas, 4.83:1 on card. It now sits close to ink-2
+      (5.01:1); the third step of the hierarchy is carried by size and weight
+      instead of by an unreadable grey, which is the right trade.
+   2. `amber` was #B3873A — 2.99:1 on canvas, and it is the colour of the
+      near-miss delta ("2 classes short") at 13px, the single most-read number
+      in the grading flow. Raised to #8C6923 = 4.63:1 on canvas, 4.88:1 on
+      card.
+
+   Everything else is DESIGN.md's value verbatim. Measured ratios on canvas
+   (#F6F5F1): ink 14.19 · ink-2 5.01 · crimson 5.85 · green 4.68 ·
+   red-flag 6.77 · canvas-on-ink 14.19.
    ========================================================================== */
 
 @theme {
-  /* Palette — exact values from DESIGN.md */
+  /* Palette — DESIGN.md's table, with the two AA corrections noted above. */
   --color-canvas: #f6f5f1; /* The ground. Every screen — gi-canvas white */
   --color-card: #fcfbf8; /* Student cards, grading panels, sheets only */
-  --color-hairline: #e4e1d9; /* 1px dividers & panel borders — never darker */
+  --color-hairline: #e4e1d9; /* 1px dividers and panel borders — never darker */
   --color-ink: #262421; /* Primary text AND primary button fill (charcoal) */
   --color-ink-2: #6c6963; /* Secondary text */
-  --color-ink-3: #9e9a92; /* Faint (timestamps, placeholders) */
-  --color-crimson: #a63b32; /* THE accent. <=10% of any screen: the stripe on the belt bar, links, active sta */
+  --color-ink-3: #736f67; /* Faint: timestamps, placeholders, labels (AA floor) */
+  --color-crimson: #a63b32; /* THE accent, <=10% of any screen */
   --color-green: #3f7a52; /* Recovered / paid / confirmed only */
-  --color-amber: #b3873a; /* Near-miss / past-due / paused only */
-  --color-red-flag: #8f3b33; /* Retention flags / failed payment escalation only (deliberately adjacent to cri */
+  --color-amber: #8c6923; /* Near-miss / past-due / paused only (AA floor) */
+  --color-red-flag: #8f3b33; /* Retention flags / payment escalation only */
 
-  /* Semantic aliases, so components never hardcode a hue name */
-  --color-bg: #f6f5f1;
-  --color-surface: #fcfbf8;
-  --color-line: #e4e1d9;
-  --color-fg: #262421;
-  --color-fg-2: #6c6963;
-  --color-fg-3: #9e9a92;
-  --color-accent: #a63b32;
-  --color-action: #262421;
-  --color-ok: #3f7a52;
-  --color-warn: #b3873a;
+  /* Press and disabled states, spelled out in DESIGN.md's component section. */
+  --color-ink-press: #33302c;
+  --color-hairline-press: #cbc7bd;
+  --color-disabled-fill: #dad6cd;
+
+  /* Radii: exactly three. Controls / cards / sheets. */
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-sheet: 20px;
 
   --font-display: "Archivo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-sans: "Archivo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -37,64 +56,762 @@
 
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+  /* spring-snappy: stiffness 400, damping 34 — approximated, 2px overshoot. */
+  --ease-spring-snappy: cubic-bezier(0.2, 0.9, 0.2, 1.18);
+  --ease-spring-gentle: cubic-bezier(0.3, 0.8, 0.25, 1);
 }
 
 :root {
   color-scheme: light;
+  --ground: var(--color-canvas);
+  --surface: var(--color-card);
+  --line: var(--color-hairline);
+  --fg: var(--color-ink);
+  --fg-2: var(--color-ink-2);
+  --fg-3: var(--color-ink-3);
+  --accent: var(--color-crimson);
+  --ok: var(--color-green);
+  --warn: var(--color-amber);
+  --alarm: var(--color-red-flag);
+  --gutter: 20px;
   --tabbar-h: 56px;
+  --control-h: 48px;
+}
+
+/* The kiosk shares the palette at arm's length: bigger targets, bigger type,
+   wider gutter. No dark theme in v1, by choice (DESIGN.md). */
+.world-kiosk {
+  --gutter: 24px;
+  --control-h: 56px;
+  --tabbar-h: 0px;
 }
 
 html,
 body {
-  background: var(--color-bg);
-  color: var(--color-fg);
+  background: var(--ground);
+  color: var(--fg);
   font-family: var(--font-sans);
   font-size: 16px;
-  line-height: 1.55;
+  font-weight: 500;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
 }
 
-* { border-color: var(--color-line); }
+* {
+  border-color: var(--line);
+}
 
-/* ---- Type roles (see the specimen table in DESIGN.md) ---- */
-.t-hero { font-family: var(--font-display); font-size: clamp(2rem, 8.5vw, 3.375rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 600; }
-.t-stat { font-family: var(--font-mono); font-size: clamp(2.125rem, 9.5vw, 3.25rem); line-height: 1.05; letter-spacing: -0.01em; font-weight: 500; font-variant-numeric: tabular-nums; }
-.t-h2 { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.01em; font-weight: 600; }
-.t-title { font-size: 1rem; line-height: 1.3; font-weight: 600; }
-.t-body { font-size: 1rem; line-height: 1.55; }
-.t-secondary { font-size: 0.8125rem; line-height: 1.45; color: var(--color-fg-2); }
-.t-label { font-size: 0.6875rem; line-height: 1.2; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-fg-3); }
-.t-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+::selection {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
 
-/* ---- Hairline construction: space and rules, never nested boxes ---- */
-.hairline-t { border-top: 1px solid var(--color-line); }
-.hairline-b { border-bottom: 1px solid var(--color-line); }
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+/* ---- Type roles: DESIGN.md's specimen table, exactly ------------------- */
+
+.t-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  /* SemiExpanded 700 for display — a real width axis, not letter-spacing. */
+  font-stretch: 112%;
+  font-size: clamp(32px, 8.5vw, 54px);
+  line-height: 1.06;
+  letter-spacing: -0.01em;
+}
+.t-stat {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: clamp(34px, 9.5vw, 52px);
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+.t-kiosk-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 28px;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+.t-h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+.t-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+}
+.t-body {
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.t-secondary {
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--fg-2);
+}
+.t-label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+/* Every count, date and requirement figure. No exceptions. */
+.t-data {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.t-data-lg {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.fg { color: var(--fg); }
+.fg-2 { color: var(--fg-2); }
+.fg-3 { color: var(--fg-3); }
+.crimson { color: var(--accent); }
+.green { color: var(--ok); }
+.amber { color: var(--warn); }
+.alarm { color: var(--alarm); }
+
+/* The kiosk scales the specimen up one step — legible at arm's length. */
+.world-kiosk .t-body { font-size: 18px; }
+.world-kiosk .t-secondary { font-size: 15px; }
+.world-kiosk .t-data { font-size: 15px; }
+.world-kiosk .t-title { font-size: 18px; }
+
+/* ---- Controls ---------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: var(--control-h);
+  padding: 0 20px;
+  border-radius: var(--radius-control);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  border: none;
+  transition:
+    transform 120ms var(--ease-out-quart),
+    background-color 120ms linear,
+    border-color 120ms linear;
+}
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+/* Ink fill with canvas text: the only high-emphasis fill on this light ground.
+   No gradient, no glow — DESIGN_LANGUAGE rule 2. */
+.btn-primary {
+  background: var(--color-ink);
+  color: var(--color-canvas);
+}
+.btn-primary:active:not(:disabled) {
+  background: var(--color-ink-press);
+}
+.btn-primary:disabled {
+  background: var(--color-disabled-fill);
+  color: var(--fg-3);
+  cursor: not-allowed;
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid var(--line);
+}
+.btn-secondary:active:not(:disabled) {
+  border-color: var(--color-hairline-press);
+}
+.btn-secondary:disabled {
+  color: var(--fg-3);
+  cursor: not-allowed;
+}
+/* Quiet action: text only, crimson, no underline; press dims to 80%. */
+.btn-quiet {
+  background: none;
+  border: none;
+  padding: 0;
+  height: auto;
+  min-height: 44px;
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1.3;
+  cursor: pointer;
+  text-align: left;
+}
+.btn-quiet:active { opacity: 0.8; }
+.btn-quiet:disabled {
+  color: var(--fg-3);
+  cursor: not-allowed;
+}
+.btn-danger {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--alarm);
+}
+.btn-full { width: 100%; }
+.btn-small {
+  height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.input {
+  width: 100%;
+  height: var(--control-h);
+  padding: 0 12px;
+  background: var(--surface);
+  color: var(--fg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  font-family: inherit;
+  font-weight: 500;
+  font-size: 16px;
+}
+.input::placeholder { color: var(--fg-3); }
+.input:focus,
+.input:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+.input-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+textarea.input {
+  height: auto;
+  min-height: 120px;
+  padding: 12px;
+  line-height: 1.5;
+}
+select.input {
+  appearance: none;
+  padding-right: 36px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none' stroke='%23736F67' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><path d='M6 8l4 4 4-4'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+/* The kiosk search field: 56px, 18px text. */
+.world-kiosk .input {
+  font-size: 18px;
+  padding: 0 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.check {
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  cursor: pointer;
+  position: relative;
+}
+.check:checked { border-color: var(--accent); }
+.check:checked::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  background: var(--accent);
+  clip-path: polygon(14% 46%, 0 60%, 40% 100%, 100% 22%, 86% 8%, 38% 70%);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--fg-2);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  transition:
+    color 150ms linear,
+    border-color 150ms linear;
+}
+.chip[data-active="true"] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.chip-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.chip-row::-webkit-scrollbar { display: none; }
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-control);
+}
+
+/* ---- Surfaces: depth is card-on-canvas plus hairlines. No elevation. --- */
 
 .card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-line);
-  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+}
+.sheet {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sheet);
+}
+.hairline-t { border-top: 1px solid var(--line); }
+.hairline-b { border-bottom: 1px solid var(--line); }
+
+/* Student rows: NO boxes. Full-bleed hairline rows, >=56px, tappable. */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  color: inherit;
+  text-decoration: none;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+}
+.row:last-child { border-bottom: 0; }
+.row-block {
+  display: block;
+  min-height: 56px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  color: inherit;
+  text-decoration: none;
+  width: 100%;
+  text-align: left;
+}
+.row-block:last-child { border-bottom: 0; }
+
+/* ---- The belt bar: the product's recurring object ---------------------- */
+
+.belt {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 3px;
+  height: 12px;
+  border-radius: 4px;
+  padding-right: 4px;
+  overflow: hidden;
+  /* The band colour is the rank's belt_color_hex, set inline: it is data from
+     the curriculum, not a design token, and it never leaks into chrome. */
+  background: var(--belt-band, #f2efe6);
+  /* A white belt on a canvas ground needs an edge to exist at all. */
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #262421 14%, transparent);
+}
+.belt-lg {
+  height: 16px;
+  gap: 4px;
+}
+/* Earned stripes: 3px vertical bars at the right end, gapped by the band.
+   Colour is computed for contrast — canvas on dark belts, ink on white/yellow. */
+.belt-stripe {
+  display: block;
+  width: 3px;
+  height: 100%;
+  background: var(--belt-stripe, #f6f5f1);
+  border-radius: 1px;
+}
+.belt-stripe-empty {
+  display: block;
+  width: 3px;
+  height: 100%;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--belt-stripe, #f6f5f1) 24%, transparent);
 }
 
-/* ---- Controls ---- */
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 48px; padding: 0 20px; border-radius: 10px;
-  font-weight: 600; font-size: 0.9375rem; line-height: 1;
-  transition: transform 120ms var(--ease-out-quart), background-color 120ms linear;
+/* The progress hairline beneath: 2px, fills crimson toward the requirement. */
+.progress {
+  height: 2px;
+  border-radius: 1px;
+  background: var(--line);
+  overflow: hidden;
 }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: var(--color-action); color: var(--color-bg); }
-.btn-secondary { background: transparent; color: var(--color-fg); border: 1px solid var(--color-line); }
+.progress > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transform-origin: left center;
+}
+.progress-met > span { background: var(--ok); }
 
-.focus-ring:focus-visible,
-a:focus-visible,
-button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+/* ---- Status pill: 28px, 6px dot + Label(11) ---------------------------- */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--line);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
+.pill::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  background: currentColor;
+  flex: none;
+}
+.pill-eligible { color: var(--accent); }
+.pill-warn { color: var(--warn); }
+.pill-ok { color: var(--ok); }
+.pill-alarm { color: var(--alarm); }
+.pill-quiet { color: var(--fg-3); }
+
+/* ---- Bottom tab bar --------------------------------------------------- */
+
+.tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--line);
+  z-index: 40;
+}
+.tabbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--fg-3);
+  text-decoration: none;
+  position: relative;
+  min-height: 44px;
+}
+.tabbar-item[data-active="true"] { color: var(--fg); }
+.tabbar-item[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  bottom: 5px;
+  width: 2px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--accent);
+}
+
+/* ---- Layout ----------------------------------------------------------- */
+
+.screen {
+  padding: 0 var(--gutter);
+  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 96px);
+  max-width: 1120px;
+  margin: 0 auto;
+}
+.screen-plain {
+  padding: 0 var(--gutter) 56px;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+.screen-narrow {
+  padding: 0 var(--gutter) 120px;
+  max-width: 560px;
+  margin: 0 auto;
+}
+.thumb-cta {
+  position: fixed;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 16px);
+  z-index: 30;
+  max-width: calc(1120px - 2 * var(--gutter));
+  margin: 0 auto;
+}
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ---- The signature: the stripe seats (four beats) ---------------------- */
+
+/* 1. The counter ticks — a one-digit odometer roll, 120ms. */
+.tick {
+  display: inline-block;
+  animation: odometer 120ms var(--ease-out-quart) both;
+}
+@keyframes odometer {
+  0% { transform: translateY(-0.5em); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+/* 2. The bar fills — 200ms ease-out-quart to its new value. */
+.progress-animate > span {
+  animation: bar-fill 200ms var(--ease-out-quart) both;
+}
+@keyframes bar-fill {
+  from { transform: scaleX(var(--from-scale, 0)); }
+  to { transform: scaleX(1); }
+}
+
+/* 3. The stripe slides in from the right and seats with a snap (2px overshoot). */
+.belt-stripe-seating {
+  animation: stripe-seat 180ms var(--ease-spring-snappy) both;
+}
+@keyframes stripe-seat {
+  0% { transform: translateX(14px); opacity: 0; }
+  70% { transform: translateX(-2px); opacity: 1; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+/* Grading batches stagger at most three seats, 100ms apart. */
+.seat-delay-1 { animation-delay: 100ms; }
+.seat-delay-2 { animation-delay: 200ms; }
+
+/* 4. The record line fades up beneath. */
+.record-line {
+  animation: record-rise 200ms var(--ease-out-quart) 180ms both;
+}
+@keyframes record-rise {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Rows enter with a 24ms stagger, opacity + 4px y-slide only. */
+.stagger > * {
+  animation: row-in 200ms var(--ease-out-quart) both;
+}
+.stagger > *:nth-child(1) { animation-delay: 0ms; }
+.stagger > *:nth-child(2) { animation-delay: 24ms; }
+.stagger > *:nth-child(3) { animation-delay: 48ms; }
+.stagger > *:nth-child(4) { animation-delay: 72ms; }
+.stagger > *:nth-child(5) { animation-delay: 96ms; }
+.stagger > *:nth-child(6) { animation-delay: 120ms; }
+.stagger > *:nth-child(7) { animation-delay: 144ms; }
+.stagger > *:nth-child(n + 8) { animation-delay: 168ms; }
+@keyframes row-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Sheets: 320ms spring-gentle. */
+.sheet-enter {
+  animation: sheet-in 320ms var(--ease-spring-gentle) both;
+}
+@keyframes sheet-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Hold-to-confirm: 600ms fill on destructive and record-reversing actions. */
+.hold {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.hold::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: color-mix(in srgb, var(--alarm) 20%, transparent);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+.hold:active::before {
+  animation: hold-fill 600ms linear both;
+}
+@keyframes hold-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* ---- The attendance sparkline (12 weeks) ------------------------------- */
+
+.spark {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 32px;
+}
+.spark > span {
+  flex: 1;
+  min-width: 4px;
+  background: var(--fg-3);
+  border-radius: 1px;
+  min-height: 2px;
+}
+.spark > span[data-recent="true"] { background: var(--accent); }
+.spark > span[data-zero="true"] { background: var(--line); }
+
+/* ---- Marketing page: exactly four animated beats ----------------------- */
+
+.beat {
+  animation: row-in 320ms var(--ease-out-quart) both;
+}
+@supports (animation-timeline: view()) {
+  .beat-scroll {
+    animation: row-in 320ms var(--ease-out-quart) both;
+    animation-timeline: view();
+    animation-range: entry 10% cover 30%;
+  }
+}
+.sticky-cta {
+  position: fixed;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: calc(env(safe-area-inset-bottom) + 16px);
+  z-index: 30;
+}
+
+/* ---- Responsive: >=768 splits + 32px gutters, >=1024 the left rail ----- */
+
+@media (min-width: 768px) {
+  :root { --gutter: 32px; }
+  .split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 360px);
+    gap: 32px;
+    align-items: start;
+  }
+  .split-even {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    align-items: start;
+  }
+}
+
+@media (min-width: 1024px) {
+  .screen {
+    padding-bottom: 80px;
+    padding-left: calc(var(--gutter) + 200px);
+  }
+  .tabbar {
+    top: 0;
+    bottom: 0;
+    right: auto;
+    width: 200px;
+    height: 100%;
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(4, 56px);
+    align-content: start;
+    padding-top: 80px;
+    border-top: none;
+    border-right: 1px solid var(--line);
+  }
+  .tabbar-item {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 0 20px;
+    font-size: 13px;
+  }
+  .tabbar-item[data-active="true"]::after {
+    bottom: auto;
+    left: 8px;
+  }
+  .thumb-cta {
+    position: static;
+    max-width: 320px;
+    margin: 24px 0 0;
+  }
+}
+
+/* ---- Reduced motion: nothing is motion-only --------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  /* The stripe appears already seated with a <=100ms fade; the counter swaps
+     directly; the bar is drawn at its new value. */
+  .belt-stripe-seating,
+  .tick,
+  .record-line,
+  .progress-animate > span,
+  .stagger > *,
+  .beat,
+  .beat-scroll,
+  .sheet-enter {
+    animation: fade-in 100ms linear both !important;
+    animation-delay: 0ms !important;
+    transform: none !important;
+  }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media print {
+  .tabbar,
+  .thumb-cta,
+  .sticky-cta,
+  .no-print {
+    display: none !important;
+  }
+  .screen { padding: 0; }
 }
