@@ -135,7 +135,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
                     <p className="t-title" style={{ marginTop: 4 }}>
                       {message.subject}
                     </p>
-                    <p className="t-data" style={{ color: "var(--color-text-aa)", marginTop: 4 }}>
+                    <p className="t-data" style={{ color: "var(--color-text-3)", marginTop: 4 }}>
                       {message.status === "awaiting_approval"
                         ? "waiting for your approval"
                         : `${message.status}${message.sentAt ? ` · ${formatStamp(message.sentAt.toISOString().slice(0, 10))}` : ""}`}
@@ -201,7 +201,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
                 <span className="t-title" style={{ display: "block" }}>
                   {formatMoney(payment.amountCents, detail.invoice.currency)}
                 </span>
-                <span className="t-secondary" style={{ color: "var(--color-text-aa)" }}>
+                <span className="t-secondary" style={{ color: "var(--color-text-3)" }}>
                   {payment.method} · {formatLongDate(payment.paidAt)}
                   {payment.recordedToAccountingAt ? " · written back" : " · write-back pending"}
                 </span>
@@ -241,7 +241,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
 
       <section className="gutter" style={{ marginBottom: 40 }}>
         <div className="panel" style={{ padding: 16, display: "flex", gap: 12, alignItems: "flex-start" }}>
-          <IconMail size={20} style={{ color: "var(--color-text-aa)", flex: "none" }} />
+          <IconMail size={20} style={{ color: "var(--color-text-3)", flex: "none" }} />
           <p className="t-secondary">
             Follow-ups go to {detail.client.emails.length ? detail.client.emails.join(", ") : "nobody — this client has no email on file"}
             {firm.senderVerified && firm.senderDomain

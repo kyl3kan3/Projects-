@@ -70,11 +70,11 @@ export default async function SettingsPage() {
               <span className="t-title" style={{ display: "block" }}>
                 {item.title}
               </span>
-              <span className="t-secondary" style={{ color: "var(--color-text-aa)" }}>
+              <span className="t-secondary" style={{ color: "var(--color-text-3)" }}>
                 {item.meta}
               </span>
             </span>
-            <IconChevronRight size={18} style={{ color: "var(--color-text-aa)" }} />
+            <IconChevronRight size={18} style={{ color: "var(--color-text-3)" }} />
           </Link>
         ))}
       </section>
@@ -110,7 +110,7 @@ export default async function SettingsPage() {
                   className="t-secondary"
                   style={{
                     display: "block",
-                    color: "var(--color-text-aa)",
+                    color: "var(--color-text-3)",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
@@ -119,7 +119,7 @@ export default async function SettingsPage() {
                   {row.target}
                 </span>
               </span>
-              <span className="t-data" style={{ color: "var(--color-text-aa)", flex: "none" }}>
+              <span className="t-data" style={{ color: "var(--color-text-3)", flex: "none" }}>
                 {row.actor === "system" ? "system" : "you"}
               </span>
             </div>

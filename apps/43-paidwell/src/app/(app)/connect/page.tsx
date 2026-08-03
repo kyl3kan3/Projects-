@@ -43,7 +43,7 @@ export default async function ConnectPage() {
                 <IconBuilding size={18} style={{ color: "var(--color-text-2)", marginTop: 4 }} />
                 <div style={{ flex: 1, minWidth: 180 }}>
                   <p className="t-title">{PROVIDER_LABELS[connection.provider]}</p>
-                  <p className="t-data" style={{ color: "var(--color-text-aa)", marginTop: 4 }}>
+                  <p className="t-data" style={{ color: "var(--color-text-3)", marginTop: 4 }}>
                     {timeAgo(connection.lastSyncedAt)}
                     {connection.syncStatus === "error" ? " · sync failed" : ""}
                   </p>
@@ -88,7 +88,7 @@ export default async function ConnectPage() {
 
       <section className="gutter" style={{ marginTop: 32, marginBottom: 40 }}>
         <div className="panel" style={{ padding: 16, display: "flex", gap: 12, alignItems: "flex-start" }}>
-          <IconAlert size={20} style={{ color: "var(--color-text-aa)", flex: "none" }} />
+          <IconAlert size={20} style={{ color: "var(--color-text-3)", flex: "none" }} />
           <div>
             <p className="t-title">
               {capacity.limit === Number.MAX_SAFE_INTEGER

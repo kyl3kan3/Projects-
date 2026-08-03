@@ -59,7 +59,7 @@ export default async function PromisesPage() {
       {rows.length === 0 ? (
         <section className="gutter" style={{ marginTop: 32 }}>
           <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-            <IconHandshake size={20} style={{ color: "var(--color-text-aa)", marginTop: 2 }} />
+            <IconHandshake size={20} style={{ color: "var(--color-text-3)", marginTop: 2 }} />
             <div>
               <p className="t-title">Nothing promised yet</p>
               <p className="t-secondary" style={{ marginTop: 4 }}>
@@ -96,7 +96,7 @@ export default async function PromisesPage() {
                         </span>
                         <span
                           className="t-secondary"
-                          style={{ display: "block", marginTop: 2, color: "var(--color-text-aa)" }}
+                          style={{ display: "block", marginTop: 2, color: "var(--color-text-3)" }}
                         >
                           {invoice.number} · {formatMoney(promise.amountCents, invoice.currency)} ·{" "}
                           {promise.status === "open"
@@ -112,7 +112,7 @@ export default async function PromisesPage() {
                           <PromiseChip status={promise.status} promisedFor={promise.promisedFor} />
                         </span>
                       </span>
-                      <IconChevronRight size={18} style={{ color: "var(--color-text-aa)", flex: "none" }} />
+                      <IconChevronRight size={18} style={{ color: "var(--color-text-3)", flex: "none" }} />
                     </Link>
                   );
                 })}

@@ -23,6 +23,7 @@
  *     provisional — hiding it would send the estimator back to the spreadsheet.
  */
 
+import { moneyShort } from "@/lib/format";
 import { scopeKey } from "@/lib/normalize";
 import type { AdjustmentKind, BidKind, LineState, MappingStatus } from "@/db/schema";
 
@@ -365,9 +366,16 @@ function cellFor(
   }
 
   const plug = plugs.get(`${bid.id}::${formLine.id}`);
-  // Rule 2: a plug fills a hole. It is never applied over real money, so a later
-  // revision that prices the line silently retires the plug.
-  const usePlug = declared !== "priced" && plug !== undefined;
+  /**
+   * Rule 2: a plug fills a *hole*.
+   *
+   * It is never applied over real money, so a later revision that prices the line
+   * silently retires the plug. And it is never applied over "included in another
+   * line" either: that sub has already carried the scope somewhere in their number,
+   * so plugging it would charge them for it twice and hand the job to someone else.
+   * Only an outright exclusion or a blank cell is a hole.
+   */
+  const usePlug = (declared === "excluded" || declared === "missing") && plug !== undefined;
 
   return {
     bidId: bid.id,
@@ -470,9 +478,9 @@ function timeOf(d: Date | null): number {
  */
 export function lowStrip(grid: LevelingGrid): string {
   if (!grid.apparentLow) return "NO BIDS IN YET";
-  const cents = grid.apparentLow.adjustedTotalCents;
-  const whole = Math.round(cents / 100).toLocaleString("en-US");
-  return `LOW: ${grid.apparentLow.subName.toUpperCase()} · $${whole}`;
+  // Exact, not rounded: this is the first number the estimator reads, and a 50-cent
+  // rounding here would disagree with the column footer directly below it.
+  return `LOW: ${grid.apparentLow.subName.toUpperCase()} · ${moneyShort(grid.apparentLow.adjustedTotalCents)}`;
 }
 
 /** Everything the award confirm screen has to warn about before it commits. */

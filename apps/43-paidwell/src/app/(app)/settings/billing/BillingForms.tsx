@@ -56,7 +56,7 @@ export function PlanPicker({ current }: { current: Plan }) {
               <p className="t-secondary" style={{ marginTop: 8 }}>
                 {features.blurb}
               </p>
-              <p className="t-data" style={{ marginTop: 8, color: "var(--color-text-aa)" }}>
+              <p className="t-data" style={{ marginTop: 8, color: "var(--color-text-3)" }}>
                 {features.openInvoiceLimit === Number.MAX_SAFE_INTEGER
                   ? "unlimited invoices"
                   : `${features.openInvoiceLimit} open invoices`}{" "}

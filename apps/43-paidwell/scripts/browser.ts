@@ -137,7 +137,18 @@ async function main() {
   // named function expressions, which does not exist inside the page.
   const lowContrast = (await page.evaluate(`(() => {
     var lum = function (rgb) {
-      var parts = (rgb.match(/\\d+(\\.\\d+)?/g) || ["0", "0", "0"]).slice(0, 3).map(Number);
+      // Chromium reports color-mix() as color(srgb 0.96 0.96 0.94 / 0.96) — the
+      // channels are 0-1 there and 0-255 in rgb()/rgba(). Reading the fractional
+      // form as 0-255 makes an ivory background look almost black, which is how
+      // this audit first reported ink-on-ivory as 1.35:1.
+      var fractional = /^color\\(/.test(rgb);
+      var parts = (rgb.match(/[\\d.]+/g) || ["0", "0", "0"])
+        .map(Number)
+        .filter(function (n) {
+          return !Number.isNaN(n);
+        });
+      if (fractional) parts = parts.slice(0, 3).map(function (n) { return n * 255; });
+      else parts = parts.slice(0, 3);
       var chan = function (c) {
         var s = c / 255;
         return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);

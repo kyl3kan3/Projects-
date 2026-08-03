@@ -117,7 +117,7 @@ function TrayRow({ item }: { item: TrayItem }) {
           <p className="t-secondary" style={{ marginTop: 2 }}>
             {item.subject}
           </p>
-          <p className="t-data" style={{ marginTop: 6, color: "var(--color-text-aa)" }}>
+          <p className="t-data" style={{ marginTop: 6, color: "var(--color-text-3)" }}>
             {item.amount} · to {item.toEmails.join(", ")}
           </p>
         </div>
@@ -155,7 +155,7 @@ function TrayRow({ item }: { item: TrayItem }) {
                 </p>
               ))}
           </div>
-          <p className="t-secondary" style={{ marginTop: 12, color: "var(--color-text-aa)" }}>
+          <p className="t-secondary" style={{ marginTop: 12, color: "var(--color-text-3)" }}>
             The payment link is abbreviated here; the email carries the full signed link.
           </p>
           <Link

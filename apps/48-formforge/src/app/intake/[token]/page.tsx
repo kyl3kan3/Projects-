@@ -55,7 +55,7 @@ const SIG_MESSAGES: Record<string, string> = {
  * browser being killed mid-packet.
  *
  * A dead or unknown link gets one calm sentence and no practice details — the
- * page cannot distinguish "wrong token" from "expired" for a stranger, and it
+ * page does not distinguish a wrong token from an expired one for a stranger, and it
  * does not try.
  */
 export default async function IntakePage({

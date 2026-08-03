@@ -82,7 +82,7 @@ export function HeroLadder() {
             <p className="t-secondary" style={{ marginTop: 2, color: "var(--color-ink)" }}>
               {firstLine(rung.level).slice(0, 96)}…
             </p>
-            <p className="t-data" style={{ marginTop: 2, color: "var(--color-text-aa)" }}>
+            <p className="t-data" style={{ marginTop: 2, color: "var(--color-text-3)" }}>
               sent {rung.date}
             </p>
           </li>

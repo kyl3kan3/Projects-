@@ -57,7 +57,7 @@ export default async function ForecastPage() {
           {forecast.promiseCount === 1 ? "promise" : "promises"}.
         </p>
         {forecast.beyondHorizonCents > 0 ? (
-          <p className="t-secondary" style={{ marginTop: 4, color: "var(--color-text-aa)" }}>
+          <p className="t-secondary" style={{ marginTop: 4, color: "var(--color-text-3)" }}>
             A further {formatMoneyShort(forecast.beyondHorizonCents)} is expected beyond the
             horizon — it is deliberately not piled onto the last column.
           </p>
@@ -97,7 +97,7 @@ export default async function ForecastPage() {
                 <p className="t-data" style={{ marginTop: 8, fontSize: 12 }}>
                   {formatMoneyShort(week.expectedCents)}
                 </p>
-                <p className="t-data" style={{ color: "var(--color-text-aa)", fontSize: 11 }}>
+                <p className="t-data" style={{ color: "var(--color-text-3)", fontSize: 11 }}>
                   {formatStamp(week.weekStart)}
                 </p>
               </div>
@@ -113,7 +113,7 @@ export default async function ForecastPage() {
       {forecast.invoiceCount === 0 ? (
         <section className="gutter" style={{ marginTop: 32 }}>
           <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-            <IconChartForecast size={20} style={{ color: "var(--color-text-aa)", marginTop: 2 }} />
+            <IconChartForecast size={20} style={{ color: "var(--color-text-3)", marginTop: 2 }} />
             <div>
               <p className="t-title">Nothing to forecast yet</p>
               <p className="t-secondary" style={{ marginTop: 4 }}>
@@ -145,7 +145,7 @@ export default async function ForecastPage() {
                       <span className="t-title" style={{ display: "block" }}>
                         {receipt.clientName}
                       </span>
-                      <span className="t-secondary" style={{ color: "var(--color-text-aa)" }}>
+                      <span className="t-secondary" style={{ color: "var(--color-text-3)" }}>
                         {receipt.number} · {formatStamp(receipt.expectedOn)} ·{" "}
                         {BASIS_LABEL[receipt.basis]}
                       </span>
@@ -156,7 +156,7 @@ export default async function ForecastPage() {
                       </span>
                       <span
                         className="t-data"
-                        style={{ display: "block", color: "var(--color-text-aa)", marginTop: 2 }}
+                        style={{ display: "block", color: "var(--color-text-3)", marginTop: 2 }}
                       >
                         {receipt.confidence}%
                       </span>

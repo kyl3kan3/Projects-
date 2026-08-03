@@ -48,7 +48,7 @@ export default async function ApprovalsPage() {
       {items.length === 0 ? (
         <section className="gutter" style={{ marginTop: 32 }}>
           <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-            <IconHourglass size={20} style={{ color: "var(--color-text-aa)", marginTop: 2 }} />
+            <IconHourglass size={20} style={{ color: "var(--color-text-3)", marginTop: 2 }} />
             <div>
               <p className="t-title">Nothing waiting</p>
               <p className="t-secondary" style={{ marginTop: 4 }}>

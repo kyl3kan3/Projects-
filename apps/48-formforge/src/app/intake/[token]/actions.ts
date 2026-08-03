@@ -124,7 +124,7 @@ export async function saveSectionAction(formData: FormData): Promise<void> {
   if (next < all.length) redirect(`/intake/${token}?s=${next}`);
 
   // Re-read from the database: completion is recomputed from stored answers, never
-  // inferred from "the patient reached the last screen".
+  // inferred from the patient having reached the last screen.
   const fresh = await resolveIntakeToken(token);
   if (!fresh.ok) redirect(`/intake/${token}`);
   const answersNow = await loadAnswersForPatient(fresh.value, ip);

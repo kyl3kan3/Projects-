@@ -15,18 +15,25 @@
   --color-sheet: #ffffff;    /* framed objects only */
   --color-hairline: #e5e1d6; /* 1px rules — never darker */
   --color-ink: #20261f;      /* primary text and primary button fill */
-  --color-text-2: #6e756c;   /* secondary text */
-  --color-text-3: #9aa096;   /* faint: timestamps, placeholders */
-  --color-banker: #2f6e52;   /* THE accent */
   /*
-   * DESIGN.md's two greys are correct as an identity but do not clear WCAG AA on
-   * the ivory ground at 13px: #6e756c is 4.1:1 and #9aa096 is 2.5:1, where AA
-   * asks 4.5:1. DESIGN_LANGUAGE.md rule "AA minimum everywhere" and the redline
-   * palette therefore conflict, and the reader wins: this is the same hue and
-   * chroma family, darkened until it passes (5.5:1). The named tokens above are
-   * unchanged; meaningful small text uses this one.
+   * The two greys, corrected for contrast — the one deliberate divergence from
+   * DESIGN.md's palette table, made in one place rather than worked around per
+   * component.
+   *
+   * DESIGN.md specifies text-2 #6e756c and text-3 #9aa096. Measured against the
+   * ledger ground (#f7f5f0) those are 4.1:1 and 2.5:1, while WCAG AA asks 4.5:1
+   * for text below 24px — and every use of them in this product is 10-16px
+   * content that carries meaning (state lines, day counts, timestamps, labels).
+   * DESIGN_LANGUAGE.md rule "Contrast: AA minimum everywhere" and the redline
+   * palette therefore cannot both hold, and the reader wins.
+   *
+   * These are the same hue and chroma family, darkened only until they pass:
+   * text-2 is 6.4:1 and text-3 is 4.6:1, and they stay visibly distinct from
+   * each other and from ink. Nothing else in the palette moves.
    */
-  --color-text-aa: #5f6660;
+  --color-text-2: #565c57;   /* secondary text — was #6e756c (4.1:1) */
+  --color-text-3: #6b726a;   /* faint: timestamps, labels — was #9aa096 (2.5:1) */
+  --color-banker: #2f6e52;   /* THE accent */
   --color-amber: #bc8a2f;    /* 31–60 bucket, open promises */
   --color-red: #a8493b;      /* 61+ overdue, broken promises, final notice */
 
@@ -131,7 +138,7 @@ td,
   font-weight: 400;
   font-size: 13px;
   line-height: 1.45;
-  color: var(--color-text-aa);
+  color: var(--color-text-3);
 }
 .t-label {
   font-weight: 600;
@@ -139,7 +146,7 @@ td,
   line-height: 1.2;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-text-aa);
+  color: var(--color-text-3);
 }
 .t-data {
   font-family: var(--font-mono);
@@ -181,7 +188,7 @@ td,
 }
 .btn-primary:disabled {
   background: var(--color-disabled);
-  color: var(--color-text-aa);
+  color: var(--color-text-3);
 }
 .btn-secondary {
   background: transparent;
@@ -192,7 +199,7 @@ td,
   border-color: var(--color-hairline-press);
 }
 .btn-secondary:disabled {
-  color: var(--color-text-aa);
+  color: var(--color-text-3);
   border-color: var(--color-hairline);
 }
 /* Quiet action: text-only accent, no underline, dims on press. */
@@ -213,7 +220,7 @@ td,
   opacity: 0.8;
 }
 .btn-quiet:disabled {
-  color: var(--color-text-aa);
+  color: var(--color-text-3);
 }
 .btn-full {
   width: 100%;
@@ -238,7 +245,7 @@ textarea.field {
   resize: vertical;
 }
 .field::placeholder {
-  color: var(--color-text-aa);
+  color: var(--color-text-3);
 }
 .field:focus-visible,
 .field:focus {
@@ -380,7 +387,7 @@ textarea.field {
   justify-content: center;
   gap: 2px;
   min-height: 44px;
-  color: var(--color-text-aa);
+  color: var(--color-text-3);
   font-size: 10px;
   font-weight: 600;
 }
