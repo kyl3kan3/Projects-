@@ -28,6 +28,9 @@ plus the in-folder `DESIGN_LANGUAGE.md` and `MARKETING_PLAYBOOK.md`.
    construction are requirements. No purple (any hue ~250–310°), no framework
    default palette hexes, no emoji in product UI, no gradients or glow on
    controls, one accent rationed to ≤10% of a screen, mobile-first at 390px.
+   **One documented exception:** where a specified grey fails WCAG AA at the size
+   it is actually used, `DESIGN_LANGUAGE.md`'s AA floor wins. Four apps hit this
+   already. Raise the token, measure it, and say so in `globals.css`.
 5. **Real content everywhere.** No lorem, no grey placeholder bars. Plausible
    product data in every screen, including empty and error states.
 6. **Landing page last**, to `MARKETING_PLAYBOOK.md`. Never fabricate

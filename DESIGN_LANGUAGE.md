@@ -82,6 +82,13 @@ lazy after first paint, always a static poster fallback. On mobile it does not l
 - `prefers-reduced-motion`: all movement collapses to ≤ 100ms opacity fades; 3D →
   poster; looping/ambient effects off. Feature-complete, never punitive.
 - **Contrast:** AA minimum everywhere, AAA for dashboard body text. Verify both themes.
+  **This rule outranks a specific hex.** A per-app `DESIGN.md` is otherwise a
+  redline spec, but several of them name a faint grey for small labels, axis ticks
+  and placeholders that measures 2.5–3.1:1 on its own ground. Four apps found this
+  independently and each raised the token; do the same rather than honour the hex,
+  and record the measured ratios next to the change. Measure the text you actually
+  ship at the size you ship it — a token that passes at 16px body can fail the 11px
+  label it is really used for.
 - **Focus states are designed** (2px offset ring in the app's accent), keyboard-complete.
 - **Theming:** where an app supports light+dark, drive it through CSS custom
   properties (media query + `data-theme` override), and give both themes equal care.
