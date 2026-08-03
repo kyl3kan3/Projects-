@@ -84,6 +84,22 @@ async function runCase(fixture: ContractFixture): Promise<CaseResult> {
 
   // Every flag's explanation must pass the gates, in whichever form it will ship.
   const gateFailures: string[] = [];
+
+  // A fixture with no expected flags is an assertion, not an absence of one: the
+  // fair SOW and the mutual NDA are in the suite precisely to prove the analyser
+  // does not cry wolf on a reasonable contract, which is the failure that would
+  // lose a reader's trust fastest. Extra flags elsewhere stay advisory — a new rule
+  // legitimately adds them — but here they are the thing under test.
+  //
+  // Recall cannot carry this: with no positives it is 1 by definition, so a
+  // regression that started flagging the fair SOW would still print 100% (0/0).
+  // The run-to-run diff would show it, but that baseline lives in the database, so
+  // a fresh clone or a CI run has nothing to compare against and would exit 0.
+  if (fixture.expectedFlags.length === 0 && unexpected.length > 0) {
+    gateFailures.push(
+      `${unexpected.length} false positive(s) on a fixture expected to raise nothing: ${unexpected.join(", ")}`,
+    );
+  }
   for (const f of fired) {
     const rule = DEFAULT_RULES.find((r) => r.ruleKey === f.ruleKey);
     if (!rule) continue;

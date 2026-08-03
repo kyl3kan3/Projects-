@@ -13,7 +13,7 @@
 import { NextResponse } from "next/server";
 import { env } from "@/lib/env";
 import { sweepStalledReviews } from "@/lib/pipeline";
-import { sweepRetention } from "@/lib/contracts";
+import { pruneCheckerHits, sweepRetention } from "@/lib/contracts";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -32,6 +32,7 @@ export async function GET(req: Request): Promise<Response> {
   const started = Date.now();
   const reviews = await sweepStalledReviews(20_000);
   const retention = await sweepRetention();
+  const checker = await pruneCheckerHits();
 
   return NextResponse.json({
     ok: true,
@@ -39,5 +40,6 @@ export async function GET(req: Request): Promise<Response> {
     reviewsAdvanced: reviews.advanced,
     reviewsFinished: reviews.finished,
     contractsDeleted: retention.deleted,
+    checkerHitsPruned: checker.deleted,
   });
 }

@@ -5,6 +5,7 @@ import { listDeadlines } from "@/lib/deadlines";
 import { hasIcsToken } from "@/lib/ics";
 import {
   deadlineKindLabel,
+  deadlineTitle,
   deadlineTone,
   formatCountdown,
   formatDayTime,
@@ -93,20 +94,23 @@ export default async function DeadlinesPage({
                 <p className="t-label">
                   {formatWeekday(row.deadline.dueAt, tz)} · {deadlineKindLabel(row.deadline.kind)}
                 </p>
-                <p className="t-title mt-1">
+                {/* Clamped to two lines: a proposal label carries the whole notice
+                    title, and at 390px an unclamped one turned a 56px row into a
+                    six-line block. */}
+                <p className="t-title mt-1 line-clamp-2">
                   {row.pursuitId ? (
                     <Link
                       href={`/pursuits/${row.pursuitId}`}
                       style={{ color: "inherit", textDecoration: "none" }}
                     >
-                      {row.deadline.label}
+                      {deadlineTitle(row.deadline.label, row.deadline.kind)}
                     </Link>
                   ) : (
-                    row.deadline.label
+                    deadlineTitle(row.deadline.label, row.deadline.kind)
                   )}
                 </p>
               </div>
-              <div className="shrink-0 text-right">
+              <div className="shrink-0 text-right" style={{ minWidth: 108 }}>
                 <p className="t-mono">{formatDayTime(row.deadline.dueAt, tz)}</p>
                 <p className="t-mono mt-1" style={{ color: countdownColor }}>
                   {row.deadline.completedAt

@@ -436,7 +436,7 @@ export const auditLog = pgTable(
   (t) => [index("audit_log_account_idx").on(t.accountId, t.createdAt)],
 );
 
-/** Free clause checker throttle: one row per request, pruned by the daily tick. */
+/** Free clause checker throttle: one row per request, pruned by the daily cron tick. */
 export const checkerHits = pgTable(
   "checker_hits",
   {

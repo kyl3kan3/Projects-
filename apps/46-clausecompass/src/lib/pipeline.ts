@@ -38,7 +38,7 @@ import {
 import type { ParseResult } from "@/lib/parse";
 import { extractClauses } from "@/lib/extract";
 import { score, worstSeverity, type ScorableRule } from "@/lib/playbook";
-import { explainFlag, LAWYER_POINTER } from "@/lib/explain";
+import { explainFlag } from "@/lib/explain";
 import { resolvePlaybook } from "@/lib/playbook-store";
 import { refundCredit } from "@/lib/billing";
 import { CLAUSE_LABELS } from "@/lib/taxonomy";

@@ -126,6 +126,16 @@ PATH="node_modules/.bin:$PATH" npm test
 PATH="node_modules/.bin:$PATH" NEXT_TELEMETRY_DISABLED=1 next build --no-lint
 ```
 
+**`npm run lint` cannot run in this checkout, and is not a gate.** ESLint 9+ needs a
+flat config, whose own imports the dependency scanner skips by design, so
+`@eslint/eslintrc` is never linked. This is repo-wide, not something wrong with your
+app — six agents have each spent time diagnosing it. Don't. The three commands above
+are the gates. If you want a check for the things a type-checker cannot see, write a
+small dependency-free script instead; `apps/42-schemasentry/tools/craft-check.mjs`
+is a good model (it scans for client components importing the db client, hex outside
+`globals.css`, off-scale spacing) and it caught a real violation the day it was
+written.
+
 ## Bugs the last ten builds all hit
 
 Every one of these passed `tsc` and `next build`. Check for them early rather than

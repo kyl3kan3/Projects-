@@ -17,6 +17,7 @@ import { createHash } from "node:crypto";
 import { and, desc, eq, inArray, lt } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
+  checkerHits,
   clauses as clausesTable,
   contractTexts,
   contracts,
@@ -458,16 +459,26 @@ export async function setContractType(
   const db = getDb();
   const contract = await getContract(accountId, contractId);
   if (!contract) throw new Error("No such contract");
+  const changed = contract.contractType !== contractType;
   await db
     .update(contracts)
-    .set({ contractType, typeConfirmed: true })
+    .set({
+      contractType,
+      typeConfirmed: true,
+      // The contract-type checklist decides which clauses are *expected*, so a
+      // correction has to re-run the scorer. Rewinding the status to "scoring" hands it
+      // back to the pipeline instead of leaving a report that contradicts its own label.
+      ...(changed && contract.status === "ready"
+        ? { status: "scoring" as const, stageStartedAt: null, stageAttempts: 0 }
+        : {}),
+    })
     .where(eq(contracts.id, contractId));
   await appendAudit({
     accountId,
     actor,
     action: "contract_type_confirmed",
     target: contractId,
-    metadata: { contractType },
+    metadata: { contractType, rescored: changed },
   });
 }
 
@@ -538,4 +549,18 @@ export async function sweepRetention(): Promise<{ deleted: number }> {
     });
   }
   return { deleted: due.length };
+}
+
+/**
+ * Prune the free checker's rate-limit rows. They exist only to count requests in the last
+ * hour, so anything older than a day is landfill — and it is an IP hash, which is not
+ * something to keep for longer than it is useful.
+ */
+export async function pruneCheckerHits(): Promise<{ deleted: number }> {
+  const db = getDb();
+  const deleted = await db
+    .delete(checkerHits)
+    .where(lt(checkerHits.createdAt, new Date(Date.now() - 24 * 60 * 60 * 1000)))
+    .returning({ id: checkerHits.id });
+  return { deleted: deleted.length };
 }

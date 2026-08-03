@@ -14,7 +14,7 @@ run, a referral queue that deadlocked under launch-day load, magic-link login
 broken outright, certificate-expiry alerts that fired once and then went quiet
 forever. All were found by running the thing.
 
-## Verified working (32 of 74)
+## Verified working (34 of 74)
 
 Each was re-checked here after its build agent reported: line count, absence of
 unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
@@ -46,11 +46,13 @@ unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
 | 43 | paidwell | 11,358 | 82 | 147 |
 | 44 | tenantfile | 12,027 | 100 | 101 |
 | 45 | rosterrally | 16,282 | 96 | 132 |
+| 46 | clausecompass | 9,839 | 81 | 67 |
 | 47 | shelfsense | 11,482 | 82 | 195 |
 | 48 | formforge | 11,966 | 92 | 184 |
 | 49 | grantgrid | 9,765 | 70 | 82 |
 | 50 | waiverwing | 10,452 | 87 | 87 |
 | 51 | menocompass | 2,298 | 25 | — |
+| 54 | rfpradar | 13,169 | 79 | 89 |
 | 55 | sessionscribe | 10,389 | 82 | 108 |
 | 62 | certshield | 12,947 | 94 | 115 |
 

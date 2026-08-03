@@ -18,6 +18,7 @@ import { readCriteria } from "@/lib/scorecard";
 import {
   blockKindLabel,
   deadlineKindLabel,
+  deadlineTitle,
   deadlineTone,
   formatCents,
   formatCountdown,
@@ -407,7 +408,9 @@ export default async function PursuitPage({ params }: { params: Promise<{ id: st
                   <p className="t-label">{deadlineKindLabel(entry.deadline.kind)}</p>
                   {/* Two lines, not an ellipsis: at 390px the label is the only
                       thing that tells two dates on one pursuit apart. */}
-                  <p className="t-title mt-1 line-clamp-2">{entry.deadline.label}</p>
+                  <p className="t-title mt-1 line-clamp-2">
+                    {deadlineTitle(entry.deadline.label, entry.deadline.kind)}
+                  </p>
                 </div>
                 <div className="shrink-0 text-right">
                   <p className="t-mono">{formatDayTime(entry.deadline.dueAt, tz)}</p>

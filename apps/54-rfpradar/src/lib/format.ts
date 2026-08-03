@@ -211,6 +211,16 @@ export function deadlineKindLabel(kind: string): string {
   return KIND_LABELS[kind] ?? kind;
 }
 
+/**
+ * A stored deadline label carries its kind ("Proposal due — <notice title>")
+ * because an ICS SUMMARY has no other column to put it in. On screen the kind is
+ * already a label above the row, so strip it rather than say it twice.
+ */
+export function deadlineTitle(label: string, kind: string): string {
+  const prefix = `${deadlineKindLabel(kind)} — `;
+  return label.startsWith(prefix) ? label.slice(prefix.length) : label;
+}
+
 const BLOCK_KIND_LABELS: Record<string, string> = {
   boilerplate: "Boilerplate",
   past_answer: "Past answer",

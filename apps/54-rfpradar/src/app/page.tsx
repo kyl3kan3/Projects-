@@ -58,7 +58,7 @@ export default function LandingPage() {
       </header>
 
       {/* ------------------------------------------------------------ hero */}
-      <main className="screen" style={{ paddingBottom: 96 }}>
+      <main className="screen" style={{ paddingBottom: 80 }}>
         <section className="pt-8">
           <p className="t-label">The tender that got away</p>
           <h1 className="t-display mt-3">Found at 6am. Scored by 6:01.</h1>
@@ -120,7 +120,7 @@ export default function LandingPage() {
         </section>
 
         {/* --------------------------------------------------- the reasons */}
-        <section className="mt-16">
+        <section className="mt-14">
           <p className="t-label">Scores you can audit</p>
           <h2 className="t-h2 mt-2">Every number expands to its reasons.</h2>
           <p className="t-body mt-3" style={{ color: "var(--color-ink-2)" }}>
@@ -140,7 +140,7 @@ export default function LandingPage() {
         </section>
 
         {/* ------------------------------------------------- the scorecard */}
-        <section className="mt-16">
+        <section className="mt-14">
           <p className="t-label">Ten minutes to an honest no</p>
           <h2 className="t-h2 mt-2">The scorecard makes “no” cheap.</h2>
           <p className="t-body mt-3" style={{ color: "var(--color-ink-2)" }}>
@@ -170,7 +170,7 @@ export default function LandingPage() {
         </section>
 
         {/* --------------------------------------------------- the library */}
-        <section className="mt-16">
+        <section className="mt-14">
           <p className="t-label">Link and snapshot</p>
           <h2 className="t-h2 mt-2">The library outlives every proposal.</h2>
           <p className="t-body mt-3" style={{ color: "var(--color-ink-2)" }}>
@@ -194,7 +194,7 @@ export default function LandingPage() {
         </section>
 
         {/* -------------------------------------------------- the maths */}
-        <section className="mt-16">
+        <section className="mt-14">
           <p className="t-label">The arithmetic</p>
           <h2 className="t-h2 mt-2">One missed tender costs more than a year of this.</h2>
           <div className="rows mt-5">
@@ -227,7 +227,7 @@ export default function LandingPage() {
         </section>
 
         {/* --------------------------------------------- objection killer */}
-        <section className="mt-16">
+        <section className="mt-14">
           <p className="t-label">The obvious objection</p>
           <h2 className="t-h2 mt-2">“Another feed to ignore.”</h2>
           <p className="t-body mt-3" style={{ color: "var(--color-ink-2)" }}>
@@ -265,7 +265,7 @@ export default function LandingPage() {
         </section>
 
         {/* -------------------------------------------------------- pricing */}
-        <section className="mt-16" id="pricing">
+        <section className="mt-14" id="pricing">
           <p className="t-label">Pricing</p>
           <h2 className="t-h2 mt-2">Seats, not tenders.</h2>
           <p className="t-body mt-3" style={{ color: "var(--color-ink-2)" }}>
@@ -316,7 +316,7 @@ export default function LandingPage() {
         </section>
 
         {/* ------------------------------------------------------------ faq */}
-        <section className="mt-16">
+        <section className="mt-14">
           <p className="t-label">Honest answers</p>
           <div className="rows mt-4">
             {[
@@ -352,7 +352,7 @@ export default function LandingPage() {
         </section>
 
         {/* ----------------------------------------------------- final CTA */}
-        <section className="mt-16">
+        <section className="mt-14">
           <h2 className="t-display">The tender you&apos;d have missed, found at 6am.</h2>
           <p className="t-body mt-4" style={{ color: "var(--color-ink-2)" }}>
             Build one keyword profile. Read tomorrow&apos;s scan. Decide whether it found something a
@@ -366,7 +366,7 @@ export default function LandingPage() {
           </p>
         </section>
 
-        <footer className="mt-16 hair-t pt-6">
+        <footer className="mt-14 hair-t pt-6">
           <p className="t-secondary">
             RFPRadar · the small firm&apos;s capture desk. Public-notice data is public by statute; we
             fetch it politely, with an honest user agent, on a schedule each portal can live with.

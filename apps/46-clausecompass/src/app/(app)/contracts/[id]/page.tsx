@@ -11,6 +11,7 @@ import { ClauseMap, type ClauseRowData } from "@/components/ClauseMap";
 import { Processing } from "./Processing";
 import { ReportActions } from "./ReportActions";
 import { CoverageStrip } from "./CoverageStrip";
+import { ContractTypeConfirm } from "./ContractTypeConfirm";
 import { toggleRedlineAction } from "../actions";
 import { IconMailDraft } from "@/components/icons";
 
@@ -76,6 +77,11 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
           {contract.sourceKind.toUpperCase()} · UPLOADED{" "}
           {contract.createdAt.toISOString().slice(0, 10)}
         </p>
+        <ContractTypeConfirm
+          contractId={contract.id}
+          contractType={contract.contractType}
+          confirmed={contract.typeConfirmed}
+        />
       </header>
 
       {inProgress ? (
