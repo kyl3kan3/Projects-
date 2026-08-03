@@ -193,6 +193,14 @@ check for them early rather than rediscovering them.
 16. **A nested `<form>`.** The browser silently drops the inner one, so the inner
     submit runs the *outer* action — a hold-to-confirm control quietly ran "save" and
     never recorded the decision. Only a rendered page reveals this.
+17. **React 19 resets an uncontrolled form after a server action returns.** So a
+    validation failure on one field wipes every other field the user typed — in one
+    app a single unreadable price emptied a 14-field form. Echo submitted values back
+    through `defaultValue` on every form that can be rejected. No unit test sees this;
+    you have to submit a bad value in a browser and look at what survived.
+18. **`startTransition` inside a `setState` updater** throws in React 19, surfacing as
+    "Application error: a client-side exception has occurred" — which is what the user
+    sees instead of your feature. Hold-to-confirm controls are where this appears.
 
 ## Verification — this is the part that matters
 

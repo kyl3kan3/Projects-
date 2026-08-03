@@ -1,9 +1,31 @@
 /**
  * src/db/schema.ts
  *
- * Drizzle schema for UnitKeeper — the complete data model from
- * ARCHITECTURE.md. Multi-tenant off owners.id. The ledger is
- * append-only; lien cases freeze their rule version.
+ * Drizzle schema for UnitKeeper — the data model from ARCHITECTURE.md.
+ * Multi-tenant off owners.id. The ledger is append-only; lien cases freeze
+ * their rule version.
+ *
+ * Three additions to the scaffolded model, each forced by a rule the docs state
+ * but the model could not enforce:
+ *
+ *  1. `ledger_entries.period` plus a unique index on
+ *     (tenancy_id, kind, period). Monthly rent must post exactly once per
+ *     billing period no matter how many times the tick runs, and "check whether
+ *     a row exists first" is not exactly-once. Rows with no period (payments,
+ *     adjustments) leave it null, and Postgres treats nulls as distinct, so
+ *     they are unconstrained.
+ *  2. `ladder_events` with a unique index on
+ *     (tenancy_id, cycle_key, day, action). BUILD.md: "the late ladder fires
+ *     exactly once per step and reverses cleanly on payment". The unique index
+ *     is what makes that true under a retry, and `reversed_on` is what makes the
+ *     reversal auditable instead of a delete.
+ *  3. `tenancies.paid_through` — the period rent has been charged through, so
+ *     autopay knows where it is without re-deriving it from the whole ledger.
+ *
+ * And on `owners`, three billing columns (`subscription_status`,
+ * `current_period_end`, `trial_ends_at`): a `plan` column alone cannot tell a
+ * paying account from one that cancelled last March, and an account whose
+ * subscription ended must not keep the lien engine forever.
  */
 
 import {
@@ -37,6 +59,14 @@ export const owners = pgTable(
     stripeCustomerId: text("stripe_customer_id"),
     stripeSubscriptionId: text("stripe_subscription_id"),
     stripeAccountId: text("stripe_account_id"),
+    /**
+     * Billing state, so entitlement is a fact rather than a guess. A plan column
+     * on its own cannot tell "paying" from "cancelled last March", and an
+     * account whose subscription ended must not keep the lien engine forever.
+     */
+    subscriptionStatus: text("subscription_status"),
+    currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
+    trialEndsAt: timestamp("trial_ends_at", { withTimezone: true }),
     /** jsonb: { lateLadder: [{ day, action, feeCents }], prorateRule } */
     settings: jsonb("settings").notNull().default({}),
     ...timestamps,
@@ -108,6 +138,12 @@ export const tenancies = pgTable("tenancies", {
     .default("active"),
   autopay: boolean("autopay").notNull().default(true),
   stripeSubscriptionId: text("stripe_subscription_id"),
+  /** Payment method vaulted on the owner's Connect account, if any. */
+  stripePaymentMethodId: text("stripe_payment_method_id"),
+  /** The last period ("YYYY-MM") rent has been charged for. */
+  paidThrough: text("paid_through"),
+  /** Move-out bookkeeping: what the make-ready checklist says. */
+  makeReady: jsonb("make_ready").notNull().default({}),
   ...timestamps,
 });
 
@@ -126,9 +162,48 @@ export const ledgerEntries = pgTable(
     occurredOn: date("occurred_on").notNull(),
     stripePaymentIntentId: text("stripe_payment_intent_id"),
     balanceAfterCents: integer("balance_after_cents").notNull(),
+    /**
+     * "YYYY-MM" for anything that may only exist once per billing period (rent,
+     * a ladder late fee). Null for everything else; nulls are distinct in a
+     * Postgres unique index, so payments and adjustments stay unconstrained.
+     */
+    period: text("period"),
     ...timestamps,
   },
-  (t) => [index("ledger_entries_tenancy_idx").on(t.tenancyId, t.occurredOn)],
+  (t) => [
+    index("ledger_entries_tenancy_idx").on(t.tenancyId, t.occurredOn),
+    uniqueIndex("ledger_entries_period_idx").on(t.tenancyId, t.kind, t.period),
+  ],
+);
+
+/**
+ * One row per ladder rung fired, per delinquency cycle. The unique index is the
+ * exactly-once guarantee — a retried tick collides instead of charging a second
+ * late fee. Payment does not delete these rows, it stamps `reversedOn`: the lien
+ * packet has to be able to print what happened and when it was undone.
+ */
+export const ladderEvents = pgTable(
+  "ladder_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenancyId: uuid("tenancy_id")
+      .notNull()
+      .references(() => tenancies.id),
+    /** The delinquency cycle this rung belongs to: the period that went unpaid. */
+    cycleKey: text("cycle_key").notNull(),
+    day: integer("day").notNull(),
+    action: text("action", {
+      enum: ["retry", "late_fee", "overlock", "lien_eligible"],
+    }).notNull(),
+    firedOn: date("fired_on").notNull(),
+    ledgerEntryId: uuid("ledger_entry_id").references(() => ledgerEntries.id),
+    reversedOn: date("reversed_on"),
+    ...timestamps,
+  },
+  (t) => [
+    uniqueIndex("ladder_events_rung_idx").on(t.tenancyId, t.cycleKey, t.day, t.action),
+    index("ladder_events_tenancy_idx").on(t.tenancyId),
+  ],
 );
 
 /** Per-state statute data, versioned, citation-carrying. */
@@ -217,3 +292,73 @@ export const auditLog = pgTable("audit_log", {
   metadata: jsonb("metadata").notNull().default({}),
   ...timestamps,
 });
+
+/* ------------------------------------------------------------------ types --- */
+
+export type Owner = typeof owners.$inferSelect;
+export type Facility = typeof facilities.$inferSelect;
+export type Unit = typeof units.$inferSelect;
+export type Tenant = typeof tenants.$inferSelect;
+export type Tenancy = typeof tenancies.$inferSelect;
+export type LedgerEntry = typeof ledgerEntries.$inferSelect;
+export type LedgerKind = LedgerEntry["kind"];
+export type LadderEvent = typeof ladderEvents.$inferSelect;
+export type LadderAction = LadderEvent["action"];
+export type LienRule = typeof lienRules.$inferSelect;
+export type LienCase = typeof lienCases.$inferSelect;
+export type Notice = typeof notices.$inferSelect;
+export type RateChange = typeof rateChanges.$inferSelect;
+export type Plan = Owner["plan"];
+export type UnitStatus = Unit["status"];
+
+/** The shape stored in `units.map_position`. */
+export interface MapPosition {
+  row: number;
+  col: number;
+  w: number;
+  h: number;
+}
+
+/** The shape stored in `owners.settings`. */
+export interface OwnerSettings {
+  lateLadder: Array<{ day: number; action: LadderAction; feeCents?: number }>;
+  /** How the first and last month are priced. */
+  prorateRule: "daily" | "full_month";
+  /** Day of the month rent falls due. */
+  rentDueDay: number;
+  /** Printed on leases and notices. */
+  legalName: string;
+  facilityTerms: string;
+}
+
+/**
+ * The ladder an owner gets on day one, straight from ARCHITECTURE.md's flow 2:
+ * retry day 3, late fee day 6, overlock day 11, lien-eligible day 30 (the day
+ * the engine will *offer* to open a case — it never opens one by itself).
+ */
+export const DEFAULT_SETTINGS: OwnerSettings = {
+  lateLadder: [
+    { day: 3, action: "retry" },
+    { day: 6, action: "late_fee", feeCents: 2000 },
+    { day: 11, action: "overlock" },
+    { day: 30, action: "lien_eligible" },
+  ],
+  prorateRule: "daily",
+  rentDueDay: 1,
+  legalName: "",
+  facilityTerms:
+    "Tenant stores at tenant's own risk. Insurance is tenant's responsibility. " +
+    "Rent is due on the 1st of each month. Unpaid rent may result in overlock " +
+    "and, after the statutory notice period, sale of the contents under the " +
+    "self-storage lien statute of the facility's state.",
+};
+
+/** The make-ready checklist a unit runs through between tenants. */
+export const MAKE_READY_ITEMS = [
+  "Swept and empty",
+  "Door and latch operate",
+  "Overlock removed",
+  "Interior light works",
+  "No water intrusion",
+  "Gate code revoked",
+] as const;

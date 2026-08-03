@@ -4,14 +4,17 @@
   "private": true,
   "description": "Management for small self-storage facilities: a live unit map, ten-minute move-ins with e-sign leases, rent autopay with a late ladder, and a statutory lien timeline engine with citations and hard stops",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3069",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 3069",
     "lint": "eslint .",
+    "craft": "node tools/craft-check.mjs",
     "typecheck": "tsc --noEmit",
+    "test": "tsx --test src/**/*.test.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
+    "db:seed": "tsx src/db/seed.ts",
     "worker": "tsx src/worker/index.ts"
   },
   "dependencies": {
@@ -20,6 +23,7 @@
     "bullmq": "^5.44.0",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
+    "dotenv": "^16.4.0",
     "drizzle-orm": "^0.41.0",
     "ioredis": "5.10.1",
     "jose": "^6.0.0",
@@ -41,6 +45,7 @@
     "drizzle-kit": "^0.30.0",
     "eslint": "^9.24.0",
     "eslint-config-next": "^15.3.0",
+    "playwright": "^1.52.0",
     "tailwindcss": "^4.1.0",
     "tsx": "^4.19.0",
     "typescript": "^5.8.0"

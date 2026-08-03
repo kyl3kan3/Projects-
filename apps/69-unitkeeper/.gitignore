@@ -22,8 +22,11 @@ build/
 coverage/
 .nyc_output/
 
-# Drizzle
-drizzle/meta/
+# Drizzle — `drizzle/meta/` is deliberately NOT ignored: it holds _journal.json,
+# and without it a fresh clone cannot run `npm run db:migrate` at all.
+
+# Local document storage (the "local" storage driver writes leases/notices here)
+.data/
 
 # TypeScript
 *.tsbuildinfo
