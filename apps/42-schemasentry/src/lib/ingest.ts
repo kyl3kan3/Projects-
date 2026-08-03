@@ -80,6 +80,8 @@ export interface StoredDiff {
   toLabel: string;
   /** Environment of the *new* side — a PR candidate is not a release. */
   toEnvironment: Environment;
+  /** `owner/repo#number` when the new side came from a pull request. */
+  toPrRef: string | null;
   fails: boolean;
 }
 
@@ -245,6 +247,7 @@ export async function computeAndStoreDiff(
     fromLabel: fromDeploy.versionLabel,
     toLabel: toDeploy.versionLabel,
     toEnvironment: toDeploy.environment,
+    toPrRef: toDeploy.prRef,
     fails,
   };
 }
@@ -340,6 +343,12 @@ export async function notifyDiff(
   environment: Environment,
 ): Promise<{ slack: boolean; webhook: boolean }> {
   if (diff.verdict === "compatible") return { slack: false, webhook: false };
+  // A pull-request candidate is not a deploy. Its verdict already lands on the
+  // PR as a check run and a comment; pinging Slack as well would fire on every
+  // force-push, and a channel that fires on every push is a muted channel.
+  // ARCHITECTURE.md puts alerts in the deploy flow and the PR surfaces in the
+  // check flow, deliberately.
+  if (environment === "pr") return { slack: false, webhook: false };
 
   const settings = (org.settings ?? {}) as Record<string, unknown>;
   const slackUrl =
@@ -504,6 +513,7 @@ export async function pushSpec(input: PushInput): Promise<PushResult> {
         specTitle: canonical.title,
         openapiVersion: canonical.version,
         pushedBy: input.pushedBy,
+        prRef: input.pr ? `${input.pr.repository}#${input.pr.number}` : null,
       })
       .returning();
     deploy = inserted;

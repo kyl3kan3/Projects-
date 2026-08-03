@@ -1,0 +1,82 @@
+name: SchemaSentry
+description: Fail the pull request when an OpenAPI change would break a consumer, and say which consumer.
+author: SchemaSentry
+
+branding:
+  icon: shield
+  color: red
+
+inputs:
+  api:
+    description: The watched API's slug, as shown in the dashboard.
+    required: true
+  spec:
+    description: Path to the OpenAPI document (YAML or JSON).
+    required: true
+    default: openapi.yaml
+  token:
+    description: A SchemaSentry API token. Store it as a repository secret.
+    required: true
+  command:
+    description: check (gate the PR) or push (record a deploy).
+    required: false
+    default: check
+  fail-on:
+    description: breaking | risky | never — the level that makes the step exit non-zero.
+    required: false
+    default: breaking
+  version:
+    description: Version label for the spec. Defaults to the head SHA.
+    required: false
+    default: ""
+  environment:
+    description: prod | staging | pr — only used by `push`.
+    required: false
+    default: prod
+  api-url:
+    description: Override for self-hosted installs.
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Run SchemaSentry
+      shell: bash
+      env:
+        SCHEMASENTRY_TOKEN: ${{ inputs.token }}
+        SCHEMASENTRY_API_URL: ${{ inputs.api-url }}
+      run: |
+        set -euo pipefail
+
+        # The Action is a wrapper over the published CLI, deliberately: there is
+        # one implementation of the check, and running `npx schemasentry` locally
+        # reproduces CI exactly.
+        version="${{ inputs.version }}"
+        if [ -z "$version" ]; then
+          version="${{ github.event.pull_request.head.sha || github.sha }}"
+        fi
+
+        args=(
+          "${{ inputs.command }}"
+          "${{ inputs.spec }}"
+          --api "${{ inputs.api }}"
+          --version "$version"
+        )
+
+        if [ "${{ inputs.command }}" = "check" ]; then
+          args+=(--fail-on "${{ inputs.fail-on }}")
+          # Present only on pull_request events. With them, SchemaSentry posts
+          # the check run and keeps one PR comment updated in place.
+          if [ -n "${{ github.event.pull_request.number || '' }}" ]; then
+            args+=(
+              --repo "${{ github.repository }}"
+              --pr "${{ github.event.pull_request.number }}"
+              --sha "${{ github.event.pull_request.head.sha }}"
+            )
+          fi
+        else
+          args+=(--env "${{ inputs.environment }}")
+        fi
+
+        npx --yes schemasentry "${args[@]}"

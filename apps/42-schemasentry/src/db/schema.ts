@@ -146,6 +146,16 @@ export const deploys = pgTable(
     openapiVersion: text("openapi_version").notNull(),
     /** Token label or user email. */
     pushedBy: text("pushed_by").notNull(),
+    /**
+     * `owner/repo#number` when this deploy was a pull-request candidate.
+     *
+     * PR context has to live here rather than being looked up in `check_runs`:
+     * that table is uniquely keyed per (api, repo, PR) so the comment stays
+     * single, which means it only ever points at the *latest* check. Deriving
+     * "did this come from a PR?" from it made every earlier diff in the same PR
+     * silently lose its PR context — and with it the ack-scope choice.
+     */
+    prRef: text("pr_ref"),
     pushedAt: timestamp("pushed_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [

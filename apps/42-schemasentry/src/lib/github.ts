@@ -110,7 +110,12 @@ export function buildCheckSummary(input: CommentInput): string {
  * leaving the page.
  */
 export function buildPrComment(input: CommentInput): string {
-  const notable = input.findings.filter((f) => f.level === "breaking" || f.level === "risky");
+  // Acknowledged findings belong in the table. They are the reason the check is
+  // neutral rather than red, and hiding them would make the comment look like
+  // SchemaSentry simply stopped noticing.
+  const notable = input.findings.filter(
+    (f) => f.level === "breaking" || f.level === "risky" || f.level === "info",
+  );
   const lines: string[] = [
     COMMENT_MARKER,
     `### SchemaSentry — ${input.apiName}`,

@@ -182,7 +182,10 @@ export async function assembleBinder(
   const cover = await renderCover(company, rangeStart, rangeEnd, requestedBy, manifest);
   parts.push(cover, attendance, ...logs, form300A, certMatrix, incidentList);
 
-  const merged = await mergePdfs(parts);
+  const merged = await mergePdfs(parts, {
+    title: `Safety records — ${establishment(company)} — ${rangeStart} to ${rangeEnd}`,
+    subject: "Inspection binder: talk attendance, OSHA 300/300A, cert matrix, incident list",
+  });
   const key = newObjectKey(companyId, "binder", "pdf");
   await putObject(key, merged.bytes, "application/pdf", companyId);
 
@@ -414,13 +417,15 @@ function renderAttendancePages(
         : "no GPS recorded",
       row.instance.syncedFromOffline ? "captured offline, synced later" : "captured online",
     ].join(" · ");
-    drawText(p, fonts, stamp, MARGIN, y, {
+    // The stamp line wraps on a narrow page; take its measured height rather
+    // than a guess, or it collides with the signature count below it.
+    y -= drawText(p, fonts, stamp, MARGIN, y, {
       size: 8.4,
       font: fonts.mono,
       color: MUTED,
       maxWidth: inner,
     });
-    y -= 18;
+    y -= 8;
     hairline(p, MARGIN, y, inner, INK);
     y -= 8;
 

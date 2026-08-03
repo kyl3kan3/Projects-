@@ -1,0 +1,31 @@
+import { chromium } from "playwright";
+const SP="/tmp/claude-0/-home-user-Projects-/1ca38fdf-0b29-57e3-b349-c2f61fec860e/scratchpad/ss42";
+const b=await chromium.launch({executablePath:"/opt/pw-browsers/chromium_headless_shell-1194/chrome-linux/headless_shell"});
+const c=await b.newContext({viewport:{width:390,height:844},storageState:`${SP}/state.json`});
+const p=await c.newPage();
+p.on("request", r => { if (r.method()==="POST") console.log("POST", r.url().slice(0,80)); });
+p.on("response", r => { if (r.request().method()==="POST") console.log("  ->", r.status()); });
+p.on("pageerror", e => console.log("pageerror", String(e)));
+p.on("console", m => console.log(`  [${m.type()}]`, m.text().slice(0,140)));
+await p.goto(`http://localhost:3042/apis/payments-api/diffs/${process.argv[2]}`,{waitUntil:"load"});
+await p.waitForTimeout(900);
+const card = p.locator("article.card").nth(1);
+await card.locator('button:has-text("Acknowledge")').first().click();
+await p.waitForSelector('textarea[name="note"]');
+await card.locator('textarea[name="note"]').fill("Intentional for PR 42 only: cancelled maps to refunded from 1 Aug.");
+await p.waitForTimeout(200);
+console.log("hidden submit present:", await card.locator('button[type="submit"][aria-hidden="true"]').count());
+console.log("visible hold btn text:", await card.locator('button.btn-secondary').first().innerText());
+// Try the direct route: dispatch a click on the hidden submitter from the page.
+await p.evaluate(() => {
+  const forms = [...document.querySelectorAll("form")];
+  const f = forms.find(x => x.querySelector('textarea[name="note"]'));
+  const btn = f?.querySelector('button[type="submit"]');
+  console.log("form found", !!f, "btn found", !!btn, "note len", (f?.querySelector('textarea')).value.length);
+  btn?.click();
+});
+await p.waitForTimeout(2500);
+const t = await p.locator("main").first().innerText();
+console.log("counts:", /\d+ BREAKING[^\n]*/.exec(t)?.[0]);
+console.log("any message:", /(Acknowledged|Write a note|That diff|This diff did not|at least)[^\n]*/.exec(t)?.[0] ?? "(none)");
+await b.close();

@@ -189,11 +189,26 @@ body {
 }
 
 /* Wide content scrolls inside its own track; the page body never scrolls
-   sideways (DESIGN_LANGUAGE mobile rule). */
+   sideways (DESIGN_LANGUAGE mobile rule).
+
+   `min-width: 0` is the load-bearing line. Without it a scroll track inside a
+   grid or flex item inherits `min-width: auto`, so the item sizes to the widest
+   unbreakable line it contains — one long JSON pointer made the landing page
+   408px wider than the viewport while every individual rule looked correct. */
 .xscroll {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Same reasoning, applied to the containers this app actually uses for lists of
+   cards: a single-column grid whose track is `minmax(0, 1fr)` rather than the
+   default `auto`. */
+.stack {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 /* ------------------------------------------------- hairlines, not borders */
@@ -663,13 +678,26 @@ a:hover { text-decoration: underline; }
   }
 }
 
+/* ------------------------------------------------------- the diff panes ----
+   Mobile is one column in DESIGN.md's order: verdict stamp, finding cards, then
+   the wider context. At >=1024 the same DOM becomes the three-pane dashboard the
+   spec describes — timeline rail, diff centre capped at 720, consumer impact
+   right — with no duplicated markup and nothing hidden from a small screen
+   except the rail, which is reachable from the Timeline tab anyway.            */
+.diff-panes {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+}
+.pane-rail { display: none; }
+
 @media (min-width: 1024px) {
-  .three-pane {
-    display: grid;
-    grid-template-columns: 260px minmax(0, 720px) minmax(0, 300px);
-    gap: 32px;
-    align-items: start;
+  .diff-panes {
+    grid-template-columns: 240px minmax(0, 720px) minmax(0, 300px);
   }
+  .pane-rail { display: block; position: sticky; top: 24px; }
+  .pane-side { position: sticky; top: 24px; }
 }
 
 .sr-only {

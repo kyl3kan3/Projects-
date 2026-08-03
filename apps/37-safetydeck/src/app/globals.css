@@ -714,3 +714,189 @@ select.input {
     transform: none;
   }
 }
+
+/* ==========================================================================
+   Marketing surface. Product UI stays quiet; the landing page is a salesperson.
+   Four animated beats total (MARKETING_PLAYBOOK law 6): the sign-off completing,
+   the device landing, the proof revealing, the offer arithmetic writing itself.
+   Everything else is static and typeset like a magazine.
+   ========================================================================== */
+
+.marketing {
+  max-width: 1120px;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.eyebrow {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-hardhat);
+}
+
+/* ---- Beat 1: the phone, running ---- */
+.demo-phone {
+  border: 1px solid var(--color-line);
+  border-radius: 20px;
+  background: var(--color-surface);
+  padding: 8px;
+  max-width: 340px;
+}
+.demo-screen {
+  background: var(--color-bg);
+  border-radius: 14px;
+  padding: 16px;
+}
+.demo-counter {
+  color: var(--color-green);
+  animation: counter-in 240ms var(--ease-out-quart) 2600ms both;
+}
+@keyframes counter-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.demo-pad {
+  position: relative;
+  height: 108px;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.demo-sig {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.demo-sig path {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: sig-draw 900ms var(--ease-out-quart) 300ms forwards;
+}
+@keyframes sig-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.demo-baseline {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 26px;
+  height: 1px;
+  background: var(--color-hardhat);
+}
+.demo-stamp {
+  position: absolute;
+  left: 14px;
+  bottom: 8px;
+  color: var(--color-green);
+  animation: stamp-settle 220ms var(--ease-out-quart) 1250ms both;
+}
+.demo-roster {
+  border-top: 1px solid var(--color-line);
+}
+.demo-roster li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-line);
+  animation: row-in 200ms var(--ease-out-quart) both;
+}
+.demo-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-green);
+  white-space: nowrap;
+}
+.demo-sync {
+  animation: counter-in 240ms linear 2800ms both;
+}
+
+/* ---- Beats 2–4: sections reveal once on entry ---- */
+.beat {
+  animation: beat-in 420ms var(--ease-out-quart) both;
+}
+@keyframes beat-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@supports (animation-timeline: view()) {
+  .beat {
+    animation-timeline: view();
+    animation-range: entry 5% cover 26%;
+  }
+}
+
+/* The arithmetic, written out. */
+.sum {
+  display: grid;
+  gap: 4px;
+}
+.sum-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-line);
+}
+.sum-total {
+  border-bottom: 0;
+  border-top: 1px solid var(--color-hardhat);
+  padding-top: 16px;
+}
+
+.sticky-cta {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  padding: 12px var(--gutter) calc(12px + env(safe-area-inset-bottom));
+  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--color-line);
+}
+.sticky-cta > * {
+  max-width: 520px;
+  margin-inline: auto;
+}
+@media (min-width: 768px) {
+  .sticky-cta {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .demo-sig path {
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+  .demo-counter,
+  .demo-stamp,
+  .demo-sync,
+  .demo-roster li,
+  .beat {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}

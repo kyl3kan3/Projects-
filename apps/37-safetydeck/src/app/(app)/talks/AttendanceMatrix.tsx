@@ -1,4 +1,5 @@
 import type { AttendanceMatrix as Matrix } from "@/lib/signoff";
+import { MatrixTrack } from "./MatrixTrack";
 import { monthDay } from "@/lib/dates";
 
 /**
@@ -20,7 +21,7 @@ export function AttendanceMatrix({ matrix }: { matrix: Matrix }) {
         </a>
       </div>
       <div className="panel mt-3 overflow-hidden">
-        <div className="matrix-track">
+        <MatrixTrack>
           <table className="w-max border-collapse">
             <thead>
               <tr>
@@ -64,7 +65,7 @@ export function AttendanceMatrix({ matrix }: { matrix: Matrix }) {
               ))}
             </tbody>
           </table>
-        </div>
+        </MatrixTrack>
       </div>
       <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
         <Legend cls="matrix-signed" label="Signed" />

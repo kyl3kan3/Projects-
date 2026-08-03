@@ -30,6 +30,7 @@ import {
   drawFooter,
   drawText,
   hairline,
+  wrapText,
   INK,
   LETTER_LANDSCAPE,
   LETTER_PORTRAIT,
@@ -42,7 +43,8 @@ import {
 import { monthDayYear } from "@/lib/dates";
 
 const MARGIN = 30;
-const ROWS_PER_PAGE = 12;
+/** Vertical space the row band gets on a landscape page, below the header band. */
+const TABLE_BODY_HEIGHT = 400;
 
 function establishment(company: Company): string {
   return company.establishmentName?.trim() || company.name;
@@ -77,11 +79,11 @@ const COLUMNS: Column[] = [
   { key: "title", label: "(C)", sub: "Job title", width: 78 },
   { key: "date", label: "(D)", sub: "Date of injury", width: 54 },
   { key: "where", label: "(E)", sub: "Where it occurred", width: 104 },
-  { key: "desc", label: "(F)", sub: "Describe injury or illness", width: 168 },
-  { key: "g", label: "(G)", sub: "Death", width: 26 },
-  { key: "h", label: "(H)", sub: "Days away", width: 26 },
-  { key: "i", label: "(I)", sub: "Transfer", width: 26 },
-  { key: "j", label: "(J)", sub: "Other", width: 26 },
+  { key: "desc", label: "(F)", sub: "Describe injury or illness", width: 156 },
+  { key: "g", label: "(G)", sub: "Death", width: 29 },
+  { key: "h", label: "(H)", sub: "Days away", width: 29 },
+  { key: "i", label: "(I)", sub: "Transfer", width: 29 },
+  { key: "j", label: "(J)", sub: "Other", width: 29 },
   { key: "k", label: "(K)", sub: "Days away", width: 32 },
   { key: "l", label: "(L)", sub: "Days restr.", width: 32 },
   { key: "m", label: "(M)", sub: "Type", width: 58 },
@@ -108,13 +110,35 @@ export async function render300(input: Render300Input): Promise<Uint8Array> {
     "Log of Work-Related Injuries and Illnesses",
   );
   const rows = toForm300Rows(input.cases);
-  const pageCount = Math.max(1, Math.ceil(rows.length / ROWS_PER_PAGE));
 
-  for (let p = 0; p < pageCount; p += 1) {
-    const slice = rows.slice(p * ROWS_PER_PAGE, (p + 1) * ROWS_PER_PAGE);
-    draw300Page(doc, input, slice, p + 1, pageCount);
+  // Pages are packed by measured height, not by a row count: rows are as tall as
+  // their description needs, and a fixed twelve-per-page would either waste half a
+  // sheet or run a case off the bottom of one.
+  const descColumn = COLUMNS.find((c) => c.key === "desc")!;
+  const pages: Form300Row[][] = [];
+  let current: Form300Row[] = [];
+  let used = 0;
+  for (const row of rows) {
+    const height = row300Height(row, doc, descColumn.width);
+    if (current.length > 0 && used + height > TABLE_BODY_HEIGHT) {
+      pages.push(current);
+      current = [];
+      used = 0;
+    }
+    current.push(row);
+    used += height;
   }
+  if (current.length > 0 || pages.length === 0) pages.push(current);
+
+  pages.forEach((slice, i) => draw300Page(doc, input, slice, i + 1, pages.length));
   return doc.pdf.save();
+}
+
+/** Height one case needs, driven by the longest wrapped cell. */
+function row300Height(row: Form300Row, doc: Doc, descWidth: number): number {
+  const descLines = wrapText(row.description, doc.fonts.regular, 6.6, descWidth - 4).length;
+  const whereLines = wrapText(row.whereOccurred, doc.fonts.regular, 7, 100).length;
+  return Math.max(34, Math.max(descLines, whereLines) * 7.6 + 8);
 }
 
 function draw300Page(
@@ -178,11 +202,14 @@ function draw300Page(
   vrule(p, x, tableTop, 30, INK);
   hairline(p, MARGIN, tableTop - 30, width - MARGIN * 2, INK);
 
-  // Rows.
+  // Rows. Height is driven by the longest cell, because column (F) is where the
+  // case is actually described and a fixed row height silently truncates the one
+  // column an inspector reads.
   let rowTop = tableTop - 30;
-  const rowHeight = 34;
+  const descColumn = COLUMNS.find((c) => c.key === "desc")!;
   for (const row of rows) {
     x = MARGIN;
+    const rowHeight = row300Height(row, doc, descColumn.width);
     const cells: Record<string, string> = {
       case: String(row.caseNumber),
       name: row.logName,
@@ -696,8 +723,17 @@ function totalsGrid(
 }
 
 /** Merge already-rendered PDFs into one document — used by the binder. */
-export async function mergePdfs(parts: Uint8Array[]): Promise<{ bytes: Uint8Array; pages: number }> {
+export async function mergePdfs(
+  parts: Uint8Array[],
+  meta?: { title: string; subject: string },
+): Promise<{ bytes: Uint8Array; pages: number }> {
   const out = await PDFDocument.create();
+  if (meta) {
+    out.setTitle(meta.title);
+    out.setSubject(meta.subject);
+  }
+  out.setProducer("SafetyDeck");
+  out.setCreator("SafetyDeck");
   for (const part of parts) {
     const src = await PDFDocument.load(part);
     const pages = await out.copyPages(src, src.getPageIndices());

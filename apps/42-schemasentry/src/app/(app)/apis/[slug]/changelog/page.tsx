@@ -86,7 +86,7 @@ export default async function ChangelogPage({ params }: { params: Promise<{ slug
             from the action vanished before anyone could read it.
           */}
           {ordered.length > 0 ? (
-            <div style={{ display: "grid", gap: 16 }}>
+            <div className="stack" style={{ gap: 16 }}>
               {ordered.map((entry) => (
                 <EntryEditor key={entry.id} slug={api.slug} entry={entry} />
               ))}

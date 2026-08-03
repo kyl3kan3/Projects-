@@ -157,7 +157,7 @@ function AckControl({
   const [armed, setArmed] = useState(false);
   const [holding, setHolding] = useState(false);
   const [note, setNote] = useState("");
-  const formRef = useRef<HTMLFormElement>(null);
+  const submitRef = useRef<HTMLButtonElement>(null);
   const [ackState, ackFormAction, ackPending] = useActionState(acknowledgeAction, EMPTY_STATE);
   const [withdrawState, withdrawFormAction, withdrawPending] = useActionState(withdrawAckAction, EMPTY_STATE);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -200,7 +200,11 @@ function AckControl({
     setHolding(true);
     timer.current = setTimeout(() => {
       setHolding(false);
-      formRef.current?.requestSubmit();
+      // Click a real submit button rather than calling `form.requestSubmit()`:
+      // React's form-action handling listens for a submit *from a submitter*, and
+      // `requestSubmit()` with no submitter silently did nothing here — the hold
+      // completed, the radial fill finished, and no ack was ever recorded.
+      submitRef.current?.click();
     }, HOLD_MS);
   }
 
@@ -226,7 +230,7 @@ function AckControl({
   }
 
   return (
-    <form ref={formRef} action={ackFormAction} style={{ marginTop: 16, display: "grid", gap: 12 }}>
+    <form action={ackFormAction} style={{ marginTop: 16, display: "grid", gap: 12 }}>
       <input type="hidden" name="diffId" value={diffId} />
       <input type="hidden" name="ruleId" value={finding.ruleId} />
       <input type="hidden" name="jsonPointer" value={finding.jsonPointer} />
@@ -274,9 +278,13 @@ function AckControl({
         </p>
       ) : null}
 
+      {/* The submitter. Hidden, and the only element that submits this form, so a
+          stray click or an Enter in the textarea cannot record an ack. */}
+      <button ref={submitRef} type="submit" tabIndex={-1} aria-hidden="true" style={{ display: "none" }} />
+
       <div style={{ position: "relative" }}>
         <button
-          type={armed ? "submit" : "button"}
+          type="button"
           className={`btn btn-secondary btn-full ${holding ? "hold-active" : ""}`}
           disabled={ackPending || note.trim().length < 8}
           onPointerDown={startHold}
@@ -285,11 +293,12 @@ function AckControl({
           onKeyDown={(event) => {
             // A hold gesture with no keyboard equivalent is not an accessible
             // control, so the keyboard gets the same two beats without needing a
-            // 600ms press: Enter or Space arms the button, the next one submits.
-            if ((event.key === "Enter" || event.key === " ") && !armed) {
-              event.preventDefault();
-              setArmed(true);
-            }
+            // 600ms press: Enter or Space arms the button, the next one records.
+            if (event.key !== "Enter" && event.key !== " ") return;
+            event.preventDefault();
+            if (note.trim().length < 8) return;
+            if (!armed) setArmed(true);
+            else submitRef.current?.click();
           }}
           onBlur={() => setArmed(false)}
           style={{ position: "relative", overflow: "hidden" }}

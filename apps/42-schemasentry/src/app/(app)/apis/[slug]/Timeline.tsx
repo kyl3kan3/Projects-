@@ -150,7 +150,11 @@ export function Timeline({ slug, items }: { slug: string; items: TimelineItem[] 
         </p>
       ) : null}
 
-      {/* Thumb-zone action. Sticky so it stays reachable down a long timeline. */}
+      {/*
+        Thumb-zone action, sticky so it stays reachable down a long timeline. It
+        only exists while rows are selected, and the spacer below lets the last
+        rows scroll clear of it rather than sitting underneath.
+      */}
       <div
         style={{
           position: "sticky",
@@ -182,6 +186,7 @@ export function Timeline({ slug, items }: { slug: string; items: TimelineItem[] 
           </button>
         </form>
       </div>
+      {selected.length > 0 ? <div aria-hidden="true" style={{ height: 160 }} /> : null}
     </>
   );
 }

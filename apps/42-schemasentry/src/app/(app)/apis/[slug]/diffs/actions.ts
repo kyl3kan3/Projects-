@@ -13,7 +13,7 @@
 import { revalidatePath } from "next/cache";
 import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
-import { acknowledgements, apis, auditLog, checkRuns, deploys, diffs } from "@/db/schema";
+import { acknowledgements, apis, auditLog, deploys, diffs } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { computeAndStoreDiff, draftChangelogFor } from "@/lib/ingest";
 import { RULES } from "@/core/rules";
@@ -62,14 +62,13 @@ export async function acknowledgeAction(_prev: FormState, form: FormData): Promi
   const db = getDb();
   let scopeKey = "api";
   if (scope === "pr") {
-    const [check] = await db
-      .select()
-      .from(checkRuns)
-      .where(and(eq(checkRuns.apiId, row.api.id), eq(checkRuns.diffId, diffId)));
-    if (!check?.repository || check.prNumber === null) {
+    // The PR is recorded on the deploy, so this still resolves for an older diff
+    // in the same pull request. `check_runs` only ever points at the latest one.
+    const [toDeploy] = await db.select().from(deploys).where(eq(deploys.id, row.diff.toDeployId));
+    if (!toDeploy?.prRef) {
       return { error: "This diff did not come from a pull request, so there is no PR to scope the ack to.", ok: null };
     }
-    scopeKey = `pr:${check.repository}#${check.prNumber}`;
+    scopeKey = `pr:${toDeploy.prRef}`;
   }
 
   await db

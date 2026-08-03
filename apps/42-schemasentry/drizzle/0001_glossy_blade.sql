@@ -1,0 +1,1 @@
+ALTER TABLE "deploys" ADD COLUMN "pr_ref" text;

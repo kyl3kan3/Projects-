@@ -8,6 +8,13 @@
       "when": 1785747118196,
       "tag": "0000_faulty_madelyne_pryor",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1785751798796,
+      "tag": "0001_glossy_blade",
+      "breakpoints": true
     }
   ]
 }

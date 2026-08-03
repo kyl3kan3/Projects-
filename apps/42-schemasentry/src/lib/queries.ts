@@ -226,6 +226,8 @@ export interface DiffDetail {
   /** The draft awaiting publication for this diff, when there is one. */
   draft: ChangelogEntry | null;
   failsPolicy: boolean;
+  /** `owner/repo#number` when the new side came from a pull request. */
+  prRef: string | null;
 }
 
 export async function getDiff(organizationId: string, diffId: string): Promise<DiffDetail | null> {
@@ -303,6 +305,7 @@ export async function getDiff(organizationId: string, diffId: string): Promise<D
     impacts,
     draft: draft ?? null,
     failsPolicy,
+    prRef: toDeploy.prRef,
   };
 }
 

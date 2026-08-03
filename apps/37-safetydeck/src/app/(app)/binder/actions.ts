@@ -14,6 +14,10 @@ import { assembleBinder, defaultRange } from "@/lib/binder";
 import { addDays, isIsoDate, todayIso } from "@/lib/dates";
 import type { ActionState } from "@/lib/action-state";
 
+function plural(n: number, noun: string): string {
+  return `${n} ${noun}${n === 1 ? "" : "s"}`;
+}
+
 export async function exportBinderAction(
   _prev: ActionState,
   form: FormData,
@@ -49,7 +53,7 @@ export async function exportBinderAction(
     revalidatePath("/binder");
     return {
       error: null,
-      message: `${result.pageCount} pages: ${result.manifest.signatures} signatures, ${result.manifest.recordableIncidents} recordable cases, ${result.manifest.certs} certs. Ready to download.`,
+      message: `${result.pageCount} pages: ${plural(result.manifest.signatures, "signature")}, ${plural(result.manifest.recordableIncidents, "recordable case")}, ${plural(result.manifest.certs, "cert")}. Ready to download.`,
     };
   } catch (err) {
     return {

@@ -15,7 +15,7 @@
  * ask the office for a resend.
  */
 
-import { createHash } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { SignJWT, jwtVerify } from "jose";
 import { env } from "@/lib/env";
 
@@ -43,6 +43,12 @@ export async function mintCrewToken(
   const token = await new SignJWT({ ti: instanceId, cr: crewId })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
+    // A random jti, and it is load-bearing. `iat` has one-second resolution, so
+    // without a nonce a resend inside the same second mints a byte-identical
+    // token — and "resending revokes the old link" quietly stops being true
+    // exactly when someone is urgently re-sending a link that went to the wrong
+    // number.
+    .setJti(randomBytes(12).toString("base64url"))
     .setExpirationTime(`${TOKEN_TTL_DAYS}d`)
     .sign(key());
   return { token, tokenHash: hashToken(token) };

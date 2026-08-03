@@ -98,3 +98,124 @@ Post-MVP (explicitly cut from v1): traffic-shape mode (capture middleware/eBPF),
 ## Sources
 
 Market claims above are grounded in: Postman State of the API 2025 (change communication via team chat 75% vs. docs 42%; documentation gaps cited by 55%; 93% of teams reporting collaboration challenges; the rise of AI-agent API consumers) and standard SaaS gross-margin benchmarks (70-85%, with best-in-class ≥80%) for the dev-tool category economics.
+
+---
+
+## Setup
+
+Node 20 or newer, and a Postgres database. Nothing else is required to run the
+whole product locally.
+
+```bash
+npm install
+cp .env.example .env.local          # then fill DATABASE_URL and JWT_SECRET
+npm run db:migrate                  # creates the 16 tables
+npm run dev                         # http://localhost:3042
+```
+
+Sign up, add an API, and create a CI token under **Account → CI tokens**. Then,
+from the repository whose spec you want watched:
+
+```bash
+export SCHEMASENTRY_TOKEN=ss_…
+export SCHEMASENTRY_API_URL=http://localhost:3042
+
+npx schemasentry push openapi.yaml --api payments-api --version $GIT_SHA
+```
+
+The first push becomes the baseline. The second produces a verdict.
+
+### The CLI
+
+```bash
+schemasentry diff old.yaml new.yaml     # free, offline, no account, always exits 0
+schemasentry check spec.yaml --api payments-api --fail-on breaking
+schemasentry push  spec.yaml --api payments-api --version $GIT_SHA
+schemasentry apis                       # what this token can reach
+```
+
+`--json` on any command gives a stable machine-readable shape. `-V` prints the
+CLI version (`--version` belongs to `push` and `check`, where it labels the
+deploy).
+
+### CI
+
+With GitHub Actions, use the bundled composite action:
+
+```yaml
+# .github/workflows/schemasentry.yml
+name: API contract
+on: pull_request
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions: { pull-requests: write, checks: write }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./                       # or your-org/schemasentry@v1
+        with:
+          api: payments-api
+          spec: openapi.yaml
+          token: ${{ secrets.SCHEMASENTRY_TOKEN }}
+          fail-on: breaking
+```
+
+On any other CI system the two `npx` commands above are the whole integration.
+Set `GITHUB_TOKEN` on the server to get the check run and the single in-place PR
+comment; without it the verdict and the exit code still work.
+
+### Running the API as its own process
+
+The `/v1` surface is served both as Next route handlers (`/api/v1/*`, which is
+what Vercel deploys) and as a standalone Fastify server for self-hosting. Both
+mount the same handlers from `src/lib/service.ts`.
+
+```bash
+npm run api        # Fastify on API_PORT, /v1/specs /v1/check /v1/apis /health
+```
+
+### Scheduled work
+
+Alert delivery is a Postgres queue with backoff and a dead letter, drained inline
+on push and again by a cron route:
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3042/api/cron/tick
+```
+
+On Vercel, add it to `vercel.json` as a cron job. The route refuses to run when
+`CRON_SECRET` is unset. When the Fastify process is running it drains the queue
+itself every 15 seconds and no cron is needed.
+
+### Checks
+
+```bash
+npm run typecheck
+npm test           # node:test via tsx, no test dependency
+npm run build
+```
+
+## Implementation notes
+
+Three deliberate departures from `ARCHITECTURE.md`, all to fit the Vercel + Neon
+deployment target rather than the Railway-plus-worker shape it assumes:
+
+1. **No BullMQ or Redis.** Vercel has no always-on process to run a queue
+   consumer. Retryable fan-out is `notification_deliveries`: a unique
+   `dedupe_key`, an attempt counter, exponential backoff, and a dead letter after
+   five attempts, claimed with `FOR UPDATE SKIP LOCKED` so two ticks cannot both
+   deliver a row. Diffs run synchronously — the engine is JSON tree-walking and
+   finishes a 2MB spec pair in well under a second.
+2. **Raw spec originals live in `deploys.raw_spec`, not R2.** Specs are kilobytes
+   of text, immutability is satisfied by never updating the column, and it
+   removes a credential from the setup path.
+3. **`$ref` resolution is local-only**, hand-written rather than
+   `json-schema-ref-parser`. Fetching a URL named inside untrusted customer input
+   from the ingest path is an SSRF hole, and the diff engine has no business
+   making network calls. A remote `$ref` becomes a spec-health warning telling you
+   to bundle the spec first.
+
+Auth is email + password (scrypt + a signed JWT cookie). `ARCHITECTURE.md` names
+GitHub OAuth as the primary sign-in and the `users.github_login` column is there
+for it, but it cannot be exercised without a registered app, and shipping an
+untested sign-in path is worse than shipping one fewer.
