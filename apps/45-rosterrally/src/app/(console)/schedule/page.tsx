@@ -20,9 +20,9 @@ import {
   updateGameAction,
 } from "./actions";
 import { EmptyState, PennantChip, ScreenTitle, SectionHead } from "@/components/ui";
-import { IconMapPin, IconPennant } from "@/components/icons";
+import { IconDownload, IconMapPin, IconPennant } from "@/components/icons";
 import { can, requireUser } from "@/lib/auth";
-import { getCurrentSeason } from "@/lib/registration";
+import { divisionAvailability, getCurrentSeason } from "@/lib/registration";
 import { listTeams } from "@/lib/rosters";
 import {
   describeGame,
@@ -98,6 +98,7 @@ export default async function SchedulePage() {
   const venues = await listVenues(club.id);
   const teams = await listTeams(season.id);
   const reminders = await pendingReminders(season.id);
+  const divisionsForPrint = await divisionAvailability(season.id);
 
   const hard = gate.hard;
   const soft = gate.needsOverride;
@@ -293,6 +294,18 @@ export default async function SchedulePage() {
       />
       <ImportForm action={importCsvAction} seasonId={season.id} />
       <VenueForm action={createVenueAction} />
+
+      <SectionHead>Printable sheets</SectionHead>
+      <p className="t-secondary">
+        One page per division for the clubhouse wall — published games only, no names.
+      </p>
+      {divisionsForPrint.map((d) => (
+        <a key={d.id} href={`/print/${d.id}`} className="row" target="_blank" rel="noreferrer">
+          <IconDownload size={18} style={{ color: "var(--fg-2)" }} />
+          <span className="t-title flex-1">{d.name}</span>
+          <span className="t-secondary turf">Open</span>
+        </a>
+      ))}
 
       <SectionHead>Venues</SectionHead>
       {venues.map((v) => (

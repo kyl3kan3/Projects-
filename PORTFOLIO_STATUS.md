@@ -14,7 +14,7 @@ run, a referral queue that deadlocked under launch-day load, magic-link login
 broken outright, certificate-expiry alerts that fired once and then went quiet
 forever. All were found by running the thing.
 
-## Verified working (21 of 74)
+## Verified working (23 of 74)
 
 Each was re-checked here after its build agent reported: line count, absence of
 unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
@@ -34,10 +34,12 @@ unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
 | 24 | tradelog | 10,789 | 102 | 197 |
 | 28 | clientdock | 9,273 | 84 | 66 |
 | 33 | crewclock | 9,707 | 78 | 139 |
+| 34 | menulift | 10,803 | 83 | 97 |
 | 36 | bidboard | 13,785 | 74 | 95 |
 | 38 | duesdesk | 14,295 | 94 | 102 |
 | 43 | paidwell | 11,358 | 82 | 147 |
 | 44 | tenantfile | 12,027 | 100 | 101 |
+| 45 | rosterrally | 16,282 | 96 | 132 |
 | 47 | shelfsense | 11,482 | 82 | 195 |
 | 49 | grantgrid | 9,765 | 70 | 82 |
 | 50 | waiverwing | 10,452 | 87 | 87 |
@@ -46,31 +48,22 @@ unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
 Apps 01–04 and 51 predate this process and have no test suites; they are counted
 as working on the strength of having no unimplemented stubs, not on verification.
 
-## Built, gates pass, MVP coverage unconfirmed (3)
+## Built, gates pass, MVP coverage unconfirmed (1)
 
 Batch 2 was cut off part-way through by a session limit, which killed seven agents
-mid-verification. Their code is substantial and complete-looking — no unimplemented
-stubs — and I re-ran the gates here myself: typecheck, tests and a production build
-all pass for all seven.
+mid-verification. Six have since been resumed, finished their verification passes
+and moved to the verified list above. One is still working.
 
-That is **not** the same standard as the list above. None of these agents finished
-its verification pass or filed a report, so nobody has confirmed that every item in
-each app's MVP feature list actually works end to end. Two are known to have been
-mid-fix when they were killed: `45-rosterrally` on a client-side crash in the
-registration form. `45-rosterrally` additionally did not compile — a missing import
-left a cancellation path referring to an undeclared table — which I fixed here.
-
-All seven were resumed from their transcripts once the session limit reset;
-`36-bidboard`, `43-paidwell`, `47-shelfsense` and `49-grantgrid` have since
-finished their verification passes and moved to the verified list above.
-
-Treat these as "probably close, unproven". Finishing them means re-running each
-agent to complete its verification, not rebuilding.
+That tier exists because gates passing is not the same standard as the list above:
+nobody had confirmed every item in each app's MVP feature list actually works end
+to end. Finishing them meant re-running each agent to complete its verification,
+not rebuilding — and it was worth doing. Between them the six resumed agents found
+and fixed 60-odd defects that a green build had been hiding, including a guest menu
+that was never actually cached, a portal link that every reminder email silently
+invalidated, and volunteer claims that always failed.
 
 | # | App | Lines | Files | Tests |
 |---|-----|------:|------:|------:|
-| 34 | menulift | 10,601 | 82 | 95 |
-| 45 | rosterrally | 14,917 | 87 | 49 |
 | 48 | formforge | 11,953 | 92 | 151 |
 
 ## Not built (50)
@@ -98,7 +91,8 @@ These are environment limits, not omissions, and they apply to every app above:
   `tools/AGENT_BRIEF.md` told the first batch otherwise, so most of these apps had
   their layout checked by reading rendered HTML and CSS rather than by looking at
   a screen. Every app that *did* drive Chromium (`28-clientdock`, `33-crewclock`,
-  `36-bidboard`, `43-paidwell`, `47-shelfsense`, `49-grantgrid`) found real defects nothing else
+  `34-menulift`, `36-bidboard`, `43-paidwell`, `45-rosterrally`, `47-shelfsense`,
+  `49-grantgrid`) found real defects nothing else
   would have caught — overlapping elements, sub-44px touch targets, a meter
   rendering the wrong figure before JS ran, a whole palette tree-shaken out of the
   built CSS while the build stayed green. Assume the untested ones are similar.

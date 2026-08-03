@@ -13,6 +13,7 @@ export default function robots(): MetadataRoute.Robots {
         allow: "/",
         disallow: [
           "/p/",
+          "/print/",
           "/register/",
           "/checkout/",
           "/api/",

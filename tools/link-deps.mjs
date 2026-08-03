@@ -151,9 +151,47 @@ function resolveExtra(name, range) {
       return null;
     }
   }
+  if (fs.existsSync(target)) backfillPeers(dir);
   const result = fs.existsSync(target) ? target : null;
   extraCache.set(key, result);
   return result;
+}
+
+/**
+ * Make the kit's packages visible to a separately-installed one.
+ *
+ * An extra lives at .buildkit/extra/<pkg>@<range>/node_modules/<pkg>, so Node
+ * resolves *its* imports from that directory upward — never from the app's own
+ * node_modules. A package with an unbundled peer therefore cannot find it:
+ * `drizzle-orm/postgres-js` threw `Cannot find module 'postgres'` under tsx, so
+ * every db-backed script and test failed at runtime while `tsc` and `next build`
+ * stayed green (Next bundles, so it resolves its own way and hides this).
+ *
+ * Two apps lost work to that before it was diagnosed. Linking every kit package
+ * the extra does not already carry into its own node_modules fixes the class of
+ * bug rather than the one instance: names already present win, so an extra's own
+ * pinned nested copy is never shadowed.
+ */
+function backfillPeers(dir) {
+  const dest = path.join(dir, "node_modules");
+  let kitEntries;
+  try { kitEntries = fs.readdirSync(kitModules, { withFileTypes: true }); } catch { return; }
+  for (const e of kitEntries) {
+    if (e.name === ".bin" || e.name.startsWith(".")) continue;
+    if (e.name.startsWith("@")) {
+      let scoped;
+      try { scoped = fs.readdirSync(path.join(kitModules, e.name)); } catch { continue; }
+      for (const inner of scoped) {
+        const rel = `${e.name}/${inner}`;
+        if (fs.existsSync(path.join(dest, rel))) continue;
+        fs.mkdirSync(path.join(dest, e.name), { recursive: true });
+        try { fs.symlinkSync(path.join(kitModules, rel), path.join(dest, rel), "dir"); } catch {}
+      }
+      continue;
+    }
+    if (fs.existsSync(path.join(dest, e.name))) continue;
+    try { fs.symlinkSync(path.join(kitModules, e.name), path.join(dest, e.name), "dir"); } catch {}
+  }
 }
 
 const notes = [];

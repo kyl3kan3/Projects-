@@ -105,13 +105,15 @@ copy when the version satisfies your declared range and installs the package
 separately when it doesn't. If a build fails on a missing module, re-run it
 first.
 
-**One range is worth changing rather than working around.** Several scaffolds
-declare `drizzle-orm@^0.41.0`, which the kit cannot satisfy, so it gets installed
-in isolation — where it cannot resolve `postgres`, and every database call fails
-at runtime while `tsc` and `next build` stay green. Two apps hit this: one
-worked around it and lost `npm run worker`, the other changed its range to
-`^0.38.0` and got a working install. Prefer `^0.38.0`; it is what both reference
-apps use.
+**If a separately-installed package cannot find its peer, re-run link-deps.**
+A package installed outside the shared kit resolves its own imports from its own
+directory, so an unbundled peer used to be invisible to it: `drizzle-orm` at
+`^0.41.0` threw `Cannot find module 'postgres'` under `tsx`, breaking every
+db-backed script and test at runtime while `tsc` and `next build` stayed green
+(Next bundles, so it resolves its own way and hides the problem). `link-deps.mjs`
+now backfills the kit's packages into each separately-installed one, so this is
+fixed at the source. You do **not** need to downgrade a dependency range to work
+around it — if you see a missing-peer error, re-run link-deps and report it.
 
 Then, from inside your app folder:
 
