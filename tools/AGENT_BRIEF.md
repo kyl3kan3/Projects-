@@ -131,15 +131,18 @@ flat config, whose own imports the dependency scanner skips by design, so
 `@eslint/eslintrc` is never linked. This is repo-wide, not something wrong with your
 app — six agents have each spent time diagnosing it. Don't. The three commands above
 are the gates. If you want a check for the things a type-checker cannot see, write a
-small dependency-free script instead; `apps/42-schemasentry/tools/craft-check.mjs`
-is a good model (it scans for client components importing the db client, hex outside
-`globals.css`, off-scale spacing) and it caught a real violation the day it was
-written.
+small dependency-free script instead. `apps/56-recalldesk/tools/craft-check.mjs` is
+the best model — colour literals outside `globals.css`, purple or framework-palette
+hexes, emoji, off-scale spacing, client components reaching the db client, unused
+`"use server"` exports, and a `Date` inside a raw `sql` fragment. It has caught real
+defects in both apps that wrote one. Write it so it *fails* on a planted violation
+before you trust it passing; a check that only ever prints "clean" is decoration.
 
-## Bugs the last ten builds all hit
+## Bugs the finished builds hit, in a green build every time
 
-Every one of these passed `tsc` and `next build`. Check for them early rather than
-rediscovering them.
+Every one of these passed `tsc` and `next build` before someone ran the product.
+Thirty-six apps have now been verified and these are the patterns that recurred, so
+check for them early rather than rediscovering them.
 
 1. **A `Date` inside a raw `sql` fragment.** `sql\`${col} > ${date}\`` skips
    Drizzle's column encoder, so postgres.js tries `Buffer.byteLength` on a Date and
@@ -170,6 +173,26 @@ rediscovering them.
    `_journal.json`, without which a fresh clone cannot run `db:migrate`. Un-ignore it.
 10. **Every exported `"use server"` function is a public endpoint.** Delete the ones
     nothing calls; they are attack surface, not dead code.
+11. **A non-function export from a `"use server"` module.** Exporting a constant or a
+    plain object beside your actions compiles, then arrives `undefined` on the client
+    and crashes the screen on first interaction. Two apps shipped dead screens behind
+    a green build this way. Put shared constants in an ordinary module.
+12. **`next/link` prefetches, so a GET route with side effects runs on hover.** In one
+    app merely *opening* a screen wrote a phantom "exported" row to the audit log,
+    because the export link was prefetched and prefetching it performed the export.
+    Anything with a side effect must be a POST, or a plain `<a download>`.
+13. **Deferring work by nulling its timestamp.** Setting `next_send_at = NULL` to mean
+    "not now" makes the row permanently invisible to the query that finds due work —
+    pausing a campaign ended it forever. Defer to a *time*, never to NULL.
+14. **An unbounded rescan of records whose answer cannot change.** A nightly pass
+    re-examining every settled booking for eternity, when a qualifying event must
+    precede it, so the verdict is fixed. Bound the sweep to the window that can move.
+15. **Money in an `integer` column.** A $10M contract is 10⁹ cents and int4 stops at
+    2.1×10⁹, so a mid-range deal threw `22003 out of range` on first real use. Use
+    `bigint` for anything holding a currency total in minor units.
+16. **A nested `<form>`.** The browser silently drops the inner one, so the inner
+    submit runs the *outer* action — a hold-to-confirm control quietly ran "save" and
+    never recorded the decision. Only a rendered page reveals this.
 
 ## Verification — this is the part that matters
 
