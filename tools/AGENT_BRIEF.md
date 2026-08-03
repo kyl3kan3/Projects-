@@ -105,6 +105,14 @@ copy when the version satisfies your declared range and installs the package
 separately when it doesn't. If a build fails on a missing module, re-run it
 first.
 
+**One range is worth changing rather than working around.** Several scaffolds
+declare `drizzle-orm@^0.41.0`, which the kit cannot satisfy, so it gets installed
+in isolation — where it cannot resolve `postgres`, and every database call fails
+at runtime while `tsc` and `next build` stay green. Two apps hit this: one
+worked around it and lost `npm run worker`, the other changed its range to
+`^0.38.0` and got a working install. Prefer `^0.38.0`; it is what both reference
+apps use.
+
 Then, from inside your app folder:
 
 ```bash
