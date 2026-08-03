@@ -20,8 +20,7 @@ build/
 # Testing
 coverage/
 
-# Drizzle
-drizzle/meta/
+# Drizzle (drizzle/meta holds _journal.json — a fresh clone needs it to migrate)
 
 # TypeScript
 *.tsbuildinfo

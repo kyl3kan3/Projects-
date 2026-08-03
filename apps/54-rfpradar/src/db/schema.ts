@@ -11,6 +11,7 @@
  * in sync with ARCHITECTURE.md's Data Model section.
  */
 
+import { sql } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -44,7 +45,17 @@ export const firms = pgTable("firms", {
   ...timestamps,
 });
 
-/** Seats. Auth.js adapter tables live alongside (see lib/auth.ts). */
+/**
+ * Seats.
+ *
+ * Auth is scrypt password hashing plus a signed JWT session cookie (jose) —
+ * the portfolio convention, and the reason `password_hash` lives here rather
+ * than in Auth.js adapter tables.
+ *
+ * A row with `password_hash IS NULL` and an `invite_token_hash` is an invited
+ * seat that has not been accepted yet: it counts against the seat limit (the
+ * firm reserved it) but cannot sign in.
+ */
 export const users = pgTable(
   "users",
   {
@@ -53,6 +64,9 @@ export const users = pgTable(
     email: text("email").notNull(),
     name: text("name").notNull(),
     role: text("role", { enum: ["admin", "member"] }).notNull().default("member"),
+    passwordHash: text("password_hash"),
+    inviteTokenHash: text("invite_token_hash"),
+    invitedAt: timestamp("invited_at", { withTimezone: true }),
     ...timestamps,
   },
   (t) => [uniqueIndex("users_email_idx").on(t.email)],
@@ -121,6 +135,12 @@ export const opportunities = pgTable(
   (t) => [
     uniqueIndex("opportunities_source_external_idx").on(t.sourceId, t.externalId),
     index("opportunities_responses_due_idx").on(t.responsesDueAt),
+    // Postgres full-text search over the notice text — the candidate filter
+    // scoring runs against, so a firm's keywords never table-scan the store.
+    index("opportunities_fts_idx").using(
+      "gin",
+      sql`to_tsvector('english', ${t.title} || ' ' || ${t.agency} || ' ' || ${t.description})`,
+    ),
   ],
 );
 
@@ -152,6 +172,13 @@ export const matches = pgTable(
       .default("new"),
     dismissReason: text("dismiss_reason"),
     scoredAt: timestamp("scored_at", { withTimezone: true }).notNull().defaultNow(),
+    /**
+     * When this match was first carried by a morning scan. Pinned to the
+     * event, not to the state: "new" stays true until a human looks, so a
+     * scan keyed off state alone would re-announce the same tender every
+     * morning forever.
+     */
+    notifiedAt: timestamp("notified_at", { withTimezone: true }),
     ...timestamps,
   },
   (t) => [
@@ -262,18 +289,31 @@ export const requirements = pgTable("requirements", {
 });
 
 /** Per-recipient send outcome (morning scans, reminders, alerts). */
-export const notifications = pgTable("notifications", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  firmId: uuid("firm_id").notNull().references(() => firms.id),
-  userId: uuid("user_id").references(() => users.id),
-  channel: text("channel", { enum: ["email", "slack"] }).notNull(),
-  kind: text("kind", {
-    enum: ["morning_scan", "deadline", "match", "pursuit_event"],
-  }).notNull(),
-  providerMessageId: text("provider_message_id"),
-  status: text("status", { enum: ["queued", "sent", "failed"] }).notNull().default("queued"),
-  occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    firmId: uuid("firm_id").notNull().references(() => firms.id),
+    userId: uuid("user_id").references(() => users.id),
+    channel: text("channel", { enum: ["email", "slack"] }).notNull(),
+    kind: text("kind", {
+      enum: ["morning_scan", "deadline", "match", "pursuit_event"],
+    }).notNull(),
+    providerMessageId: text("provider_message_id"),
+    status: text("status", { enum: ["queued", "sent", "failed"] }).notNull().default("queued"),
+    /**
+     * Idempotency key for scheduled sends — e.g.
+     * `morning_scan:<firmId>:2026-03-21:email`. Unique, so an overlapping
+     * tick or a worker retry cannot mail the same firm twice.
+     */
+    dedupeKey: text("dedupe_key"),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("notifications_dedupe_idx").on(t.dedupeKey),
+    index("notifications_firm_kind_idx").on(t.firmId, t.kind, t.occurredAt),
+  ],
+);
 
 /** Stripe idempotency ledger: insert by event id before any processing. */
 export const webhookEvents = pgTable(
@@ -291,12 +331,69 @@ export const webhookEvents = pgTable(
 );
 
 /** Scorecard decisions, library edits, token rotations, seat changes. */
-export const auditLog = pgTable("audit_log", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  firmId: uuid("firm_id").notNull().references(() => firms.id),
-  actor: text("actor").notNull(),
-  action: text("action").notNull(),
-  target: text("target").notNull(),
-  metadata: jsonb("metadata").notNull().default({}),
-  ...timestamps,
-});
+export const auditLog = pgTable(
+  "audit_log",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    firmId: uuid("firm_id").notNull().references(() => firms.id),
+    actor: text("actor").notNull(),
+    action: text("action").notNull(),
+    target: text("target").notNull(),
+    metadata: jsonb("metadata").notNull().default({}),
+    ...timestamps,
+  },
+  (t) => [index("audit_log_firm_created_idx").on(t.firmId, t.createdAt)],
+);
+
+/* ------------------------------------------------------------------ types */
+
+export type Firm = typeof firms.$inferSelect;
+export type User = typeof users.$inferSelect;
+export type KeywordProfile = typeof keywordProfiles.$inferSelect;
+export type Source = typeof sources.$inferSelect;
+export type Opportunity = typeof opportunities.$inferSelect;
+export type OpportunityEvent = typeof opportunityEvents.$inferSelect;
+export type Match = typeof matches.$inferSelect;
+export type Pursuit = typeof pursuits.$inferSelect;
+export type Scorecard = typeof scorecards.$inferSelect;
+export type Deadline = typeof deadlines.$inferSelect;
+export type AnswerBlock = typeof answerBlocks.$inferSelect;
+export type BlockUse = typeof blockUses.$inferSelect;
+export type Requirement = typeof requirements.$inferSelect;
+export type NewOpportunity = typeof opportunities.$inferInsert;
+
+/** `firms.settings` jsonb shape. */
+export interface FirmSettings {
+  /** Local hour (0-23) the morning scan is composed and sent. */
+  scanHour?: number;
+  /** Matches below this score are stored as `suppressed`, never deleted. */
+  scoreThreshold?: number;
+  /** ISO timestamp of the first failed payment, cleared when it succeeds. */
+  pastDueSince?: string;
+  /** Onboarding cards the firm has finished (first-run screen). */
+  onboarded?: { profile?: boolean; notify?: boolean; library?: boolean };
+}
+
+/** One entry in `matches.factors` — the UI renders `reason` verbatim. */
+export interface MatchFactor {
+  key: string;
+  weight: number;
+  matched: boolean;
+  reason: string;
+}
+
+/** One row of `scorecards.criteria`. */
+export interface ScorecardCriterion {
+  key: string;
+  label: string;
+  weight: number;
+  score1to5: number | null;
+  note: string;
+}
+
+export const DEFAULT_SCAN_HOUR = 6;
+export const DEFAULT_SCORE_THRESHOLD = 45;
+
+export function firmSettings(firm: { settings: unknown }): FirmSettings {
+  return (firm.settings ?? {}) as FirmSettings;
+}

@@ -22,8 +22,9 @@ build/
 coverage/
 .nyc_output/
 
-# Drizzle
-drizzle/meta/
+# Drizzle migrations ARE tracked, including drizzle/meta/ — it holds
+# _journal.json, and without it a fresh clone cannot run db:migrate.
+drizzle/meta/*.bak
 
 # Playwright
 playwright-report/
@@ -53,3 +54,5 @@ Thumbs.db
 # Misc
 *.pem
 .turbo/
+.data/
+.server.pid

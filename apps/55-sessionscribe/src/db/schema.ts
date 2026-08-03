@@ -12,10 +12,25 @@
  *   amendments create a new note_versions row and a new signature.
  * - audit_events is append-only (no update path is ever written for it).
  * - webhook_events.external_id is unique — the Stripe idempotency ledger.
+ *
+ * Additions to the scaffold (documented deliberately — the tables and columns
+ * described in ARCHITECTURE.md are all still here, unchanged in meaning):
+ * - sessions.attempts / sessions.lease_until: the pipeline is a Postgres work
+ *   ledger rather than a Redis queue (see src/lib/pipeline.ts for why), and a
+ *   ledger needs a retry budget and a lease so two runners cannot claim the same
+ *   session. The lease is compared *in SQL* (`lease_until < now()`), never
+ *   against a JS Date — a millisecond-truncated Date loses to a microsecond
+ *   timestamptz and a claim silently never happens.
+ * - audio_artifacts.bytes: when R2 is not configured the audio stays in
+ *   Postgres, so a self-hosted install (and the test suite) has a real,
+ *   purgeable artifact instead of a dangling storage key.
+ * - notes.input_tokens / output_tokens / cost_micros: per-note COGS telemetry,
+ *   which ROADMAP Phase 1 ships with the usage meter.
  */
 
 import {
   boolean,
+  customType,
   index,
   integer,
   jsonb,
@@ -26,6 +41,11 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+
+/** bytea, which drizzle-orm 0.41 has no first-class column type for. */
+const customBytea = customType<{ data: Buffer; driverData: Buffer }>({
+  dataType: () => "bytea",
+});
 
 // ---------------------------------------------------------------- enums
 
@@ -110,6 +130,10 @@ export const practices = pgTable("practices", {
     .$type<{
       defaultFormat?: "soap" | "dap";
       notifyOnDraftReady?: boolean;
+      /** Set by the Stripe webhook; read through lib/plans.entitlement(). */
+      billingState?: "trialing" | "active" | "past_due" | "canceled";
+      /** Fixed date a failed payment's grace window ends — never recomputed. */
+      graceEndsAt?: string;
     }>()
     .notNull()
     .default({}),
@@ -129,6 +153,8 @@ export const users = pgTable(
       .notNull()
       .references(() => practices.id),
     email: text("email").notNull(),
+    /** scrypt, `salt:hash` hex — see src/lib/auth.ts for why not magic links. */
+    passwordHash: text("password_hash").notNull(),
     name: text("name").notNull(),
     credentials: text("credentials").notNull().default(""),
     role: userRoleEnum("role").notNull().default("clinician"),
@@ -220,6 +246,13 @@ export const sessions = pgTable(
     shorthandText: text("shorthand_text"),
     status: sessionStatusEnum("status").notNull().default("captured"),
     failureReason: text("failure_reason"),
+    /** Pipeline retry budget (see src/lib/pipeline.ts). */
+    attempts: integer("attempts").notNull().default(0),
+    /**
+     * Claim lease / backoff gate. A runner may work a session only when this is
+     * null or already in the past *by the database's clock*.
+     */
+    leaseUntil: timestamp("lease_until", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -242,6 +275,12 @@ export const audioArtifacts = pgTable(
       .notNull()
       .references(() => sessions.id),
     storageKey: text("storage_key").notNull(),
+    /**
+     * Inline bytes for installs with no object storage configured. Purging
+     * nulls this column and stamps purged_at, exactly as it deletes the R2
+     * object — one purge path, two backends.
+     */
+    bytes: customBytea("bytes"),
     mime: text("mime").notNull(),
     durationSeconds: integer("duration_seconds"),
     byteSize: integer("byte_size"),
@@ -283,10 +322,24 @@ export const transcripts = pgTable(
   ],
 );
 
+export type SourceSpan = { startMs: number; endMs: number };
+
+/**
+ * One section of a note.
+ *
+ * `text` is the working copy — what the clinician reads and edits, and the only
+ * thing the content hash covers. `sourceSpans` is the section-level union
+ * ARCHITECTURE.md names. `sentences` is the drafting-time trace map: the exact
+ * sentence the model produced and the transcript spans it cited, which is what
+ * makes "every drafted sentence traceable" a real claim rather than a slogan. A
+ * sentence the clinician rewrites simply stops matching the map and is shown as
+ * clinician text with no source — see src/lib/trace.ts.
+ */
 export type NoteSection = {
   key: string;
   text: string;
-  sourceSpans: { startMs: number; endMs: number }[];
+  sourceSpans: SourceSpan[];
+  sentences?: { text: string; sourceSpans: SourceSpan[] }[];
 };
 
 export const notes = pgTable(
@@ -307,6 +360,10 @@ export const notes = pgTable(
     sections: jsonb("sections").$type<NoteSection[]>().notNull().default([]),
     model: text("model"),
     draftGeneratedAt: timestamp("draft_generated_at", { withTimezone: true }),
+    /** Per-note COGS telemetry (ROADMAP Phase 1, week 4). */
+    inputTokens: integer("input_tokens").notNull().default(0),
+    outputTokens: integer("output_tokens").notNull().default(0),
+    costMicros: integer("cost_micros").notNull().default(0),
     currentVersion: integer("current_version").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -425,3 +482,28 @@ export const webhookEvents = pgTable(
   },
   (t) => [uniqueIndex("webhook_external_unique").on(t.provider, t.externalId)],
 );
+
+// ---------------------------------------------------------------- row types
+
+export type Practice = typeof practices.$inferSelect;
+export type User = typeof users.$inferSelect;
+export type Client = typeof clients.$inferSelect;
+export type Template = typeof templates.$inferSelect;
+export type Session = typeof sessions.$inferSelect;
+export type AudioArtifact = typeof audioArtifacts.$inferSelect;
+export type Transcript = typeof transcripts.$inferSelect;
+export type Note = typeof notes.$inferSelect;
+export type NoteVersion = typeof noteVersions.$inferSelect;
+export type Signature = typeof signatures.$inferSelect;
+export type AuditEvent = typeof auditEvents.$inferSelect;
+export type UsageCounter = typeof usageCounters.$inferSelect;
+
+export type Plan = (typeof planEnum.enumValues)[number];
+export type UserRole = (typeof userRoleEnum.enumValues)[number];
+export type NoteFormat = (typeof noteFormatEnum.enumValues)[number];
+export type Modality = (typeof modalityEnum.enumValues)[number];
+export type RecordingConsent = (typeof recordingConsentEnum.enumValues)[number];
+export type CaptureKind = (typeof captureKindEnum.enumValues)[number];
+export type SessionStatus = (typeof sessionStatusEnum.enumValues)[number];
+export type NoteStatus = (typeof noteStatusEnum.enumValues)[number];
+export type TemplateSection = { key: string; label: string; guidance: string };
