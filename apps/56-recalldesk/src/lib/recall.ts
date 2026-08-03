@@ -21,7 +21,7 @@
  *    overdue list is never a day behind itself.
  */
 
-import { addMonths, monthsBetween, toDayStart } from "@/lib/dates";
+import { addMonths, daysBetween, monthsBetween, toDayStart } from "@/lib/dates";
 
 export type OverdueBucket = "current" | "m3_6" | "m6_12" | "m12_24" | "m24_plus";
 
@@ -208,27 +208,36 @@ export function inferRecallInterval(visits: VisitLike[], today: Date = new Date(
   if (unique.length < 3) return null;
 
   // Only the last four intervals matter; a cycle from 2011 is not this patient's.
+  // Gaps are measured in days, not whole months: a patient on a real 4-month
+  // cycle books a few days early each time, and flooring to whole months turns
+  // 123/120/121 days into 4/3/3 and reports a 3-month cycle.
   const recent = unique.slice(-5);
   const gaps: number[] = [];
   for (let i = 1; i < recent.length; i++) {
-    gaps.push(monthsBetween(new Date(recent[i - 1]), new Date(recent[i])));
+    gaps.push(daysBetween(new Date(recent[i - 1]), new Date(recent[i])));
   }
-  const usable = gaps.filter((g) => g >= 2 && g <= 24);
+  const usable = gaps.filter((g) => g >= 55 && g <= 760);
   if (usable.length < 2) return null;
 
   const sorted = [...usable].sort((a, b) => a - b);
-  // A spread wider than 4 months is not a cycle, it is an irregular patient.
-  if (sorted[sorted.length - 1] - sorted[0] > 4) return null;
+  // A spread wider than four months is not a cycle, it is an irregular patient.
+  if (sorted[sorted.length - 1] - sorted[0] > 122) return null;
 
   const median =
     sorted.length % 2 === 1
       ? sorted[(sorted.length - 1) / 2]
       : (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2;
 
-  const options = [3, 4, 6, 9, 12];
+  const options: [number, number][] = [
+    [3, 91],
+    [4, 122],
+    [6, 183],
+    [9, 274],
+    [12, 365],
+  ];
   let best = options[0];
   for (const o of options) {
-    if (Math.abs(o - median) < Math.abs(best - median)) best = o;
+    if (Math.abs(o[1] - median) < Math.abs(best[1] - median)) best = o;
   }
-  return best;
+  return best[0];
 }
