@@ -73,7 +73,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       </label>
 
       {state.error ? (
-        <p className="t-secondary rule-t pt-3" role="alert" style={{ color: "var(--color-red)" }}>
+        <p className="t-secondary msg msg-error rule-t pt-3" role="alert">
           {state.error}
         </p>
       ) : null}

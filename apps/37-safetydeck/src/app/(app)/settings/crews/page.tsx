@@ -23,11 +23,13 @@ export default async function CrewsPage() {
     .where(eq(employees.companyId, company.id))
     .groupBy(employees.crewId);
 
+  const activeCount = rows.filter((c) => c.active).length;
+
   return (
     <main className="screen">
       <ScreenHeader
         label="Crews and foremen"
-        title={`${rows.filter((c) => c.active).length} active crews`}
+        title={`${activeCount} active crew${activeCount === 1 ? "" : "s"}`}
         back={{ href: "/settings", label: "Settings" }}
       />
       <p className="t-secondary">

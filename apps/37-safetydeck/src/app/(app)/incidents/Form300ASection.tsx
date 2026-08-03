@@ -45,13 +45,13 @@ export function Form300ASection({
       </div>
 
       {summary.openCases > 0 ? (
-        <p className="t-secondary mt-3" style={{ color: "var(--color-orange)" }}>
+        <p className="t-secondary msg msg-note mt-3">
           {summary.openCases} case{summary.openCases === 1 ? " is" : "s are"} still accruing
           days. Update the counts before you certify — the K and L totals will move.
         </p>
       ) : null}
       {summary.needsJudgmentCases > 0 ? (
-        <p className="t-secondary mt-2" style={{ color: "var(--color-orange)" }}>
+        <p className="t-secondary msg msg-note mt-2">
           {summary.needsJudgmentCases} case{summary.needsJudgmentCases === 1 ? "" : "s"} logged as
           recordable pending a judgment call. Resolve them before certifying.
         </p>

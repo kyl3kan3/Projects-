@@ -681,7 +681,7 @@ function DoneScreen({
           )}
         </p>
         {sync?.rejected ? (
-          <p className="t-secondary mt-2" style={{ color: "var(--color-orange)" }}>
+          <p className="t-secondary msg msg-note mt-2">
             {sync.rejected} signature{sync.rejected === 1 ? "" : "s"} could not be filed — the
             office needs to check the roster. Nothing was thrown away.
           </p>

@@ -71,14 +71,14 @@ export function CrewLinkTools({
 function Result({ state }: { state: ActionState }) {
   if (state.error) {
     return (
-      <p className="t-secondary mt-2" role="alert" style={{ color: "var(--color-red)" }}>
+      <p className="t-secondary msg msg-error mt-2" role="alert">
         {state.error}
       </p>
     );
   }
   if (state.message) {
     return (
-      <p className="t-secondary mt-2" role="status" style={{ color: "var(--color-green)" }}>
+      <p className="t-secondary msg msg-ok mt-2" role="status">
         {state.message}
       </p>
     );

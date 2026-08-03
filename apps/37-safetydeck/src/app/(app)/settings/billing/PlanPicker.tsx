@@ -69,7 +69,7 @@ export function PlanPicker({
                 ))}
               </ul>
               {!fits ? (
-                <p className="t-secondary mt-3" style={{ color: "var(--color-orange)" }}>
+                <p className="t-secondary msg msg-note mt-3">
                   You have {activeEmployees} active field employees — more than this plan covers.
                 </p>
               ) : null}
@@ -93,7 +93,7 @@ export function PlanPicker({
       </div>
 
       {checkoutState.error ? (
-        <p className="t-secondary mt-4" role="alert" style={{ color: "var(--color-red)" }}>
+        <p className="t-secondary msg msg-error mt-4" role="alert">
           {checkoutState.error}
         </p>
       ) : null}
@@ -104,7 +104,7 @@ export function PlanPicker({
             {opening ? "Opening…" : "Manage payment and invoices"}
           </button>
           {portalState.error ? (
-            <p className="t-secondary mt-3" role="alert" style={{ color: "var(--color-red)" }}>
+            <p className="t-secondary msg msg-error mt-3" role="alert">
               {portalState.error}
             </p>
           ) : null}

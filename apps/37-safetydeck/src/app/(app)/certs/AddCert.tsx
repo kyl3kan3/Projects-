@@ -25,6 +25,9 @@ export function AddCert({
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<CertKind>("osha_10");
   const [issuedOn, setIssuedOn] = useState(today);
+  // Controlled for the same reason as the crew form: a rejected submit must not
+  // also wipe what was typed off the card.
+  const [label, setLabel] = useState("");
   const months = CERT_KIND_DEFAULT_MONTHS[kind];
   const suggestedExpiry = months ? addMonths(issuedOn, months) : "";
 
@@ -100,6 +103,8 @@ export function AddCert({
             name="label"
             required
             placeholder={kind === "fit_test" ? "Half-mask, 3M 6200" : "OSHA 10 — Construction"}
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
           />
         </label>
 

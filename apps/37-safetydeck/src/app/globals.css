@@ -900,3 +900,23 @@ select.input {
     transform: none;
   }
 }
+
+/* ---- Inline feedback ----------------------------------------------------
+   Errors and confirmations are set in `text`, not in the semantic hue.
+   #C1503F on tarmac is 3.9:1 — right for a 2px rule and an 11px pill beside a
+   dot, wrong for a sentence someone has to read in the sun. The colour carries
+   the meaning on the border; the words stay legible.                       */
+.msg {
+  padding-left: 12px;
+  border-left: 2px solid var(--color-line);
+  color: var(--color-fg);
+}
+.msg-error {
+  border-left-color: var(--color-red);
+}
+.msg-ok {
+  border-left-color: var(--color-green);
+}
+.msg-note {
+  border-left-color: var(--color-orange);
+}

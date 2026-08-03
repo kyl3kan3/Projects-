@@ -136,7 +136,7 @@ export default async function IncidentsPage({
           </span>
         </a>
         {summaryError ? (
-          <p className="t-secondary mt-3" style={{ color: "var(--color-red)" }}>
+          <p className="t-secondary msg msg-error mt-3" role="alert">
             {summaryError}
           </p>
         ) : null}

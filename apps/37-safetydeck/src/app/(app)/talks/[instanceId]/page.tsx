@@ -120,7 +120,7 @@ export default async function InstancePage({
                       DEVICE {sig.deviceId.slice(0, 12)}
                     </p>
                     {correction ? (
-                      <p className="t-secondary w-full" style={{ color: "var(--color-orange)" }}>
+                      <p className="t-secondary msg msg-note w-full">
                         Correction by {correction.actor}: {correction.reason}
                       </p>
                     ) : (

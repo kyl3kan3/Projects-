@@ -210,7 +210,7 @@ export function IntakeWizard({
       {question.kind === "review" ? (
         <div className="mt-8">
           {result.error ? (
-            <p className="t-secondary mb-3" role="alert" style={{ color: "var(--color-red)" }}>
+            <p className="t-secondary msg msg-error mb-3" role="alert">
               {result.error}
             </p>
           ) : null}
@@ -505,7 +505,7 @@ function Field({
             />
           </dl>
           {Number(answers.daysAway ?? 0) + Number(answers.daysRestricted ?? 0) > 180 ? (
-            <p className="t-secondary mt-4" style={{ color: "var(--color-orange)" }}>
+            <p className="t-secondary msg msg-note mt-4">
               Day counts are capped at 180 combined, per 1904.7(b)(3)(vii). That is why the
               numbers above are lower than what you entered.
             </p>
@@ -539,7 +539,7 @@ function DutyScreen({
     <div className="pb-28">
       <div className="mt-6 flex items-center gap-3">
         <IconAlertTriangle size={24} style={{ color: "var(--color-red)" }} />
-        <p className="t-label" style={{ color: "var(--color-red)" }}>
+        <p className="t-label" style={{ color: "var(--color-fg)" }}>
           {duty.hours}-hour reporting duty
         </p>
       </div>

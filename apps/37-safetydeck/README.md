@@ -92,3 +92,54 @@ In priority order:
 4. **Signature/photo data sensitivity.** Worker signatures, injury details, and site photos are sensitive. Mitigation: signed-URL-only storage, per-company encryption boundaries, immutable audit logs, retention aligned to 1904's five-year duty, and a clean data-export path (their records are theirs).
 5. **Incumbent bundling.** Procore/Raken could bolt on a 300A generator. Mitigation: they sell suites to companies with back offices; the phone-first, sub-$150, no-worker-accounts wedge is structurally unattractive to them.
 6. **Seasonal/economic churn.** Construction slowdowns cut headcount. Mitigation: annual billing, the five-year record-retention duty (leaving means losing your defense), and pause states that preserve records read-only.
+
+---
+
+## Running it
+
+Requirements: Node 20+, a Postgres database. Nothing else is needed to run the
+whole product locally — object storage, SMS, email and Stripe all degrade to
+documented local behaviour when their credentials are absent.
+
+```bash
+cp .env.example .env.local          # fill in DATABASE_URL, AUTH_SECRET, CREW_TOKEN_SECRET
+npm install
+npm run db:migrate                  # creates the schema and the immutability trigger
+npm run db:seed                     # loads the 55-talk library (idempotent)
+npm run dev                         # http://localhost:3037
+```
+
+Then: sign up, add a crew with a foreman phone number, add the field roster, and
+press **Send this week's talk**. With `DRY_RUN=1` the crew link is written to the
+server log instead of being texted; the dashboard's **Resend the crew link**
+button also prints it on screen so you can open it on a phone.
+
+### What each credential unlocks
+
+| Unset | What happens |
+|---|---|
+| `R2_*` | Photos and PDFs are stored in Postgres (`stored_objects`) and served through the same authorised route. Everything works, including binder export. |
+| `RESEND_API_KEY`, `TWILIO_*` | `DRY_RUN` turns itself on: messages are logged and recorded in the reminder ledger, so the sweep is still fully exercisable. Nothing leaves the building. |
+| `STRIPE_SECRET_KEY` | Checkout explains that billing is not configured. **No compliance feature is gated** — talks, sign-off, the 300/300A and the binder do not depend on billing. |
+| `CRON_SECRET` | `/api/cron/tick` returns 503 and refuses to run, rather than defaulting to open. |
+
+### The scheduled sweep
+
+One route does all the periodic work — the Monday fan-out, missed-talk detection,
+the 60/30/7/overdue cert ladder, and the February 300A reminders:
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3037/api/cron/tick
+```
+
+Daily is the right cadence and is what `vercel.json` schedules. Running it twice
+in a day is a no-op: every rung is pinned to a calendar date and deduped by a
+unique index on `(target, rung, channel)`.
+
+### Tests
+
+```bash
+npm run typecheck
+npm test            # 63 tests: 1904 recordability, the cert ladder, date maths,
+                    # plan limits, 300A totals, crew tokens, the talk parser
+```

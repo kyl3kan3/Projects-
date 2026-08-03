@@ -24,12 +24,12 @@ export function ActionForm({
     <form action={formAction} className={className}>
       {children}
       {state.error ? (
-        <p className="t-secondary mt-3" role="alert" style={{ color: "var(--color-red)" }}>
+        <p className="t-secondary msg msg-error mt-3" role="alert">
           {state.error}
         </p>
       ) : null}
       {state.message ? (
-        <p className="t-secondary mt-3" role="status" style={{ color: "var(--color-green)" }}>
+        <p className="t-secondary msg msg-ok mt-3" role="status">
           {state.message}
         </p>
       ) : null}

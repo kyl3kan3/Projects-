@@ -25,6 +25,11 @@ export function RosterList({
   crews: { id: string; name: string }[];
 }) {
   const [open, setOpen] = useState(staff.length === 0);
+  // Controlled: React resets an uncontrolled form after its action completes, and
+  // the action that fails here is the plan-limit one — the last moment to also
+  // lose the name someone just typed.
+  const [name, setName] = useState("");
+  const [jobTitle, setJobTitle] = useState("");
   const [toggleState, toggleAction] = useActionState<ActionState, FormData>(
     toggleEmployeeAction,
     IDLE,
@@ -91,11 +96,24 @@ export function RosterList({
           <p className="t-label">Add a field employee</p>
           <label className="flex flex-col gap-2">
             <span className="t-label">Name</span>
-            <input className="input" name="name" required placeholder="Rubén Ortega" />
+            <input
+              className="input"
+              name="name"
+              required
+              placeholder="Rubén Ortega"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
           </label>
           <label className="flex flex-col gap-2">
             <span className="t-label">Job title</span>
-            <input className="input" name="jobTitle" placeholder="Sheet metal journeyman" />
+            <input
+              className="input"
+              name="jobTitle"
+              placeholder="Sheet metal journeyman"
+              value={jobTitle}
+              onChange={(e) => setJobTitle(e.target.value)}
+            />
           </label>
           <label className="flex flex-col gap-2">
             <span className="t-label">Crew</span>
@@ -136,14 +154,14 @@ export function RosterList({
 function Feedback({ state }: { state: ActionState }) {
   if (state.error) {
     return (
-      <p className="t-secondary mt-3" role="alert" style={{ color: "var(--color-red)" }}>
+      <p className="t-secondary msg msg-error mt-3" role="alert">
         {state.error}
       </p>
     );
   }
   if (state.message) {
     return (
-      <p className="t-secondary mt-3" role="status" style={{ color: "var(--color-green)" }}>
+      <p className="t-secondary msg msg-ok mt-3" role="status">
         {state.message}
       </p>
     );

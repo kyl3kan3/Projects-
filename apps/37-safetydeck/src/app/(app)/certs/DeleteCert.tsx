@@ -68,7 +68,7 @@ export function DeleteCert({ certId, label }: { certId: string; label: string })
         <IconTrash size={18} />
       </button>
       {state.error ? (
-        <span className="t-secondary" role="alert" style={{ color: "var(--color-red)" }}>
+        <span className="t-secondary msg msg-error" role="alert">
           {state.error}
         </span>
       ) : null}

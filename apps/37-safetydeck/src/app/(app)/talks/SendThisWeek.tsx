@@ -19,9 +19,9 @@ export function SendThisWeek({ label }: { label: string }) {
     <form action={formAction}>
       {state.error ? (
         <p
-          className="t-secondary mb-2 rounded-[8px] px-3 py-2"
+          className="t-secondary msg msg-error mb-2 rounded-[8px] py-2 pr-3"
           role="alert"
-          style={{ background: "var(--color-surface)", color: "var(--color-red)" }}
+          style={{ background: "var(--color-surface)" }}
         >
           {state.error}
         </p>

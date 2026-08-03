@@ -151,7 +151,7 @@ export default function LandingPage() {
           </div>
           <div className="sum-row">
             <span className="t-body">One serious violation, avoided</span>
-            <span className="t-mono" style={{ fontSize: 18, color: "var(--color-red)" }}>
+            <span className="t-mono" style={{ fontSize: 18 }}>
               −{formatUsd(SERIOUS_PENALTY_CENTS)}
             </span>
           </div>

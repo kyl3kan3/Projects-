@@ -28,6 +28,26 @@ export function CrewList({
   defaultTalkDay: number;
 }) {
   const [open, setOpen] = useState(crews.length === 0);
+  /**
+   * The add form's fields are controlled.
+   *
+   * React resets an uncontrolled form once its action completes — including when
+   * the action came back with "this crew needs a foreman phone or email". An
+   * error message above an emptied form is the worst of both, so the values live
+   * in state and survive the round trip.
+   */
+  const [draft, setDraft] = useState({
+    name: "",
+    siteLabel: "",
+    foremanName: "",
+    foremanPhone: "",
+    foremanEmail: "",
+  });
+  const field = (key: keyof typeof draft) => ({
+    value: draft[key],
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+      setDraft((d) => ({ ...d, [key]: e.target.value })),
+  });
   const [toggleState, toggleAction] = useActionState<ActionState, FormData>(
     toggleCrewAction,
     IDLE,
@@ -64,12 +84,12 @@ export function CrewList({
           </div>
         ))}
         {toggleState.message ? (
-          <p className="t-secondary mt-3" role="status" style={{ color: "var(--color-green)" }}>
+          <p className="t-secondary msg msg-ok mt-3" role="status">
             {toggleState.message}
           </p>
         ) : null}
         {toggleState.error ? (
-          <p className="t-secondary mt-3" role="alert" style={{ color: "var(--color-red)" }}>
+          <p className="t-secondary msg msg-error mt-3" role="alert">
             {toggleState.error}
           </p>
         ) : null}
@@ -80,15 +100,15 @@ export function CrewList({
           <p className="t-label">Add a crew</p>
           <label className="flex flex-col gap-2">
             <span className="t-label">Crew name</span>
-            <input className="input" name="name" required placeholder="Harbor Point — Building C" />
+            <input className="input" name="name" required placeholder="Harbor Point — Building C" {...field("name")} />
           </label>
           <label className="flex flex-col gap-2">
             <span className="t-label">Site label</span>
-            <input className="input" name="siteLabel" placeholder="Harbor Point" />
+            <input className="input" name="siteLabel" placeholder="Harbor Point" {...field("siteLabel")} />
           </label>
           <label className="flex flex-col gap-2">
             <span className="t-label">Foreman</span>
-            <input className="input" name="foremanName" required placeholder="Marco Villalobos" />
+            <input className="input" name="foremanName" required placeholder="Marco Villalobos" {...field("foremanName")} />
           </label>
           <label className="flex flex-col gap-2">
             <span className="t-label">Foreman mobile</span>
@@ -97,11 +117,18 @@ export function CrewList({
               name="foremanPhone"
               placeholder="+15095550118"
               inputMode="tel"
+              {...field("foremanPhone")}
             />
           </label>
           <label className="flex flex-col gap-2">
             <span className="t-label">Foreman email (fallback)</span>
-            <input className="input" name="foremanEmail" type="email" placeholder="marco@ridgelinemech.com" />
+            <input
+              className="input"
+              name="foremanEmail"
+              type="email"
+              placeholder="marco@ridgelinemech.com"
+              {...field("foremanEmail")}
+            />
           </label>
           <label className="flex flex-col gap-2">
             <span className="t-label">Talk day</span>

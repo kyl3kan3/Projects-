@@ -39,7 +39,7 @@ export default async function RosterPage() {
         titles matter because that is a column on the OSHA 300 log.
       </p>
       {active >= limit ? (
-        <p className="t-secondary mt-3" style={{ color: "var(--color-orange)" }}>
+        <p className="t-secondary msg msg-note mt-3">
           You are at the {PLANS[company.plan].name} plan&apos;s limit of {limit}. Adding one more
           prompts an upgrade — nothing already recorded is affected.
         </p>
