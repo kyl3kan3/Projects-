@@ -12,7 +12,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "worker": "tsx src/worker/index.ts"
+    "worker": "tsx src/worker/index.ts",
+    "test": "tsx --test src/**/*.test.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.775.0",
@@ -42,6 +43,7 @@
     "drizzle-kit": "^0.30.0",
     "eslint": "^9.24.0",
     "eslint-config-next": "^15.3.0",
+    "playwright": "^1.50.0",
     "tailwindcss": "^4.1.0",
     "tsx": "^4.19.0",
     "typescript": "^5.8.0"

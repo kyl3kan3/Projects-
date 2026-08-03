@@ -115,9 +115,21 @@ body {
   overflow-x: hidden;
 }
 
+/* A vertical stack whose columns may shrink. `display: grid` alone gives its items
+   min-width:auto, so one wide child (a scrolling chip row) widens the whole track
+   and pushes the page sideways instead of scrolling inside itself. */
+.stack {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .scroll-x {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  /* A grid or flex item defaults to min-width:auto, which means it refuses to
+     shrink below its content and pushes the page sideways instead of scrolling
+     inside itself. This is what makes the chip rows actually scroll. */
+  min-width: 0;
 }
 
 button,
@@ -346,6 +358,10 @@ select.input {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  /* A chip never wraps or compresses: the bucket row scrolls sideways inside its
+     own container instead, so "12-24 mo" stays one line at 390px. */
+  white-space: nowrap;
+  flex: none;
   min-height: 36px;
   padding: 0 12px;
   border-radius: var(--radius-control);

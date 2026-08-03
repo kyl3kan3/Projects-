@@ -11,7 +11,7 @@
  * verbatim rather than replaced with "Something went wrong".
  */
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 
 export interface FormState {
@@ -175,6 +175,10 @@ function Submit({
  * for destructive and record-reversing actions (revoke a kiosk, reverse a
  * promotion, mark a student lost). Keyboard users get the same gate through a
  * two-press confirm, because a gesture must never be the only path.
+ *
+ * The armed label lives in React state rather than being written into
+ * `textContent`: mutating the DOM under React changes the button's accessible
+ * name, which breaks both screen readers and anything driving the button by name.
  */
 function HoldSubmit({
   label,
@@ -188,28 +192,29 @@ function HoldSubmit({
   small: boolean;
 }) {
   const { pending } = useFormStatus();
+  const [armed, setArmed] = useState(false);
+
+  useEffect(() => {
+    if (!armed) return;
+    const timer = window.setTimeout(() => setArmed(false), 4000);
+    return () => window.clearTimeout(timer);
+  }, [armed]);
+
   return (
     <button
       type="submit"
       className={`${buttonClass(variant, full, small)} hold`}
       disabled={pending}
-      data-hold="600"
+      aria-label={label}
+      data-armed={armed ? "true" : undefined}
       onClick={(event) => {
-        const el = event.currentTarget;
-        if (el.dataset.armed !== "true") {
+        if (!armed) {
           event.preventDefault();
-          el.dataset.armed = "true";
-          el.textContent = `${label} — press again to confirm`;
-          window.setTimeout(() => {
-            if (el.dataset.armed === "true") {
-              el.dataset.armed = "false";
-              el.textContent = label;
-            }
-          }, 4000);
+          setArmed(true);
         }
       }}
     >
-      {pending ? "Working…" : label}
+      {pending ? "Working…" : armed ? "Press again to confirm" : label}
     </button>
   );
 }

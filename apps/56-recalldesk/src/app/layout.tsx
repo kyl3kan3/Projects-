@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Schibsted_Grotesk } from "next/font/google";
+import { THEME_COLOR } from "@/lib/theme";
 import "./globals.css";
 
 /**
@@ -37,7 +38,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f4f6f7",
+  themeColor: THEME_COLOR,
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",

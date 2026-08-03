@@ -53,7 +53,7 @@ export default async function ConsoleLayout({ children }: { children: React.Reac
             </span>
           </Link>
           <Link href="/settings" className="btn-quiet" style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <Icon name="settings" size={18} />
+            <Icon name="user" size={18} />
             <span style={srOnly}>Settings</span>
             <span className="t-secondary" style={{ color: "var(--color-aqua-text)", fontWeight: 700 }}>
               {user.name.split(" ")[0]}

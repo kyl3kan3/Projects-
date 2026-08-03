@@ -1,0 +1,26 @@
+Pat Chart #,First Name,Last Name,Email,Home Phone,Mobile Phone,Last Visit Date,Continuing Care Interval,Email OK,Text OK
+DX1041,Rosalind,Mbeki,r.mbeki@example.com,512-555-0100,(512) 555-0147,11/14/2024,0006,Y,Y
+DX1042,Desmond,Okafor,d.okafor@example.com,,512-555-0163,02/03/2025,0006,Y,N
+DX1043,Marguerite,Bellweather,,512-555-0188 x12,,08/22/2023,0004,N,N
+DX1044,Jae Sun,Park,jaesun.park@example.com,,512-555-0171,05/09/2024,0006,Y,Y
+DX1045,Amara,Nwosu,a.nwosu@example.com,,512-555-0192,01/18/2023,0006,Y,Y
+DX1046,Tobias,Lindqvist,t.lindqvist@example.com,512-555-0104,512-555-0155,09/27/2024,0012,Y,N
+DX1047,Priya,Ramanathan,p.ramanathan@example.com,,512-555-0139,03/14/2025,0004,Y,Y
+DX1048,Callum,Fitzgerald,,,512-555-0126,07/02/2022,0006,N,N
+DX1049,Ines,Salgado,i.salgado@example.com,,512-555-0118,12/06/2024,0006,Y,Y
+DX1050,Hector,Villanueva,h.villanueva@example.com,512-555-0109,,04/21/2024,0006,Y,N
+DX1051,Nadia,Haddad,n.haddad@example.com,,512-555-0134,10/30/2023,0006,Y,Y
+DX1052,Bertram,Ashcombe,b.ashcombe@example.com,,512-555-0181,06/11/2021,0012,Y,N
+DX1053,Yuki,Tanabe,y.tanabe@example.com,,512-555-0166,02/27/2025,0006,Y,Y
+DX1054,Solomon,Adeyemi,,512-555-0113,512-555-0177,11/08/2023,0006,N,N
+DX1055,Clarissa,Whitmore,c.whitmore@example.com,,512-555-0145,08/15/2024,0006,Y,Y
+DX1056,Emeka,Chukwu,e.chukwu@example.com,,512-555-0158,05/23/2022,0006,Y,N
+DX1057,Freya,Sorensen,f.sorensen@example.com,,512-555-0129,01/09/2025,0004,Y,Y
+DX1058,Ravi,Deshpande,r.deshpande@example.com,512-555-0102,512-555-0173,09/04/2023,0006,Y,Y
+DX1059,Lucienne,Barbier,l.barbier@example.com,,,03/29/2024,0006,Y,N
+DX1060,Mateus,Cardoso,m.cardoso@example.com,,512-555-0195,07/17/2020,0006,Y,N
+DX1061,Anneke,Vos,a.vos@example.com,,512-555-0137,12/19/2024,0006,Y,Y
+DX1062,Kwame,Boateng,k.boateng@example.com,,512-555-0152,04/05/2023,0006,Y,N
+DX1063,Sinead,O'Rourke,s.orourke@example.com,,512-555-0184,10/12/2024,0006,Y,Y
+DX1064,Dmitri,Volkov,,,512-555-0141,02/14/2022,0012,N,N
+DX1065,Thandiwe,Mokoena,t.mokoena@example.com,,512-555-0168,06/26/2024,0004,Y,Y

@@ -98,3 +98,57 @@ Message architecture per MARKETING_PLAYBOOK.md (in this folder):
 - **Proof beats:** a real (design-partner, permissioned, clearly framed) attribution ledger excerpt; the overdue-list screen with its dollar total; the holdout comparison from an owner report.
 - **Objection killer:** "Our front desk already calls." -> The queue calls the right ten, the sequence never forgets, and the ledger shows which. Show the two-tap disposition flow.
 - **One CTA phrase, used verbatim everywhere (hero, post-proof, post-pricing, sticky mobile bar):** **"See your overdue list"**. De-risk line: 14-day trial, import in an afternoon, no PMS integration required.
+
+## Running it
+
+Node 20+ and a Postgres database. Nothing else is required — with no email, SMS,
+Stripe or object-storage credentials the app runs and degrades honestly (touches
+are recorded and logged instead of sent, the billing screen shows the plans and
+says checkout is unconfigured, and uploaded CSVs live in Postgres).
+
+```bash
+npm install
+cp .env.example .env.local          # fill in DATABASE_URL and the two secrets
+npm run db:migrate                  # create the schema
+npm run db:seed                     # optional: a fictional demo practice
+npm run dev                         # http://localhost:3056
+```
+
+Three variables have no safe default and the app will tell you so if they are
+missing: `DATABASE_URL`, `SESSION_SECRET` (signs the staff session cookie) and
+`BOOKING_TOKEN_SECRET` (signs patient booking links, which are bearer credentials
+into one patient's record). Generate the secrets with `openssl rand -base64 32`.
+
+`npm run db:seed` prints the demo sign-in. Or sign up at `/signup` and import
+`fixtures/dentrix-patients.csv` — the wizard detects the PMS, maps the columns,
+shows a dry run, and writes nothing to the roster until you press **Commit
+import**.
+
+### Background work
+
+Every scheduled job — the nightly overdue recompute, campaign steps, the daily
+queue build, attribution — is a plain function in `src/server/jobs.ts`, driven from
+either end:
+
+```bash
+npm run worker                                    # a long-lived loop, every 60s
+curl -H "Authorization: Bearer $CRON_SECRET" \
+  http://localhost:3056/api/cron/tick             # one pass, for a cron platform
+```
+
+Both take the same database lease before doing anything, so running both is safe.
+The tick route refuses when `CRON_SECRET` is unset rather than defaulting to open —
+it sends email and SMS to patients. See `DEPLOYING.md`.
+
+### Checks
+
+```bash
+npm run typecheck        # tsc --noEmit
+npm test                 # node's test runner via tsx
+npm run craft            # the rules a type-checker cannot see (tools/craft-check.mjs)
+npm run build            # next build
+```
+
+`DRY_RUN=1` is the safety switch: touches are recorded and logged, nothing is sent,
+and every screen says "Rehearsal mode". Keep it on while rehearsing a campaign
+against a real imported roster. The log lines carry ids and sizes only, never PHI.

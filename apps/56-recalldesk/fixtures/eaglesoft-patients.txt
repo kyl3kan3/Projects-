@@ -1,0 +1,6 @@
+Account	Patient Name	Email	Cell Phone	Last Visit	Recall Interval	Text OK
+ES-8801	"Attenborough, Winifred"	w.attenborough@example.com	512-555-0301	11/14/2024	6	Y
+ES-8802	"MacAllister, Fergus"	f.macallister@example.com	512-555-0312	3/2/2024	6	N
+ES-8803	"Restrepo, Camila"	c.restrepo@example.com	512-555-0327	8/9/2023	4	Y
+ES-8804	"Nowak, Oskar"		512-555-0334	1/25/2022	12	N
+ES-8805	"Vega, Marisol"	m.vega@example.com	512-555-0349	6/13/2024	6	Y

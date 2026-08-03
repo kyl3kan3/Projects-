@@ -25,8 +25,8 @@ export function RecipePicker({
   const recipe = RECIPES[source];
 
   return (
-    <form action={formAction} style={{ display: "grid", gap: 20 }}>
-      <div>
+    <form action={formAction} className="stack" style={{ gap: 20 }}>
+      <div style={{ minWidth: 0 }}>
         <p className="t-label" style={{ margin: "0 0 8px" }}>
           Your practice-management system
         </p>

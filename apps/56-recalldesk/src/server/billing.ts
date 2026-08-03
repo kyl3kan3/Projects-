@@ -29,7 +29,7 @@ let _stripe: Stripe | null = null;
 
 export function stripe(): Stripe {
   if (!_stripe) {
-    _stripe = new Stripe(env.stripeSecretKey, { apiVersion: "2025-03-31.basil" });
+    _stripe = new Stripe(env.stripeSecretKey, { apiVersion: "2025-08-27.basil" });
   }
   return _stripe;
 }

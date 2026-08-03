@@ -112,18 +112,37 @@ export async function attributeBooking(input: {
   return { attribution: row ?? null, reason: row ? undefined : "already" };
 }
 
-/** The nightly pass over every unattributed booking at a location. */
+/**
+ * The nightly pass over recent unattributed bookings at a location.
+ *
+ * "Recent" matters: an unattributed booking stays unattributed forever, because a
+ * qualifying touch has to *precede* the booking and no new touch can be added to
+ * the past. Re-examining every one of them on every run is a scan that grows for
+ * the life of the account and never changes its own answer — so once a booking is
+ * older than the window plus a generous margin, it is settled and left alone.
+ */
 export async function attributeBookingsForLocation(input: {
   locationId: string;
   practiceId: string;
   limit?: number;
+  now?: Date;
 }): Promise<{ attributed: number; skippedNoTouch: number }> {
   const db = getDb();
+  const policy = await policyFor(input.practiceId);
+  const now = input.now ?? new Date();
+  const settledBefore = new Date(now.getTime() - (policy.windowDays + 60) * 86_400_000);
+
   const pending = await db
     .select({ id: bookings.id })
     .from(bookings)
     .leftJoin(attributions, eq(attributions.bookingId, bookings.id))
-    .where(and(eq(bookings.locationId, input.locationId), isNull(attributions.id)))
+    .where(
+      and(
+        eq(bookings.locationId, input.locationId),
+        isNull(attributions.id),
+        gte(bookings.bookedAt, settledBefore),
+      ),
+    )
     .orderBy(asc(bookings.bookedAt))
     .limit(input.limit ?? 500);
 

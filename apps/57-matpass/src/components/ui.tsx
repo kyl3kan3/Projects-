@@ -178,18 +178,23 @@ export function LinkRow({
 /** The 12-week attendance sparkline. Bars, not a canvas — mobile LCP matters. */
 export function Sparkline({ weeks }: { weeks: number[] }) {
   const peak = Math.max(1, ...weeks);
+  // A week with one check-in and a week with none must look different, but a
+  // single check-in in an otherwise empty quarter must not tower over eleven
+  // flat weeks either. So non-zero weeks occupy 35-100% of the height and zero
+  // weeks are a baseline tick.
+  const height = (n: number) => (n === 0 ? "3px" : `${35 + (n / peak) * 65}%`);
   return (
     <div
       className="spark"
       role="img"
-      aria-label={`Attendance over the last 12 weeks: ${weeks.join(", ")} check-ins per week`}
+      aria-label={`Attendance over the last 12 weeks, oldest first: ${weeks.join(", ")} check-ins per week`}
     >
       {weeks.map((n, i) => (
         <span
           key={i}
-          data-recent={i >= weeks.length - 3 ? "true" : undefined}
+          data-recent={n > 0 && i >= weeks.length - 3 ? "true" : undefined}
           data-zero={n === 0 ? "true" : undefined}
-          style={{ height: `${Math.max(6, (n / peak) * 100)}%` }}
+          style={{ height: height(n) }}
         />
       ))}
     </div>

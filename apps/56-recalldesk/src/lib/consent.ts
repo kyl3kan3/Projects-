@@ -69,6 +69,26 @@ export function denialLabel(reason: TouchDenial): string {
   }
 }
 
+/**
+ * What a terminal denial does to the enrolment.
+ *
+ * The status has to say *why*, because these mean different things to a practice
+ * reading the campaign: the cap means the campaign did its job and stopped on
+ * purpose (`completed`), an opt-out is a compliance fact (`stopped_opt_out`), and
+ * everything else is "we cannot reach this person" (`stopped_manual`).
+ *
+ * Retryable denials never reach here — they get a later `next_send_at` instead,
+ * and calling this with one is a programming error rather than a state change.
+ */
+export type TerminalEnrollmentStatus = "completed" | "stopped_opt_out" | "stopped_manual";
+
+export function enrollmentStatusForDenial(reason: TouchDenial): TerminalEnrollmentStatus | null {
+  if (isRetryable(reason)) return null;
+  if (reason === "touch_cap") return "completed";
+  if (reason === "opted_out") return "stopped_opt_out";
+  return "stopped_manual";
+}
+
 /** Everything the gate is allowed to know. IDs and flags only — no free text. */
 export interface TouchFacts {
   channel: "email" | "sms";

@@ -17,19 +17,45 @@ type Redis = import("ioredis").Redis;
 
 let client: Redis | null = null;
 
+let ready: Promise<Redis | null> | null = null;
+
+/**
+ * Connect, and *wait* for the connection.
+ *
+ * With `enableOfflineQueue: false` the very first command on a fresh client
+ * throws "Stream isn't writeable" if the socket has not finished connecting —
+ * which meant the first sweep of every cold serverless invocation silently ran
+ * unlocked. So the promise resolves on `ready`, not on construction.
+ */
 async function connect(): Promise<Redis | null> {
   if (!env.redisUrl) return null;
   if (client) return client;
-  const { default: IORedis } = await import("ioredis");
-  client = new IORedis(env.redisUrl, {
-    maxRetriesPerRequest: 2,
-    lazyConnect: false,
-    enableOfflineQueue: false,
-  });
-  client.on("error", (err: Error) => {
-    console.error("[lock] redis error", err.message);
-  });
-  return client;
+  if (ready) return ready;
+
+  ready = (async () => {
+    const { default: IORedis } = await import("ioredis");
+    const c = new IORedis(env.redisUrl, {
+      maxRetriesPerRequest: 2,
+      lazyConnect: true,
+      enableOfflineQueue: false,
+      connectTimeout: 3000,
+    });
+    c.on("error", (err: Error) => {
+      console.error("[lock] redis error", err.message);
+    });
+    try {
+      await c.connect();
+    } catch (err) {
+      console.error("[lock] redis unreachable", err instanceof Error ? err.message : err);
+      c.disconnect();
+      ready = null;
+      return null;
+    }
+    client = c;
+    return c;
+  })();
+
+  return ready;
 }
 
 export interface LockHandle {
@@ -83,6 +109,7 @@ async function acquire(key: string, ttlMs: number): Promise<LockHandle> {
 export async function closeLock(): Promise<void> {
   await client?.quit().catch(() => undefined);
   client = null;
+  ready = null;
 }
 
 /** A one-line health check the settings screen can show. */

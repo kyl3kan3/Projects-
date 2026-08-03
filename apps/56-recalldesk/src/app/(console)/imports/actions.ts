@@ -84,9 +84,11 @@ export async function commitAction(
   _prev: ImportFormState,
   formData: FormData,
 ): Promise<ImportFormState> {
-  const ctx = await requireRole("office_manager");
   const importId = String(formData.get("importId") ?? "");
+  // Inside the try: a server action is a public endpoint, so a role denial has to
+  // return a sentence rather than an unhandled server error.
   try {
+    const ctx = await requireRole("office_manager");
     await commitImport({
       importId,
       locationIds: ctx.locations.map((l) => l.id),
@@ -111,9 +113,9 @@ export async function rollbackAction(
   _prev: ImportFormState,
   formData: FormData,
 ): Promise<ImportFormState> {
-  const ctx = await requireRole("office_manager");
   const importId = String(formData.get("importId") ?? "");
   try {
+    const ctx = await requireRole("office_manager");
     await rollbackImport({
       importId,
       locationIds: ctx.locations.map((l) => l.id),

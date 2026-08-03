@@ -80,10 +80,22 @@ export function addDays(day: DayKey, delta: number): DayKey {
  * check-in ledger counted in days does not care about that hour.
  */
 export function startOfDay(day: DayKey, timeZone: string): Date {
-  const noon = new Date(Date.parse(`${day}T12:00:00Z`));
-  const local = zonedParts(noon, timeZone);
-  const offsetMinutes = local.minutes - 12 * 60 + daysBetween(local.day, day) * 1440;
-  return new Date(Date.parse(`${day}T00:00:00Z`) + offsetMinutes * 60_000);
+  const midnightUtc = Date.parse(`${day}T00:00:00Z`);
+  // First guess from the offset at noon UTC, which is the right offset on all but
+  // two days a year. Then re-read the offset *at the guess* and correct: on a
+  // spring-forward morning the noon offset is an hour off, which would have put
+  // the start of the week an hour early and silently mis-bucketed a day of
+  // check-ins. One refinement is enough — DST shifts are never nested.
+  let guess = new Date(midnightUtc - offsetMinutesAt(new Date(midnightUtc + 12 * 3_600_000), timeZone) * 60_000);
+  guess = new Date(midnightUtc - offsetMinutesAt(guess, timeZone) * 60_000);
+  return guess;
+}
+
+/** The zone's UTC offset in minutes at an instant, signed so `local = utc + offset`. */
+function offsetMinutesAt(at: Date, timeZone: string): number {
+  const parts = zonedParts(at, timeZone);
+  const localAsUtc = Date.parse(`${parts.day}T00:00:00Z`) + parts.minutes * 60_000;
+  return Math.round((localAsUtc - at.getTime()) / 60_000);
 }
 
 /** "Jul 17 2026" — the ledger-line date format from DESIGN.md. */

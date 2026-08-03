@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { THEME_COLOR } from "@/lib/theme";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -8,8 +9,8 @@ export default function manifest(): MetadataRoute.Manifest {
       "The overdue list, the daily call queue, and a conservative attribution ledger for dental hygiene recall.",
     start_url: "/dashboard",
     display: "standalone",
-    background_color: "#F4F6F7",
-    theme_color: "#F4F6F7",
+    background_color: THEME_COLOR,
+    theme_color: THEME_COLOR,
     icons: [{ src: "/icon.svg", sizes: "any", type: "image/svg+xml" }],
   };
 }

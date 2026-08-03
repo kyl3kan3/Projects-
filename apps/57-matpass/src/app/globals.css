@@ -697,7 +697,7 @@ select.input {
   min-width: 4px;
   background: var(--fg-3);
   border-radius: 1px;
-  min-height: 2px;
+  min-height: 3px;
 }
 .spark > span[data-recent="true"] { background: var(--accent); }
 .spark > span[data-zero="true"] { background: var(--line); }
@@ -707,12 +707,21 @@ select.input {
 .beat {
   animation: row-in 320ms var(--ease-out-quart) both;
 }
+/* Scroll-driven reveal, on the four narrative beats only (MARKETING_PLAYBOOK
+   law 6). It animates a small rise and a partial fade — never from opacity 0.
+   A section that is invisible until an animation fires is a section that is
+   invisible when the animation does not fire, and the fastest way to ship a
+   blank marketing page. */
 @supports (animation-timeline: view()) {
   .beat-scroll {
-    animation: row-in 320ms var(--ease-out-quart) both;
+    animation: beat-rise 320ms var(--ease-out-quart) both;
     animation-timeline: view();
-    animation-range: entry 10% cover 30%;
+    animation-range: entry 5% cover 25%;
   }
+}
+@keyframes beat-rise {
+  from { opacity: 0.55; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .sticky-cta {
   position: fixed;
@@ -786,6 +795,13 @@ select.input {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+  /* The scroll-linked reveal is removed outright rather than shortened: a
+     scroll-driven animation ignores animation-duration. */
+  .beat-scroll {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
   /* The stripe appears already seated with a <=100ms fade; the counter swaps
      directly; the bar is drawn at its new value. */
   .belt-stripe-seating,
@@ -794,7 +810,6 @@ select.input {
   .progress-animate > span,
   .stagger > *,
   .beat,
-  .beat-scroll,
   .sheet-enter {
     animation: fade-in 100ms linear both !important;
     animation-delay: 0ms !important;
@@ -814,4 +829,117 @@ select.input {
     display: none !important;
   }
   .screen { padding: 0; }
+}
+
+/* ==========================================================================
+   The marketing hero's device: the belt bar filling and a stripe seating,
+   inside five seconds. Four beats total on this page (MARKETING_PLAYBOOK law
+   6): this device, the math writing itself, the proof revealing, the offer.
+   Everything is CSS — the hero must paint fast on a mid Android over 4G.
+   ========================================================================== */
+
+/* Beat 1 — the counter ticks, one digit at a time, 17 -> 20. */
+.hero-count {
+  display: inline-grid;
+  grid-template-areas: "n";
+  vertical-align: baseline;
+}
+.hero-count > span {
+  grid-area: n;
+  opacity: 0;
+  animation: hero-digit 1.6s steps(1, end) 0.4s both;
+}
+.hero-count > span[data-n="17"] { animation-delay: 0.4s; }
+.hero-count > span[data-n="18"] { animation-delay: 0.8s; }
+.hero-count > span[data-n="19"] { animation-delay: 1.2s; }
+.hero-count > span[data-n="20"] {
+  animation: hero-digit-last 1s linear 1.6s both;
+}
+@keyframes hero-digit {
+  0% { opacity: 1; transform: translateY(0); }
+  95% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes hero-digit-last {
+  from { opacity: 1; }
+  to { opacity: 1; }
+}
+
+/* Beat 2 — the progress hairline fills to the requirement. */
+.hero-fill {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transform-origin: left center;
+  animation: hero-fill 1.6s var(--ease-out-quart) 0.4s both;
+}
+@keyframes hero-fill {
+  from { transform: scaleX(0.85); }
+  to { transform: scaleX(1); }
+}
+
+/* Beat 3 — the stripe slides in from the right and seats with a snap. */
+.hero-stripe {
+  animation: stripe-seat 180ms var(--ease-spring-snappy) 2.1s both;
+}
+.hero-pill {
+  opacity: 0;
+  animation: fade-in 200ms linear 2.3s both;
+}
+
+/* Beat 4 — the record line, then the grading list adds the name itself. */
+.hero-ledger {
+  opacity: 0;
+  animation: record-rise 200ms var(--ease-out-quart) 2.4s both;
+}
+.hero-row-1 { opacity: 0; animation: row-in 200ms var(--ease-out-quart) 3s both; }
+.hero-row-2 { opacity: 0; animation: row-in 200ms var(--ease-out-quart) 3.2s both; }
+.hero-row-3 { opacity: 0; animation: row-in 200ms var(--ease-out-quart) 3.6s both; }
+
+@media (prefers-reduced-motion: reduce) {
+  /* Every beat collapses to its end state — which is what the product shows
+     anyway: the stripe seated, the count at 20, the name on the list. */
+  .hero-count > span { animation: none !important; opacity: 0; }
+  .hero-count > span[data-n="20"] { opacity: 1; }
+  .hero-fill { animation: none !important; transform: scaleX(1); }
+  .hero-stripe { animation: fade-in 100ms linear both !important; transform: none; }
+  .hero-pill,
+  .hero-ledger,
+  .hero-row-1,
+  .hero-row-2,
+  .hero-row-3 {
+    animation: fade-in 100ms linear both !important;
+    animation-delay: 0ms !important;
+    transform: none !important;
+  }
+}
+
+/* ---- Marketing layout -------------------------------------------------- */
+
+.marketing {
+  padding: 0 var(--gutter);
+  max-width: 1120px;
+  margin: 0 auto;
+  padding-bottom: 120px;
+}
+.marketing section { padding-top: 56px; }
+.marketing .lede { max-width: 34ch; }
+.marketing p.prose { max-width: 60ch; }
+
+@media (min-width: 768px) {
+  .marketing section { padding-top: 80px; }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
+    gap: 40px;
+    align-items: center;
+  }
+}
+
+.price-grid {
+  display: grid;
+  gap: 16px;
+}
+@media (min-width: 768px) {
+  .price-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }

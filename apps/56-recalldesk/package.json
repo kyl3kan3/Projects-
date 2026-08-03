@@ -14,7 +14,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx src/db/seed.ts",
-    "worker": "tsx src/worker/index.ts"
+    "worker": "tsx src/worker/index.ts",
+    "craft": "node tools/craft-check.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.775.0",

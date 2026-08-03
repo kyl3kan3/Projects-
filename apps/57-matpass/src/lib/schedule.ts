@@ -29,28 +29,47 @@ export interface SlotLike {
 }
 
 /**
- * The class a check-in attaches to: the closest slot on the same local weekday
- * whose window contains the tap. Ties go to the earlier start time, so a
- * back-to-back 6:00/7:00 pair sends a 6:40 arrival to the 6:00 class.
+ * The class a check-in attaches to.
+ *
+ * Candidates are slots on the same local weekday whose window contains the tap.
+ * Among them, a class that is *actually in session* beats one that has not
+ * started — otherwise a back-to-back 6:00/7:00 pair sends a 6:40 arrival to the
+ * 7:00 class, which is nearer in minutes and plainly the wrong answer. After
+ * that: nearest start, then the earlier class.
  */
 export function nearestSlot<T extends SlotLike>(
   slots: T[],
   at: { weekday: number; minutes: number },
 ): T | null {
   let best: T | null = null;
-  let bestDistance = Number.POSITIVE_INFINITY;
+  let bestRank: [number, number, number] | null = null;
+
   for (const slot of slots) {
     if (slot.weekday !== at.weekday) continue;
     const opens = slot.startsAtMinutes - EARLY_WINDOW_MINUTES;
-    const closes = slot.startsAtMinutes + slot.durationMinutes + LATE_GRACE_MINUTES;
+    const ends = slot.startsAtMinutes + slot.durationMinutes;
+    const closes = ends + LATE_GRACE_MINUTES;
     if (at.minutes < opens || at.minutes > closes) continue;
-    const distance = Math.abs(at.minutes - slot.startsAtMinutes);
-    if (distance < bestDistance || (distance === bestDistance && best && slot.startsAtMinutes < best.startsAtMinutes)) {
+
+    const inSession = at.minutes >= slot.startsAtMinutes && at.minutes <= ends;
+    const rank: [number, number, number] = [
+      inSession ? 0 : 1,
+      Math.abs(at.minutes - slot.startsAtMinutes),
+      slot.startsAtMinutes,
+    ];
+    if (bestRank === null || lessThan(rank, bestRank)) {
       best = slot;
-      bestDistance = distance;
+      bestRank = rank;
     }
   }
   return best;
+}
+
+function lessThan(a: [number, number, number], b: [number, number, number]): boolean {
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return a[i] < b[i];
+  }
+  return false;
 }
 
 /** The label DESIGN.md's chip row shows: "Adults Gi · Tue 6:00pm". */

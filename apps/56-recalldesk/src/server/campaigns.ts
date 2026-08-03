@@ -32,7 +32,12 @@ import {
   type Template,
 } from "@/db/schema";
 import { addMonths, formatMonthYear, toDayStart } from "@/lib/dates";
-import { decideTouch, nextSendableAt, type TouchDenial } from "@/lib/consent";
+import {
+  decideTouch,
+  enrollmentStatusForDenial,
+  nextSendableAt,
+  type TouchDenial,
+} from "@/lib/consent";
 import { finalizeEmail, finalizeSms, renderTemplate } from "@/lib/merge";
 import { phoneDisplay } from "@/lib/format";
 import { CHASE_BUCKETS, type OverdueBucket } from "@/lib/recall";
@@ -357,6 +362,21 @@ export async function setCampaignStatus(input: {
     .update(campaigns)
     .set({ status: input.status, updatedAt: new Date() })
     .where(eq(campaigns.id, campaign.id));
+
+  // Resuming repairs any active enrolment that lost its next-send time while the
+  // campaign was paused, so a pause is never a silent end to the sequence.
+  if (input.status === "running") {
+    await db
+      .update(enrollments)
+      .set({ nextSendAt: new Date() })
+      .where(
+        and(
+          eq(enrollments.campaignId, campaign.id),
+          eq(enrollments.status, "active"),
+          isNull(enrollments.nextSendAt),
+        ),
+      );
+  }
   await audit({
     practiceId: input.practiceId,
     actorId: input.actorId,
@@ -548,10 +568,14 @@ export async function sendStepTouch(input: {
   if (!row) return { enrollmentId: input.enrollmentId, result: "stopped", reason: "no_step" };
   const { enrollment, campaign, patient, location, practice } = row;
 
+  // A paused campaign or a lapsed subscription **defers**, and the deferral is a
+  // time, never null. Setting `next_send_at` to null here was a real bug: an
+  // enrollment with no next send is invisible to `runDueSteps` forever, so pausing
+  // a campaign and resuming it silently ended the sequence for everyone in it.
   if (campaign.status !== "running") {
     await db
       .update(enrollments)
-      .set({ nextSendAt: null })
+      .set({ nextSendAt: new Date(now.getTime() + 3_600_000) })
       .where(eq(enrollments.id, enrollment.id));
     return { enrollmentId: enrollment.id, result: "deferred", reason: "campaign_paused" };
   }
@@ -559,7 +583,10 @@ export async function sendStepTouch(input: {
   // Billing gate: a lapsed practice stops sending. Reading is never blocked.
   const billing = sendingAllowed(practice, now);
   if (!billing.ok) {
-    await db.update(enrollments).set({ nextSendAt: null }).where(eq(enrollments.id, enrollment.id));
+    await db
+      .update(enrollments)
+      .set({ nextSendAt: new Date(now.getTime() + 6 * 3_600_000) })
+      .where(eq(enrollments.id, enrollment.id));
     return { enrollmentId: enrollment.id, result: "deferred", reason: "campaign_paused" };
   }
 
@@ -639,13 +666,12 @@ export async function sendStepTouch(input: {
         .where(eq(enrollments.id, enrollment.id));
       return { enrollmentId: enrollment.id, result: "deferred", reason: decision.reason };
     }
-    // Terminal for this patient: stop the enrollment, do not retry forever.
+    // Terminal for this patient: stop the enrollment, do not retry forever. The
+    // status says why (lib/consent.enrollmentStatusForDenial).
+    const terminalStatus = enrollmentStatusForDenial(decision.reason) ?? "stopped_manual";
     await db
       .update(enrollments)
-      .set({
-        status: decision.reason === "opted_out" ? "stopped_opt_out" : "stopped_manual",
-        nextSendAt: null,
-      })
+      .set({ status: terminalStatus, nextSendAt: null })
       .where(eq(enrollments.id, enrollment.id));
     return { enrollmentId: enrollment.id, result: "stopped", reason: decision.reason };
   }

@@ -23,11 +23,16 @@
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
+  bookingRequests,
+  bookings,
+  callTasks,
+  enrollments,
   importChanges,
   importFiles,
   imports,
   mappingPresets,
   patients,
+  touches,
   visits,
   type Import,
   type Patient,
@@ -442,7 +447,12 @@ export async function rollbackImport(input: {
   practiceId: string;
   actorId: string;
   today?: Date;
-}): Promise<{ patientsDeleted: number; patientsRestored: number; visitsDeleted: number }> {
+}): Promise<{
+  patientsDeleted: number;
+  patientsRestored: number;
+  patientsRetired: number;
+  visitsDeleted: number;
+}> {
   const db = getDb();
   const { row } = await loadImport(input.importId, input.locationIds);
   if (row.status !== "committed") throw new Error("Only a committed import can be rolled back.");
@@ -471,6 +481,7 @@ export async function rollbackImport(input: {
 
   let patientsRestored = 0;
   let patientsDeleted = 0;
+  let patientsRetired = 0;
 
   for (const change of changes) {
     if (change.action === "updated") {
@@ -496,12 +507,46 @@ export async function rollbackImport(input: {
       continue;
     }
 
-    // Created by this import. Deletable only if nothing else now references it.
+    // Created by this import. Two kinds of thing now reference it, and they are
+    // not the same kind of thing:
+    //
+    //   scheduling artefacts — a queue task, a campaign enrolment — are derived
+    //   state, meaningless without the patient, and are deleted with them;
+    //
+    //   history — a touch that went out, a booking, a request the patient made —
+    //   is a record of something that actually happened, and deleting it would
+    //   quietly rewrite the ledger. A patient with history is therefore retired
+    //   (`inactive`, so no campaign or queue includes them again) rather than
+    //   deleted.
+    //
+    // Before this distinction existed, a rollback after the nightly queue build
+    // failed outright on the call_tasks foreign key.
+    await db.delete(callTasks).where(eq(callTasks.patientId, change.patientId));
+    await db.delete(enrollments).where(eq(enrollments.patientId, change.patientId));
+
     const [{ n: remainingVisits }] = await db
       .select({ n: sql<number>`count(*)::int` })
       .from(visits)
       .where(eq(visits.patientId, change.patientId));
     if (remainingVisits > 0) continue;
+
+    const [history] = await db
+      .select({
+        touches: sql<number>`(select count(*) from ${touches} where ${touches.patientId} = ${change.patientId})::int`,
+        bookings: sql<number>`(select count(*) from ${bookings} where ${bookings.patientId} = ${change.patientId})::int`,
+        requests: sql<number>`(select count(*) from ${bookingRequests} where ${bookingRequests.patientId} = ${change.patientId})::int`,
+      })
+      .from(patients)
+      .where(eq(patients.id, change.patientId));
+
+    if (history && history.touches + history.bookings + history.requests > 0) {
+      await db
+        .update(patients)
+        .set({ status: "inactive", updatedAt: new Date() })
+        .where(eq(patients.id, change.patientId));
+      patientsRetired++;
+      continue;
+    }
 
     const deleted = await db
       .delete(patients)
@@ -524,10 +569,20 @@ export async function rollbackImport(input: {
     actorId: input.actorId,
     action: "import.rolled_back",
     target: `import:${row.id}`,
-    metadata: { patientsDeleted, patientsRestored, visitsDeleted: deletedVisits.length },
+    metadata: {
+      patientsDeleted,
+      patientsRestored,
+      patientsRetired,
+      visitsDeleted: deletedVisits.length,
+    },
   });
 
-  return { patientsDeleted, patientsRestored, visitsDeleted: deletedVisits.length };
+  return {
+    patientsDeleted,
+    patientsRestored,
+    patientsRetired,
+    visitsDeleted: deletedVisits.length,
+  };
 }
 
 export async function listImports(locationId: string): Promise<Import[]> {

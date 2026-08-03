@@ -9,6 +9,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   decideTouch,
+  enrollmentStatusForDenial,
   nextSendableAt,
   withinQuietHours,
   type TouchFacts,
@@ -180,4 +181,22 @@ test("nextSendableAt crosses to the following morning after the window closes", 
   const next = nextSendableAt(location, evening);
   assert.equal(hourInTimezone(location.timezone, next), 9);
   assert.ok(next.getTime() - evening.getTime() < 24 * 3_600_000);
+});
+
+test("a terminal denial stops the enrolment, and the status says why", () => {
+  // The cap is the campaign finishing on purpose, not a failure — a practice
+  // reading "stopped manually" against a patient it deliberately stopped chasing
+  // has been told the wrong thing.
+  assert.equal(enrollmentStatusForDenial("touch_cap"), "completed");
+  assert.equal(enrollmentStatusForDenial("opted_out"), "stopped_opt_out");
+  assert.equal(enrollmentStatusForDenial("do_not_contact"), "stopped_manual");
+  assert.equal(enrollmentStatusForDenial("no_consent"), "stopped_manual");
+  assert.equal(enrollmentStatusForDenial("bounced"), "stopped_manual");
+});
+
+test("a retryable denial never stops an enrolment", () => {
+  // It waits for a later next_send_at instead. Returning a terminal status here
+  // would end a sequence because it happened to be 3am at that location.
+  assert.equal(enrollmentStatusForDenial("quiet_hours"), null);
+  assert.equal(enrollmentStatusForDenial("send_cap"), null);
 });
