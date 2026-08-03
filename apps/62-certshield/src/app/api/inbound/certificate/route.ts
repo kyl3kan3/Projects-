@@ -124,10 +124,12 @@ export async function POST(req: Request): Promise<Response> {
   if (!vendor && matches.length > 1 && payload.subject) {
     const subject = payload.subject.toLowerCase();
     const named = matches.filter((v) => subject.includes(v.name.toLowerCase()));
-    // Distinct vendors only: without the org tag the same company name can exist in
-    // more than one tenant, and picking one of those would be a cross-tenant leak.
-    const distinctOrgs = new Set(named.map((v) => v.orgId));
-    if (named.length === 1 || (distinctOrgs.size === 1 && named.length === 1)) vendor = named[0];
+    // Exactly one, or nothing. Without the org tag the same company name can exist
+    // in more than one tenant, so anything less strict than "the subject names a
+    // single vendor" means picking one — and picking wrong is a cross-tenant leak,
+    // not a misfile. Everything else falls through to the 422 below, which tells the
+    // sender which intake address to use.
+    if (named.length === 1) vendor = named[0];
   }
 
   if (!vendor) {
