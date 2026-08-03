@@ -149,6 +149,10 @@ export const practices = pgTable("practices", {
   plan: planEnum("plan").notNull().default("chairside"),
   stripeCustomerId: text("stripe_customer_id"),
   stripeSubscriptionId: text("stripe_subscription_id"),
+  /** Mirror of Stripe's subscription status; drives the sending gate only. */
+  subscriptionStatus: text("subscription_status"),
+  /** Billed location quantity, as Stripe knows it. */
+  billedLocations: integer("billed_locations").notNull().default(1),
   trialEndsAt: timestamp("trial_ends_at", { withTimezone: true }),
   baaSignedAt: timestamp("baa_signed_at", { withTimezone: true }),
   settings: jsonb("settings")
