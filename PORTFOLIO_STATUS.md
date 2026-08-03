@@ -14,7 +14,7 @@ run, a referral queue that deadlocked under launch-day load, magic-link login
 broken outright, certificate-expiry alerts that fired once and then went quiet
 forever. All were found by running the thing.
 
-## Verified working (29 of 74)
+## Verified working (30 of 74)
 
 Each was re-checked here after its build agent reported: line count, absence of
 unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
@@ -40,6 +40,7 @@ unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
 | 34 | menulift | 10,803 | 83 | 97 |
 | 35 | ledgerlens | 10,794 | 96 | 94 |
 | 36 | bidboard | 13,785 | 74 | 95 |
+| 37 | safetydeck | 13,657 | 107 | 71 |
 | 38 | duesdesk | 14,295 | 94 | 102 |
 | 42 | schemasentry | 13,164 | 88 | 130 |
 | 43 | paidwell | 11,358 | 82 | 147 |
@@ -104,8 +105,20 @@ floor over the stated hex, but four apps solving the same problem four times mea
 the source documents disagree with each other, not that four agents each made a
 judgment call.
 
-Worth fixing at the source before the remaining apps are built, since every one of
-them will hit it too.
+Now fixed at the source: `DESIGN_LANGUAGE.md` states that its AA floor outranks a
+specific hex, and the brief carries that as the one documented exception to
+`DESIGN.md` being a redline spec. It also says to measure the text at the size it
+actually ships — a token that passes at 16px body can fail the 11px label it is
+really used for, which is why every instance was caught by looking at a rendered
+screen rather than by reading the spec.
+
+`37-safetydeck` is the fifth instance and the most instructive, because its agent
+measured the token honestly (3.19:1) and then justified keeping it for the "faint"
+role its `DESIGN.md` names — timestamps and placeholders. Reasonable, except the
+same token also coloured inactive tab-bar labels, which are navigation. Raised here
+to 4.96:1 on the ground and 4.53:1 on panels. The lesson generalises: a
+contrast decision has to be checked against where the token is *used*, not the role
+it was *assigned*.
 
 ## What is untested everywhere
 

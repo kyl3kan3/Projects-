@@ -289,7 +289,11 @@ export function CrewFlow(props: CrewFlowProps) {
               setSigning(id);
               setScreen("sign");
             }}
-            onDone={() => (allSigned ? setScreen("done") : closeOut())}
+            // Always closes out, even when everyone signed: that is the message
+            // that marks the huddle complete, and relying on the last
+            // signature's own sync to do it leaves the instance stuck at
+            // "delivered" if that one request was the one that failed.
+            onDone={() => void closeOut()}
             allSigned={allSigned}
           />
         ) : null}

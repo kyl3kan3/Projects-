@@ -98,6 +98,38 @@ export class SyncError extends Error {
 }
 
 /**
+ * Who is genuinely absent from a huddle.
+ *
+ * Absentees are whoever the foreman closed out without a signature — but never
+ * someone who *has* one. Three things have to be reconciled: what this device
+ * just reported, what was stored from an earlier close-out, and who has signed
+ * since. A person marked absent at 07:19 who signs at 07:24 from a second phone
+ * must come off the list, and a record that says "absent" beside a signature is
+ * worse than either fact on its own.
+ *
+ * Pure, and separately tested, because the version of this that took the stored
+ * list as a fallback *after* filtering silently re-wrote the stale list.
+ */
+export function reconcileAbsentees(input: {
+  reported?: string[] | null;
+  stored?: string[] | null;
+  rosterIds: Iterable<string>;
+  signedIds: Iterable<string>;
+}): string[] {
+  const roster = new Set(input.rosterIds);
+  const signed = new Set(input.signedIds);
+  // A payload that mentions absentees replaces the stored list; one that says
+  // nothing about them leaves it standing, minus anyone who has since signed.
+  const candidates = input.reported ?? input.stored ?? [];
+  const out: string[] = [];
+  for (const id of candidates) {
+    if (!roster.has(id) || signed.has(id) || out.includes(id)) continue;
+    out.push(id);
+  }
+  return out;
+}
+
+/**
  * Ingest one outbox drain. Everything is keyed off the crew token, because the
  * caller is a phone with no account — the token is the authorisation.
  */
@@ -186,11 +218,6 @@ export async function ingestSync(payload: SyncPayload): Promise<SyncResult> {
     photoStored = true;
   }
 
-  // Absentees are whoever the foreman closed out without a signature — but never
-  // someone who *has* one. A phone that reloaded mid-huddle can send a close-out
-  // listing a person whose signature synced from another device (or from its own
-  // outbox seconds earlier), and a record that says "absent" beside a signature
-  // is worse than either fact alone.
   const signedIds = new Set(
     (
       await db
@@ -199,9 +226,12 @@ export async function ingestSync(payload: SyncPayload): Promise<SyncResult> {
         .where(eq(signOffs.talkInstanceId, row.instance.id))
     ).map((s) => s.employeeId),
   );
-  const absent = (payload.absentEmployeeIds ?? row.instance.absentEmployeeIds ?? []).filter(
-    (id) => rosterIds.has(id) && !signedIds.has(id),
-  );
+  const absent = reconcileAbsentees({
+    reported: payload.absentEmployeeIds,
+    stored: row.instance.absentEmployeeIds,
+    rosterIds,
+    signedIds,
+  });
   const accountedFor = new Set([...signedIds, ...absent]);
   const everyoneAccountedFor = roster.length > 0 && accountedFor.size >= roster.length;
   const completed = row.instance.status === "completed" || payload.closeOut === true || everyoneAccountedFor;
@@ -213,7 +243,10 @@ export async function ingestSync(payload: SyncPayload): Promise<SyncResult> {
       status: completed ? "completed" : signedIds.size > 0 ? "in_progress" : row.instance.status,
       completedAt: completed ? (row.instance.completedAt ?? new Date()) : row.instance.completedAt,
       closedByForeman: payload.closeOut === true ? true : row.instance.closedByForeman,
-      absentEmployeeIds: absent.length > 0 ? absent : row.instance.absentEmployeeIds,
+      // Written unconditionally: an empty list here means the last person who was
+      // marked absent has since signed, and keeping the old list would leave
+      // "absent" printed beside their signature.
+      absentEmployeeIds: absent,
       gpsLat: payload.gps?.lat ?? row.instance.gpsLat,
       gpsLng: payload.gps?.lng ?? row.instance.gpsLng,
       sitePhotoKey,

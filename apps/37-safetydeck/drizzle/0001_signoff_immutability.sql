@@ -8,9 +8,12 @@
 
 CREATE OR REPLACE FUNCTION sign_offs_are_immutable() RETURNS trigger AS $$
 BEGIN
+  -- Past participle, not the raw verb: lower(TG_OP) reads "cannot be update".
+  -- This message surfaces to whoever is asking why a record will not change,
+  -- which in this product can be an inspector.
   RAISE EXCEPTION
     'sign_offs is append-only: a synced signature cannot be % (append a sign_off_corrections row instead)',
-    lower(TG_OP)
+    CASE TG_OP WHEN 'UPDATE' THEN 'updated' WHEN 'DELETE' THEN 'deleted' ELSE lower(TG_OP) END
     USING ERRCODE = 'restrict_violation';
 END;
 $$ LANGUAGE plpgsql;

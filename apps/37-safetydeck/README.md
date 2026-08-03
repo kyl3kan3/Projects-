@@ -140,6 +140,7 @@ unique index on `(target, rung, channel)`.
 
 ```bash
 npm run typecheck
-npm test            # 63 tests: 1904 recordability, the cert ladder, date maths,
-                    # plan limits, 300A totals, crew tokens, the talk parser
+npm test            # 71 tests: 1904 recordability, the cert ladder, date maths,
+                    # plan limits, 300A totals, crew tokens, absentee
+                    # reconciliation, the talk parser
 ```

@@ -19,7 +19,13 @@
   --color-hairline: #2d2a1d; /* 1px dividers & card borders — never brighter */
   --color-text: #f0ede3;
   --color-text-2: #a39d8a;
-  --color-text-3: #6b665a;
+  /* DESIGN.md specifies #6b665a here, which measures 3.19:1 on tarmac and 2.91:1
+     on panel. That is defensible for the "faint" role it names — timestamps and
+     placeholders — but the token also colours inactive tab-bar labels, which are
+     navigation, not decoration. DESIGN_LANGUAGE.md's AA floor outranks a specific
+     hex, so raised to the smallest step that clears 4.5:1 on the worse of the two
+     grounds: 4.96:1 on tarmac, 4.53:1 on panel. Still clearly quieter than text-2. */
+  --color-text-3: #8b8575;
   --color-paper: #f4f1e6; /* Primary buttons (tarmac text), key numerals */
   --color-hardhat: #d9a62e; /* THE accent, rationed to <=10% of a screen */
   --color-green: #4e9b6b; /* Signed / compliant / valid only */
@@ -33,7 +39,7 @@
   --color-line-press: #3a3624;
   --color-fg: #f0ede3;
   --color-fg-2: #a39d8a;
-  --color-fg-3: #6b665a;
+  --color-fg-3: #8b8575; /* raised for AA — see --color-text-3 above */
   --color-accent: #d9a62e;
   --color-action: #f4f1e6;
   --color-action-press: #e2dfd0;
