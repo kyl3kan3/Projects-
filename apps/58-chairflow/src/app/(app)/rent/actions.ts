@@ -196,7 +196,7 @@ export async function sendRentLinkAction(
     shopId: ctx.shopId,
     ownerAccountId: null,
   });
-  if (!result.url) return failed(result.reason, {});
+  if (result.url === null) return failed(result.reason, {});
   revalidatePath("/rent");
   return succeeded(`Payment link ready: ${result.url}`, {});
 }
