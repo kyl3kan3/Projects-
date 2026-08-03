@@ -298,8 +298,10 @@ a {
   font-variant-numeric: tabular-nums;
 }
 .input::placeholder {
+  /* Full text-2, no opacity: at 0.75 this measured 3.5:1 and a hint nobody can read is
+     not a hint. It reads as guidance because it is grey, not because it is faint. */
   color: var(--color-fg-2);
-  opacity: 0.75;
+  opacity: 1;
 }
 .input:focus {
   outline: none;

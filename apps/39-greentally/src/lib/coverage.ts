@@ -1,15 +1,21 @@
 /**
  * The coverage meter.
  *
- * Twelve cells, one per month of the reporting year. A month is **complete** when
- * every source the org has uploaded at least once covers it, **partial** when some
- * do, and **empty** when none do.
+ * Twelve cells, one per month of the reporting year. A month is **complete** when every
+ * monthly-metered source the org has uploaded at least once covers it, **partial** when
+ * some do, and **empty** when none do.
  *
- * The honest limitation, stated in the UI as well as here: coverage can only reason
- * about sources it has seen. An org that never uploads a gas bill has no gas source,
- * so its months read complete on electricity alone. The screen says
- * "counting the sources you have uploaded" for exactly this reason — a meter that
- * silently claimed completeness would be the most damaging number in the product.
+ * "Monthly-metered" means electricity and gas: a meter is read every month, so a missing
+ * month is a missing bill. Liquid fuels are *deliveries* — a heating-oil drop in January
+ * and a fleet statement in June are complete records of what was bought, and demanding
+ * one of each every month would drive a real org's meter to zero while its data was fine.
+ * Fuel appears in the activity table and in Scope 1; it is not a per-month requirement,
+ * and both the screen and the report say so.
+ *
+ * The honest limitation, stated in the UI as well as here: coverage can only reason about
+ * sources it has seen. An org that never uploads a gas bill has no gas source, so its
+ * months read complete on electricity alone. A meter that silently claimed completeness
+ * would be the most damaging number in the product.
  */
 
 export interface CoverageLine {
@@ -37,11 +43,16 @@ export interface Coverage {
   monthsComplete: number;
   monthsPartial: number;
   monthsWithData: number;
-  /** Expected (site, category) pairs — the sources the org has told us about. */
+  /** Expected monthly-metered (site, category) pairs — what a complete month needs. */
   sources: { siteId: string; category: string }[];
+  /** Fuel deliveries: recorded and reported, but never required month by month. */
+  deliverySources: { siteId: string; category: string; months: number }[];
   /** 0–100, whole percent of expected source-months present. */
   pct: number;
 }
+
+/** Categories billed against a meter every month. */
+export const METERED_CATEGORIES = new Set(["electricity_kwh", "natural_gas_kwh"]);
 
 function monthKey(year: number, month: number): string {
   return `${year}-${String(month).padStart(2, "0")}`;
@@ -67,14 +78,28 @@ export function computeCoverage(
   siteNames: Map<string, string> = new Map(),
   categoryLabels: Map<string, string> = new Map(),
 ): Coverage {
+  const metered = lines.filter((l) => METERED_CATEGORIES.has(l.category));
+  const deliveries = lines.filter((l) => !METERED_CATEGORIES.has(l.category));
+
   const sourceKeys = new Set<string>();
-  for (const l of lines) sourceKeys.add(`${l.siteId}::${l.category}`);
-  const sources = [...sourceKeys]
-    .sort()
-    .map((k) => {
-      const [siteId, category] = k.split("::");
-      return { siteId, category };
-    });
+  for (const l of metered) sourceKeys.add(`${l.siteId}::${l.category}`);
+  const sources = [...sourceKeys].sort().map((k) => {
+    const [siteId, category] = k.split("::");
+    return { siteId, category };
+  });
+
+  const deliveryKeys = new Set<string>();
+  for (const l of deliveries) deliveryKeys.add(`${l.siteId}::${l.category}`);
+  const deliverySources = [...deliveryKeys].sort().map((k) => {
+    const [siteId, category] = k.split("::");
+    const months = new Set<number>();
+    for (let m = 1; m <= 12; m += 1) {
+      if (deliveries.some((l) => l.siteId === siteId && l.category === category && covers(l, year, m))) {
+        months.add(m);
+      }
+    }
+    return { siteId, category, months: months.size };
+  });
 
   const months: CoverageMonth[] = [];
   let present = 0;
@@ -83,7 +108,7 @@ export function computeCoverage(
     const missing: string[] = [];
     let have = 0;
     for (const s of sources) {
-      const covered = lines.some(
+      const covered = metered.some(
         (l) => l.siteId === s.siteId && l.category === s.category && covers(l, year, m),
       );
       if (covered) have += 1;
@@ -106,6 +131,7 @@ export function computeCoverage(
     monthsPartial: months.filter((m) => m.state === "partial").length,
     monthsWithData: months.filter((m) => m.state !== "empty").length,
     sources,
+    deliverySources,
     pct: expectedTotal === 0 ? 0 : Math.round((present / expectedTotal) * 100),
   };
 }

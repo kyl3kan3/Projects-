@@ -47,18 +47,88 @@ Notes on the model:
 
 ## MVP Feature List
 
-- [ ] Onboarding wizard: company profile, sites, reporting year, the questionnaire(s) they need to answer
-- [ ] Document upload: PDF/image utility bills (electricity, gas, fuel), drag-and-drop, batch
-- [ ] Extraction pipeline: LLM-assisted parsing of bills into normalized activity data (kWh, therms, litres) with per-field confidence and a human review screen for low-confidence fields
-- [ ] Spend CSV import: map GL export columns, categorize spend lines to EEIO categories (auto-suggested, user-confirmable)
-- [ ] Emissions engine: Scope 1 (fuel combustion), Scope 2 (location- and market-based, eGRID/residual-mix factors), Scope 3 spend-based screen (EEIO factors), all with factor citations and vintages
-- [ ] Dashboard: total tCO2e by scope, by site, by month; data-coverage meter showing which months/sources are still missing
-- [ ] CSRD-lite PDF report: methodology notes, factor sources, scope tables, intensity metrics (tCO2e/revenue, /FTE) — credible to a procurement analyst, explicitly not assurance-grade
-- [ ] Questionnaire answer bank: mapped answers for common CDP/EcoVadis-style questions (emissions figures, methodology, boundaries, reduction intent), copy-paste ready with per-answer source references
-- [ ] Audit trail: every reported figure traceable to source documents and factors (the trust feature)
-- [ ] Billing (Stripe): three plans + annual, footprint-preview gate
+- [x] Onboarding wizard: company profile, sites, reporting year, the questionnaire(s) they need to answer
+- [x] Document upload: PDF/image utility bills (electricity, gas, fuel), drag-and-drop, batch
+- [x] Extraction pipeline: LLM-assisted parsing of bills into normalized activity data (kWh, therms, litres) with per-field confidence and a human review screen for low-confidence fields
+- [x] Spend CSV import: map GL export columns, categorize spend lines to EEIO categories (auto-suggested, user-confirmable)
+- [x] Emissions engine: Scope 1 (fuel combustion), Scope 2 (location- and market-based, eGRID/residual-mix factors), Scope 3 spend-based screen (EEIO factors), all with factor citations and vintages
+- [x] Dashboard: total tCO2e by scope, by site, by month; data-coverage meter showing which months/sources are still missing
+- [x] CSRD-lite PDF report: methodology notes, factor sources, scope tables, intensity metrics (tCO2e/revenue, /FTE) — credible to a procurement analyst, explicitly not assurance-grade
+- [x] Questionnaire answer bank: mapped answers for common CDP/EcoVadis-style questions (emissions figures, methodology, boundaries, reduction intent), copy-paste ready with per-answer source references
+- [x] Audit trail: every reported figure traceable to source documents and factors (the trust feature)
+- [x] Billing (Stripe): three plans + annual, footprint-preview gate
 
 Post-MVP (explicitly cut from v1): utility API integrations, activity-based Scope 3, reduction-project tracking, multi-language reports, accountant multi-client workspace, assurance-partner handoff.
+
+## Running it
+
+Node 20 or newer, and a Postgres database. Nothing else is required — every external
+service degrades honestly (see `.env.example`).
+
+```bash
+cp .env.example .env.local          # fill in DATABASE_URL and AUTH_SECRET
+npm run db:migrate                  # create the schema
+npm run db:seed-factors             # load the bundled EPA / eGRID / DEFRA / USEEIO sets
+npm run dev                         # http://localhost:3039
+```
+
+Then sign up, walk the four-step setup, and drop a utility bill onto the Documents
+screen. The footprint, the report and the questionnaire answers all fill in from it.
+
+### What each optional service adds
+
+| Unset | What happens instead |
+|---|---|
+| `ANTHROPIC_API_KEY` | Bills are read from their PDF text layer, which is a real driver — but it cannot read a photograph. A scan lands in review with empty fields to type in, never with a guessed number. |
+| `R2_*` | Original bills are stored as bytes in Postgres and served through the same short-lived signed links. |
+| `STRIPE_SECRET_KEY` | The billing screen shows the plans and says checkout is unavailable. Plan limits still apply. |
+| `CRON_SECRET` | `/api/cron/tick` refuses to run at all rather than defaulting to open. |
+
+### Background work
+
+Extraction, spend classification and footprint recomputation run through a queue in
+Postgres (`jobs`). Three callers drain it through one code path:
+
+- the browser, right after an upload (`POST /api/jobs/run`, scoped to your own org);
+- the scheduled sweep (`GET /api/cron/tick`, `Authorization: Bearer $CRON_SECRET`);
+- `npm run worker`, if you would rather deploy a long-lived process.
+
+On Vercel the first two are enough. `ARCHITECTURE.md` specifies BullMQ on Redis behind
+a standalone worker; the queue lives in the database instead because the deployment
+target has no always-on process and Hobby cron fires once a day, and because enqueueing
+then happens in the same transaction as the row it is about.
+
+### The PDF
+
+The report is a print-CSS route rendered by headless Chromium, so the screen artefact
+and the downloaded document are the same file. That needs a Chromium binary:
+`npm run worker`'s host, a container, or a developer machine. Set
+`CHROMIUM_EXECUTABLE_PATH` if the platform ships its own. Where none exists,
+`Download PDF` says so and the print view produces the identical A4 document through
+the browser's own Print → Save as PDF.
+
+### Emission factors
+
+`src/db/factors.ts` holds the bundled sets — EPA, eGRID, DEFRA/DESNZ and USEEIO — with
+the publisher, table, vintage and any unit conversion on every row. They are a
+transcription kept in the repository so the product has no runtime dependency on a
+factor API. **Before a report leaves the building on a real engagement, re-run
+`npm run db:seed-factors` against the current published CSVs.** Factor vintages change
+annually, and a stale factor is the commonest defect in an SMB footprint.
+
+### Tests
+
+```bash
+npm run typecheck
+npm test        # 129 unit tests: units, bill reading, PDF text, validators,
+                # the engine's determinism, spend, plans, the answer bank
+npm run build
+```
+
+The tests cover the parts that are expensive to get wrong: unit conversion (a CCF read
+as a kWh understates gas thirtyfold), PDF text decoding (a kerned `4,110` read as `41`),
+the confidence and validation routing, integer emissions arithmetic, replay determinism,
+and every questionnaire template against an empty inventory.
 
 ## Differentiation
 

@@ -78,6 +78,7 @@ function ctx(over: Partial<ReportContext> = {}): ReportContext {
         { siteId: "site-1", category: "electricity_kwh" },
         { siteId: "site-1", category: "natural_gas_kwh" },
       ],
+      deliverySources: [{ siteId: "site-1", category: "diesel_l", months: 1 }],
       pct: 96,
     },
     rows: [
@@ -271,7 +272,7 @@ test("an empty inventory still renders every answer without crashing", () => {
       totalMarket: 0,
       totalLocation: 0,
     },
-    coverage: { months: [], monthsComplete: 0, monthsPartial: 0, monthsWithData: 0, sources: [], pct: 0 },
+    coverage: { months: [], monthsComplete: 0, monthsPartial: 0, monthsWithData: 0, sources: [], deliverySources: [], pct: 0 },
     spend: { rows: 0, includedRows: 0, excludedRows: 0, unclassifiedRows: 0, includedCents: 0, excludedCents: 0, byReason: [] },
   });
   for (const tpl of TEMPLATES) {

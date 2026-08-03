@@ -69,6 +69,13 @@ export default async function DocumentsPage() {
             disabled={!gate.allowed}
             disabledReason={gate.reason}
           />
+          <Link
+            href="/spend"
+            className="btn-quiet mt-4 inline-flex items-center gap-2"
+          >
+            <IconTable size={16} />
+            Go to the spend import
+          </Link>
         </div>
       )}
 
@@ -130,12 +137,6 @@ export default async function DocumentsPage() {
         through short-lived signed links.
       </p>
 
-      <div className="thumb-cta">
-        <Link href="/spend" className="btn btn-secondary btn-full">
-          <IconTable size={18} />
-          Import spend CSV
-        </Link>
-      </div>
     </main>
   );
 }

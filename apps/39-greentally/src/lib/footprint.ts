@@ -35,7 +35,7 @@ import {
 } from "@/db/schema";
 import { fuelFactorSetFor } from "@/db/factors";
 import { computeCoverage, splitAcrossMonths } from "@/lib/coverage";
-import { CATEGORY_LABEL } from "@/lib/units";
+import { CANONICAL_UNIT, CATEGORY_LABEL } from "@/lib/units";
 import { audit, SYSTEM } from "@/lib/audit";
 
 export const ENGINE_VERSION = "1.0.0";
@@ -196,6 +196,10 @@ export function computeResults(input: EngineInput): EngineOutput {
       }
       note(factor);
       const grams = gramsFromActivity(line.quantityMilli, factor.kgco2ePerUnitMicro);
+      // The canonical unit of the *category*, not a hardcoded kWh: diesel is litres, and a
+      // report that printed "1,841 kWh of diesel · 2.7058 kg/kWh" would be dismissed on
+      // sight by the only reader who matters.
+      const unit = CANONICAL_UNIT[line.category];
       for (const part of splitAcrossMonths(line.serviceStart, line.serviceEnd, grams)) {
         if (part.amount === 0) continue;
         results.push({
@@ -207,7 +211,7 @@ export function computeResults(input: EngineInput): EngineOutput {
           factorId: factor.id,
           activityLineId: line.id,
           quantityMilli: line.quantityMilli,
-          unit: "kWh",
+          unit,
           month: part.key,
         });
       }

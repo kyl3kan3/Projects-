@@ -406,10 +406,12 @@ function ActivityPage({ ctx }: { ctx: ReportContext }) {
         </tbody>
       </table>
       <p className="report-note mt-2" style={{ maxWidth: "68ch" }}>
-        Coverage counts the {ctx.coverage.sources.length} source
-        {ctx.coverage.sources.length === 1 ? "" : "s"} (site × energy carrier) for which at
-        least one invoice was supplied. A source never supplied at all cannot appear here —
-        that limitation is stated rather than implied.
+        Coverage counts the {ctx.coverage.sources.length} monthly-metered source
+        {ctx.coverage.sources.length === 1 ? "" : "s"} (site × electricity or gas) for which
+        at least one invoice was supplied. Liquid-fuel deliveries are included in Scope 1
+        wherever they occurred but are not expected in every month, and are listed in the
+        activity table above. A source never supplied at all cannot appear here — that
+        limitation is stated rather than implied.
       </p>
 
       {ctx.scope3Top.length > 0 && (

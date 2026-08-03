@@ -160,11 +160,14 @@ export const IconChevronLeft = (p: IconProps) => svg(<path d="M12.2 4.6 6.8 10l5
 
 export const IconClose = (p: IconProps) => svg(<path d="M5.2 5.2l9.6 9.6M14.8 5.2l-9.6 9.6" />, p);
 
+/** Settings — sliders. A ring of radial ticks reads as a sunburst at 20px, not a gear. */
 export const IconGear = (p: IconProps) =>
   svg(
     <>
-      <circle cx="10" cy="10" r="3" />
-      <path d="M10 2.2v2.3M10 15.5v2.3M2.2 10h2.3M15.5 10h2.3M4.7 4.7l1.6 1.6M13.7 13.7l1.6 1.6M15.3 4.7l-1.6 1.6M4.7 15.3l1.6-1.6" />
+      <path d="M3 6.4h4.2M11.4 6.4h5.6" />
+      <path d="M3 13.6h8.6M15.8 13.6h1.2" />
+      <circle cx="9.4" cy="6.4" r="2.1" />
+      <circle cx="13.6" cy="13.6" r="2.1" />
     </>,
     p,
   );

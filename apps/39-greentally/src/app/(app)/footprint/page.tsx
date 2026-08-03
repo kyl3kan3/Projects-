@@ -10,7 +10,7 @@ import { CoverageMeter } from "@/components/CoverageMeter";
 import { JobRunner } from "@/components/JobRunner";
 import { ScopeRows } from "./ScopeRows";
 import { scopeProvenance, totalProvenance } from "@/lib/provenance";
-import { formatCentsCompact, formatTonnes } from "@/lib/units";
+import { formatTonnes } from "@/lib/units";
 import { canSeeFullTotal, PLANS } from "@/lib/plans";
 import { intensityPerFte, intensityPerRevenue } from "@/lib/footprint";
 import { pendingJobCount } from "@/lib/jobs";
@@ -130,14 +130,14 @@ export default async function FootprintPage() {
           <>
             <div className="mt-2">
               {fullTotal ? (
-                <ProvenanceFigure thread={threadTotal} label="the reported total">
+                <ProvenanceFigure thread={threadTotal} label="the reported total" grounded={false}>
                   <span className="t-display">
                     {formatTonnes(totals.totalMarket)}{" "}
                     <span className="unit">tCO2e</span>
                   </span>
                 </ProvenanceFigure>
               ) : (
-                <ProvenanceFigure thread={thread2Mkt} label="the partial Scope 2 estimate">
+                <ProvenanceFigure thread={thread2Mkt} label="the partial Scope 2 estimate" grounded={false}>
                   <span className="t-display">
                     {formatTonnes(totals.scope2Market)} <span className="unit">tCO2e</span>
                   </span>
@@ -216,17 +216,15 @@ export default async function FootprintPage() {
         <section className="mt-8">
           <h2 className="t-label">Intensity</h2>
           <div className="row-plain mt-2 flex items-baseline justify-between gap-3">
-            <span className="t-body">Per million of revenue</span>
-            <span className="t-mono">
-              {perRevenue > 0
-                ? `${(perRevenue / 1000).toFixed(2)} tCO2e / ${formatCentsCompact(1_000_000_00, org.reportingCurrency)}`
-                : "revenue not recorded"}
+            <span className="t-body">Per $1M of revenue</span>
+            <span className="t-mono whitespace-nowrap">
+              {perRevenue > 0 ? `${(perRevenue / 1000).toFixed(2)} tCO2e` : "not recorded"}
             </span>
           </div>
           <div className="row-plain flex items-baseline justify-between gap-3">
             <span className="t-body">Per full-time employee</span>
-            <span className="t-mono">
-              {perFte > 0 ? `${(perFte / 1000).toFixed(2)} tCO2e / FTE` : "headcount not recorded"}
+            <span className="t-mono whitespace-nowrap">
+              {perFte > 0 ? `${(perFte / 1000).toFixed(2)} tCO2e` : "not recorded"}
             </span>
           </div>
         </section>

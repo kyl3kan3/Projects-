@@ -499,3 +499,63 @@ test("last year's bill does not fill this year's coverage", () => {
   );
   assert.equal(c.monthsWithData, 0);
 });
+
+test("a fuel delivery does not make every month incomplete", () => {
+  // Electricity and gas are metered monthly; a January heating-oil drop and a June fleet
+  // statement are complete records of what was bought. Requiring one of each every month
+  // drove a real org's coverage meter to zero while its data was fine.
+  const lines = [
+    ...Array.from({ length: 12 }, (_, i) => ({
+      siteId: "s1",
+      category: "electricity_kwh",
+      serviceStart: `2025-${String(i + 1).padStart(2, "0")}-01`,
+      serviceEnd: `2025-${String(i + 1).padStart(2, "0")}-28`,
+    })),
+    ...Array.from({ length: 12 }, (_, i) => ({
+      siteId: "s1",
+      category: "natural_gas_kwh",
+      serviceStart: `2025-${String(i + 1).padStart(2, "0")}-01`,
+      serviceEnd: `2025-${String(i + 1).padStart(2, "0")}-28`,
+    })),
+    { siteId: "s1", category: "heating_oil_l", serviceStart: "2025-01-01", serviceEnd: "2025-01-31" },
+    { siteId: "s1", category: "diesel_l", serviceStart: "2025-06-01", serviceEnd: "2025-06-30" },
+  ];
+  const c = computeCoverage(lines, 2025);
+  assert.equal(c.monthsComplete, 12, "twelve months of both meters is complete coverage");
+  assert.equal(c.pct, 100);
+  assert.equal(c.sources.length, 2, "only the metered sources are required");
+  assert.equal(c.deliverySources.length, 2, "the deliveries are still recorded");
+  assert.deepEqual(
+    c.deliverySources.map((d) => d.months),
+    [1, 1],
+  );
+});
+
+test("a Scope 1 result carries its category's own unit, not a hardcoded kWh", () => {
+  const out = computeResults(
+    input({
+      activity: [
+        {
+          id: "a1",
+          siteId: "site-1",
+          category: "diesel_l",
+          quantityMilli: 1_841_264,
+          serviceStart: "2025-06-01",
+          serviceEnd: "2025-06-30",
+        },
+        {
+          id: "a2",
+          siteId: "site-1",
+          category: "natural_gas_kwh",
+          quantityMilli: 23_791_681,
+          serviceStart: "2025-11-01",
+          serviceEnd: "2025-11-30",
+        },
+      ],
+    }),
+  );
+  const diesel = out.results.find((r) => r.category === "diesel_l")!;
+  const gas = out.results.find((r) => r.category === "natural_gas_kwh")!;
+  assert.equal(diesel.unit, "L", "the report prints litres of diesel, not kWh of diesel");
+  assert.equal(gas.unit, "kWh");
+});

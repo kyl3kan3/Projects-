@@ -199,9 +199,14 @@ export async function buildReportContext(periodId: string): Promise<ReportContex
       eeioCategory: spendLines.eeioCategory,
       excluded: spendLines.excluded,
       exclusionReason: spendLines.exclusionReason,
+      classificationSource: spendLines.classificationSource,
     })
     .from(spendLines)
     .where(eq(spendLines.periodId, periodId));
+
+  const unconfirmedSpend = spendRows.filter(
+    (s) => !s.excluded && s.eeioCategory && s.classificationSource !== "user",
+  ).length;
 
   const spendByCategory = new Map<string, number>();
   for (const s of spendRows) {
@@ -240,12 +245,17 @@ export async function buildReportContext(periodId: string): Promise<ReportContex
   const caveats: string[] = [];
   if (coverage.monthsComplete < 12) {
     caveats.push(
-      `${coverage.monthsComplete} of 12 months have every uploaded source present. Months with partial or no data are listed in the coverage table; the totals below cover only the periods actually billed.`,
+      `${coverage.monthsComplete} of 12 months have every metered source (electricity and gas) present. Months with partial or no data are listed in the coverage table; the totals below cover only the periods actually billed. Fuel deliveries are included in Scope 1 wherever they occurred and are not expected monthly.`,
     );
   }
   if (spend.unclassifiedRows > 0) {
     caveats.push(
       `${spend.unclassifiedRows} spend line${spend.unclassifiedRows === 1 ? " is" : "s are"} still unclassified and therefore excluded from the Scope 3 screen.`,
+    );
+  }
+  if (unconfirmedSpend > 0) {
+    caveats.push(
+      `${unconfirmedSpend} of the ${spend.includedRows} spend lines in the Scope 3 screen carry an automatic category suggestion that has not been individually confirmed. Each suggestion is a keyword match on the ledger description and is shown with its rule in the app.`,
     );
   }
   if (spendRows.length === 0) {

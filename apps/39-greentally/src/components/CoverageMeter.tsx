@@ -9,6 +9,8 @@
 
 import type { Coverage } from "@/lib/coverage";
 import { shortMonth } from "@/lib/documents";
+import { CATEGORY_LABEL } from "@/lib/units";
+import type { ActivityCategory } from "@/db/schema";
 
 export function CoverageMeter({ coverage, year }: { coverage: Coverage; year: number }) {
   const noSources = coverage.sources.length === 0;
@@ -49,14 +51,31 @@ export function CoverageMeter({ coverage, year }: { coverage: Coverage; year: nu
           accepted.
         </p>
       ) : (
-        <p className="t-secondary mt-3" style={{ maxWidth: "52ch" }}>
-          Counting the {coverage.sources.length}{" "}
-          {coverage.sources.length === 1 ? "source" : "sources"} you have uploaded at least
-          once. A month is complete when every one of them covers it.
-          {firstGap
-            ? ` ${shortMonth(firstGap.month - 1)} is still missing ${firstGap.missing[0]}.`
-            : ""}
-        </p>
+        <>
+          <p className="t-secondary mt-3" style={{ maxWidth: "52ch" }}>
+            Counting the {coverage.sources.length} metered{" "}
+            {coverage.sources.length === 1 ? "source" : "sources"} you have uploaded at
+            least once — electricity and gas are read every month, so a missing month is a
+            missing bill.
+            {firstGap
+              ? ` ${shortMonth(firstGap.month - 1)} is still missing ${firstGap.missing[0]}.`
+              : ""}
+          </p>
+          {coverage.deliverySources.length > 0 && (
+            <p className="t-secondary mt-2" style={{ maxWidth: "52ch" }}>
+              Fuel deliveries are counted in Scope 1 but not required month by month:{" "}
+              {coverage.deliverySources
+                .map(
+                  (d) =>
+                    `${CATEGORY_LABEL[d.category as ActivityCategory] ?? d.category} in ${d.months} ${
+                      d.months === 1 ? "month" : "months"
+                    }`,
+                )
+                .join(", ")}
+              .
+            </p>
+          )}
+        </>
       )}
     </section>
   );

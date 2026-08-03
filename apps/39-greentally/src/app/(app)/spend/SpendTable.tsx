@@ -141,7 +141,7 @@ export function SpendTable({
               ? "Select rows below to categorise them"
               : `${selected.size} row${selected.size === 1 ? "" : "s"} selected`}
           </p>
-          <label className="field mt-3">
+          <label className="field mt-5">
             <span className="t-label">Category</span>
             <select name="category" className="input" defaultValue="">
               <option value="" disabled>
