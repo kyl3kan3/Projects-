@@ -83,6 +83,25 @@ build had been hiding:
 Formforge's test count reads 184 because it carries two suites: 151 unit tests and
 33 integration tests needing a real database (`npm run test:db`).
 
+## Built, gates pass, MVP coverage unconfirmed (1)
+
+| # | App | Lines | Files | Tests |
+|---|-----|------:|------:|------:|
+| 39 | greentally | 14,124 | 94 | 130 |
+
+A sustained run of `529 Overloaded` API errors killed seven agents in one stretch.
+Most died at startup having done nothing, but `39-greentally` was killed twice
+during its final verification pass, after its code was complete.
+
+So the gates were re-run here and all pass — typecheck, 130 tests, a green
+production build, no unimplemented stubs, and every item on its README MVP list has
+a route behind it. What is missing is the agent's own report, which is the part that
+says *which* MVP items were exercised end to end and what could not be verified.
+Nobody has confirmed this one works, so it does not go in the list above.
+
+Its abandoned `.env.local` and pidfile were removed here; the dev server they
+referred to had already exited.
+
 ## Not built (50)
 
 Scaffolds that compile and do nothing. 42 are "partial" — complete data model,
