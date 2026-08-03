@@ -4,7 +4,7 @@ import { requireShop } from "@/lib/auth";
 import { SnoozeForm } from "../reorder/[variantId]/SnoozeForm";
 import { suggestedAction } from "@/lib/deadstock";
 import { shortDate } from "@/lib/dates";
-import { count, cover, money, moneyExact } from "@/lib/format";
+import { ago, count, cover, money, moneyExact } from "@/lib/format";
 import { deadStockBoard } from "@/lib/views";
 
 export const metadata: Metadata = { title: "Dead stock" };
@@ -34,8 +34,11 @@ export default async function DeadStockPage() {
           {board.snoozedCount ? ` · ${board.snoozedCount} SNOOZED, EXCLUDED` : ""}
         </p>
         {board.runDate ? (
+          // The run's age, not just its date: a stored classification rendered as
+          // current fact is how an app shows "dead" on a SKU that started moving on
+          // Tuesday.
           <p className="t-data mt-1" style={{ color: "var(--color-fg-3)" }}>
-            RUN {board.runDate}
+            RUN {board.runDate} · {ago(shop.lastRecomputeAt).toUpperCase()}
           </p>
         ) : null}
       </header>
