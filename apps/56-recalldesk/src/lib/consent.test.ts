@@ -64,7 +64,7 @@ test("a consenting patient inside the window passes", () => {
 
 test("do-not-contact blocks every channel and beats everything else", () => {
   for (const channel of ["email", "sms"] as const) {
-    const d = decideTouch(facts({ channel, patient: { doNotContact: true } } }));
+    const d = decideTouch(facts({ channel, patient: { doNotContact: true } }));
     assert.equal(d.ok, false);
     assert.equal(d.ok === false && d.reason, "do_not_contact");
     assert.equal(d.ok === false && d.retryable, false);
@@ -72,7 +72,7 @@ test("do-not-contact blocks every channel and beats everything else", () => {
 });
 
 test("STOP blocks SMS permanently, and does not block email", () => {
-  const stopped = { smsOptedOutAt: new Date("2026-07-01T12:00:00Z"), smsConsent: false } as never;
+  const stopped = { smsOptedOutAt: new Date("2026-07-01T12:00:00Z"), smsConsent: false };
   const sms = decideTouch(facts({ channel: "sms", patient: stopped }));
   assert.equal(sms.ok === false && sms.reason, "opted_out");
   // Opt-out is per channel: STOP is not an email unsubscribe.
@@ -100,16 +100,16 @@ test("an email unsubscribe blocks email permanently", () => {
 });
 
 test("missing consent flags block, per channel", () => {
-  const noEmail = decideTouch(facts({ patient: { emailConsent: false } } }));
+  const noEmail = decideTouch(facts({ patient: { emailConsent: false } }));
   assert.equal(noEmail.ok === false && noEmail.reason, "no_consent");
-  const noSms = decideTouch(facts({ channel: "sms", patient: { smsConsent: false } } }));
+  const noSms = decideTouch(facts({ channel: "sms", patient: { smsConsent: false } }));
   assert.equal(noSms.ok === false && noSms.reason, "no_consent");
 });
 
 test("a missing address or number blocks", () => {
-  const d1 = decideTouch(facts({ patient: { email: null } } }));
+  const d1 = decideTouch(facts({ patient: { email: null } }));
   assert.equal(d1.ok === false && d1.reason, "no_consent");
-  const d2 = decideTouch(facts({ channel: "sms", patient: { phone: null } } }));
+  const d2 = decideTouch(facts({ channel: "sms", patient: { phone: null } }));
   assert.equal(d2.ok === false && d2.reason, "no_consent");
 });
 
@@ -125,7 +125,7 @@ test("a bounced address and a failed number are suppressed", () => {
 });
 
 test("an inactive patient record is never touched", () => {
-  const d = decideTouch(facts({ patient: { status: "inactive" } } }));
+  const d = decideTouch(facts({ patient: { status: "inactive" } }));
   assert.equal(d.ok === false && d.reason, "no_consent");
 });
 
