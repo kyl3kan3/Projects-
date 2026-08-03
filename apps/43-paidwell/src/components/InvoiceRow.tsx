@@ -61,8 +61,13 @@ export function InvoiceRow(props: InvoiceRowProps) {
             whiteSpace: "nowrap",
           }}
         >
-          {props.invoiceNumber} · {props.stateLine}
-          {props.settled ? "" : ` · ${props.ladder.label}`}
+          {/*
+            DESIGN.md's secondary line is the sequence state ("step 2 of 4 ·
+            next nudge Tue"), not a second copy of the day count that already
+            sits in the mono column on the right. Carrying both overflowed the
+            row at 390px and truncated the half that matters.
+          */}
+          {props.invoiceNumber} · {props.settled ? props.stateLine : props.ladder.label}
         </span>
       </span>
       <span style={{ textAlign: "right", flex: "none" }}>

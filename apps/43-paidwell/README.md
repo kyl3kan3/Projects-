@@ -88,3 +88,49 @@ Post-MVP (explicitly cut from v1): SMS steps, physical-letter escalation, collec
 3. **Tone failure hurts the customer's brand.** One overly aggressive email to a key client is churn. Mitigation: approval mode as the default for new firms, conservative default ladder, per-client VIP exclusions, and full send previews.
 4. **Incumbent bundling.** Intuit could make built-in reminders good. Accept: they've had a decade; robo-nags remain robotic. Our moat is voice, promises, and forecast — product surface Intuit won't polish for 10-person agencies.
 5. **Category education.** Firms tolerate late payment as weather. The aging-audit wedge reframes it as a number with a fix; without that reframe, top-of-funnel stalls.
+
+---
+
+## Running it locally
+
+```bash
+# 1. Dependencies (from the repo root, which shares one toolchain)
+node tools/link-deps.mjs apps/43-paidwell --kit web
+
+# 2. Environment
+cp .env.example .env.local     # DATABASE_URL and AUTH_SECRET are the only required values
+
+# 3. Database
+npm run db:migrate
+
+# 4. Run
+npm run dev                    # http://localhost:3043
+```
+
+Then sign up. A new firm starts in **approval mode** with the conservative
+default ladder, so nothing reaches a client until you tap Approve.
+
+Without QuickBooks or Xero credentials, the connect screen offers a
+clearly-labelled demo book so the whole sync → aging → ladder → portal path can
+be exercised end to end. `DRY_RUN=1` records sends with their exact copy instead
+of delivering them.
+
+**Advancing the ladder.** All time-based work lives in one idempotent sweep:
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" localhost:3043/api/cron/tick
+```
+
+Settings → *Run the daily sweep now* does the same thing from the UI. In
+production this is a once-daily cron (`vercel.json`); running it more often is
+harmless because every rung is pinned to a fixed date and deduped by a unique
+index. `npm run worker` runs the same sweep on an interval for non-serverless
+hosts, and is not required on Vercel.
+
+### Checks
+
+```bash
+npm run typecheck
+npm test
+npm run build
+```

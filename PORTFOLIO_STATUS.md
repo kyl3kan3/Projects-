@@ -14,7 +14,7 @@ run, a referral queue that deadlocked under launch-day load, magic-link login
 broken outright, certificate-expiry alerts that fired once and then went quiet
 forever. All were found by running the thing.
 
-## Verified working (17 of 74)
+## Verified working (18 of 74)
 
 Each was re-checked here after its build agent reported: line count, absence of
 unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
@@ -35,6 +35,7 @@ unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
 | 28 | clientdock | 9,273 | 84 | 66 |
 | 33 | crewclock | 9,707 | 78 | 139 |
 | 38 | duesdesk | 14,295 | 94 | 102 |
+| 43 | paidwell | 11,358 | 82 | 147 |
 | 44 | tenantfile | 12,027 | 100 | 101 |
 | 50 | waiverwing | 10,452 | 87 | 87 |
 | 51 | menocompass | 2,298 | 25 | — |
@@ -42,7 +43,7 @@ unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
 Apps 01–04 and 51 predate this process and have no test suites; they are counted
 as working on the strength of having no unimplemented stubs, not on verification.
 
-## Built, gates pass, MVP coverage unconfirmed (7)
+## Built, gates pass, MVP coverage unconfirmed (6)
 
 Batch 2 was cut off part-way through by a session limit, which killed seven agents
 mid-verification. Their code is substantial and complete-looking — no unimplemented
@@ -53,9 +54,11 @@ That is **not** the same standard as the list above. None of these agents finish
 its verification pass or filed a report, so nobody has confirmed that every item in
 each app's MVP feature list actually works end to end. Two are known to have been
 mid-fix when they were killed: `45-rosterrally` on a client-side crash in the
-registration form, `43-paidwell` on grey tokens failing AA contrast. `45-rosterrally`
-additionally did not compile — a missing import left a cancellation path referring to
-an undeclared table — which I fixed here.
+registration form. `45-rosterrally` additionally did not compile — a missing import
+left a cancellation path referring to an undeclared table — which I fixed here.
+
+All seven were resumed from their transcripts once the session limit reset;
+`43-paidwell` has since finished and moved to the verified list above.
 
 Treat these as "probably close, unproven". Finishing them means re-running each
 agent to complete its verification, not rebuilding.
@@ -64,7 +67,6 @@ agent to complete its verification, not rebuilding.
 |---|-----|------:|------:|------:|
 | 34 | menulift | 10,601 | 82 | 95 |
 | 36 | bidboard | 13,112 | 73 | 51 |
-| 43 | paidwell | 11,358 | 82 | 137 |
 | 45 | rosterrally | 14,917 | 87 | 49 |
 | 47 | shelfsense | 10,850 | 82 | 184 |
 | 48 | formforge | 11,953 | 92 | 151 |

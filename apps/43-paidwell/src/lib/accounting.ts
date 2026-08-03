@@ -19,7 +19,7 @@
  * rather than pretending a demo connection is a real one.
  */
 
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
   accountingConnections,
@@ -664,9 +664,21 @@ export async function upsertBook(args: UpsertArgs): Promise<SyncSummary> {
       await db.update(invoices).set({ status }).where(eq(invoices.id, invoiceId));
     }
     if (invoice.balanceCents <= 0) {
+      // The settlement date comes from the payment rows, never from the clock.
+      // Stamping a twelve-month-old paid invoice with today's date was making
+      // every client look like a 190-day payer and dragging the DSO trend with
+      // it. When the remote gave us no payment row we genuinely do not know when
+      // it was paid, so paid_at stays null and the invoice is simply excluded
+      // from the days-to-pay maths rather than poisoning it with a guess.
+      const [latestPayment] = await db
+        .select({ paidAt: payments.paidAt })
+        .from(payments)
+        .where(eq(payments.invoiceId, invoiceId))
+        .orderBy(desc(payments.paidAt))
+        .limit(1);
       await db
         .update(invoices)
-        .set({ paidAt: invoice.paidAt ?? today(), status: "paid" })
+        .set({ paidAt: invoice.paidAt ?? latestPayment?.paidAt ?? null, status: "paid" })
         .where(eq(invoices.id, invoiceId));
       await stopRun(invoiceId, "paid");
       await keepPromisesFor(invoiceId, args.firm.id);
