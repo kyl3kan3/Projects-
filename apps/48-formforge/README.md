@@ -30,11 +30,11 @@ Intake is a bounded, painful, compliance-loaded workflow. It deserves a focused 
 
 ## Monetization & Pricing
 
-Priced per practice (not per clinician — the wedge against per-seat EHR pricing), tiered by clinician count and volume. **BAA included on every plan**, because gating compliance is the incumbent behavior this product exists to punish.
+Priced per practice (not per clinician — the wedge against per-seat EHR pricing), tiered by clinician count and volume. The **intent is a BAA on every plan** rather than only on an enterprise tier, because gating compliance is the incumbent behavior this product exists to punish. To be unambiguous about the present tense: no BAA is executed or offered today (see *A word on what this software is*, below), and the plan table describes pricing, not paperwork that exists.
 
 | Plan | Price | Practice size | Includes |
 |---|---|---|---|
-| **Solo** | $49/mo | 1 clinician | Unlimited forms & submissions, e-signature, encrypted storage, BAA, audit log, reminders, PDF export |
+| **Solo** | $49/mo | 1 clinician | Unlimited forms & submissions, e-signature, encrypted storage, audit log, reminders, PDF export |
 | **Group** | $99/mo | up to 5 clinicians | Everything in Solo + clinician assignment & routing, shared template library, intake status board, CSV/EHR-lite export |
 | **Clinic** | $149/mo | up to 12 clinicians | Everything in Group + custom branding & domain, API access, SSO-lite (Google Workspace), priority support |
 

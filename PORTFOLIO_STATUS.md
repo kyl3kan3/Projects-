@@ -14,7 +14,7 @@ run, a referral queue that deadlocked under launch-day load, magic-link login
 broken outright, certificate-expiry alerts that fired once and then went quiet
 forever. All were found by running the thing.
 
-## Verified working (23 of 74)
+## Verified working (24 of 74)
 
 Each was re-checked here after its build agent reported: line count, absence of
 unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
@@ -41,6 +41,7 @@ unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
 | 44 | tenantfile | 12,027 | 100 | 101 |
 | 45 | rosterrally | 16,282 | 96 | 132 |
 | 47 | shelfsense | 11,482 | 82 | 195 |
+| 48 | formforge | 11,966 | 92 | 184 |
 | 49 | grantgrid | 9,765 | 70 | 82 |
 | 50 | waiverwing | 10,452 | 87 | 87 |
 | 51 | menocompass | 2,298 | 25 | — |
@@ -48,23 +49,29 @@ unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
 Apps 01–04 and 51 predate this process and have no test suites; they are counted
 as working on the strength of having no unimplemented stubs, not on verification.
 
-## Built, gates pass, MVP coverage unconfirmed (1)
+## Batch 2, and why the resumed pass was worth running (8 of 8 done)
 
-Batch 2 was cut off part-way through by a session limit, which killed seven agents
-mid-verification. Six have since been resumed, finished their verification passes
-and moved to the verified list above. One is still working.
+A session limit killed seven batch-2 agents mid-verification. Their code was
+substantial and complete-looking, and the gates passed for all seven — which was
+exactly the trap this file exists to name. All seven were resumed from their
+transcripts, and between them they found and fixed some 70 defects that a green
+build had been hiding:
 
-That tier exists because gates passing is not the same standard as the list above:
-nobody had confirmed every item in each app's MVP feature list actually works end
-to end. Finishing them meant re-running each agent to complete its verification,
-not rebuilding — and it was worth doing. Between them the six resumed agents found
-and fixed 60-odd defects that a green build had been hiding, including a guest menu
-that was never actually cached, a portal link that every reminder email silently
-invalidated, and volunteer claims that always failed.
+- a guest QR menu that was never actually cached, so every scan hit the database
+  and the app's whole speed premise was fictional
+- a portal link that every reminder email silently invalidated, in a product whose
+  users keep the first email
+- volunteer claims that always failed, behind a catch-all reporting "slot is full"
+- `"use server"` files exporting plain objects, which throws only at runtime and
+  500'd an entire dashboard on first save
+- an untyped bind parameter that made creating a menu, section or dish impossible,
+  hidden because the seed inserted rows directly
+- every restaurant saved with timezone `UTC`, breaking dayparts and auto-restore
+- a cross-tenant audit write landing in the wrong practice's ledger before the
+  cipher rejected the operation
 
-| # | App | Lines | Files | Tests |
-|---|-----|------:|------:|------:|
-| 48 | formforge | 11,953 | 92 | 151 |
+Formforge's test count reads 184 because it carries two suites: 151 unit tests and
+33 integration tests needing a real database (`npm run test:db`).
 
 ## Not built (50)
 
@@ -92,7 +99,7 @@ These are environment limits, not omissions, and they apply to every app above:
   their layout checked by reading rendered HTML and CSS rather than by looking at
   a screen. Every app that *did* drive Chromium (`28-clientdock`, `33-crewclock`,
   `34-menulift`, `36-bidboard`, `43-paidwell`, `45-rosterrally`, `47-shelfsense`,
-  `49-grantgrid`) found real defects nothing else
+  `48-formforge`, `49-grantgrid`) found real defects nothing else
   would have caught — overlapping elements, sub-44px touch targets, a meter
   rendering the wrong figure before JS ran, a whole palette tree-shaken out of the
   built CSS while the build stayed green. Assume the untested ones are similar.
