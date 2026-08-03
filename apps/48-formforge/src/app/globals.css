@@ -202,6 +202,25 @@ body {
   position: absolute;
   inset: -13px -8px;
 }
+
+/**
+ * A `<summary>` that opens a config sheet gets real height rather than a grown
+ * pseudo-element: hit-testing showed the pseudo-element did not take the tap on a
+ * list-item box, and this is the control that opens a block's editor.
+ * `display: flex` also drops the default disclosure triangle.
+ */
+summary.btn-quiet {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  list-style: none;
+}
+summary.btn-quiet::-webkit-details-marker {
+  display: none;
+}
+summary.btn-quiet::after {
+  content: none;
+}
 .btn-quiet:active {
   opacity: 0.8;
 }

@@ -43,9 +43,72 @@ function Feedback({ state }: { state: { error: string | null; ok: string | null 
   );
 }
 
+/** Longest edge we send. Above the 1280×960 the pipeline crops to, with headroom. */
+const MAX_UPLOAD_EDGE = 1920;
+/**
+ * What a server action will accept. Must stay at or below
+ * `serverActions.bodySizeLimit` in next.config.ts — and below the hosting
+ * platform's own request-body ceiling, which on Vercel is 4.5MB no matter what
+ * Next is configured to allow.
+ */
+const MAX_POST_BYTES = 4 * 1024 * 1024;
+
+/**
+ * Shrink a phone photo in the browser before posting it.
+ *
+ * This is not an optimisation, it is the difference between the feature working
+ * and not: a modern phone shoots 8–12MB, and a Next server action rejects a body
+ * over its limit with a 413 that surfaces as a blank error page — no message, no
+ * retry, nothing the owner can act on. Downscaling to 1920px long edge puts a
+ * typical dish photo at 300–700KB, which also makes the upload quick on the wifi
+ * a restaurant actually has.
+ *
+ * `imageOrientation: "from-image"` bakes in EXIF rotation, so a portrait photo
+ * doesn't arrive sideways once the metadata is dropped.
+ *
+ * Anything the browser can't decode (HEIC on most desktops) is passed through
+ * untouched and size-checked instead — better an honest "too large, shoot as
+ * JPEG" than a silent failure.
+ */
+async function prepareForUpload(file: File): Promise<File> {
+  if (!/^image\/(jpeg|png|webp)$/i.test(file.type)) return file;
+  if (typeof createImageBitmap !== "function") return file;
+  try {
+    const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+    const longest = Math.max(bitmap.width, bitmap.height);
+    const scale = Math.min(1, MAX_UPLOAD_EDGE / longest);
+    if (scale === 1 && file.size <= 1_000_000) {
+      bitmap.close?.();
+      return file;
+    }
+    const width = Math.max(1, Math.round(bitmap.width * scale));
+    const height = Math.max(1, Math.round(bitmap.height * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d");
+    if (!context) {
+      bitmap.close?.();
+      return file;
+    }
+    context.drawImage(bitmap, 0, 0, width, height);
+    bitmap.close?.();
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/jpeg", 0.82),
+    );
+    if (!blob || blob.size >= file.size) return file;
+    return new File([blob], `${file.name.replace(/\.[^.]+$/, "")}.jpg`, { type: "image/jpeg" });
+  } catch {
+    return file;
+  }
+}
+
 export function UploadForm({ dishes }: { dishes: DishOption[] }) {
   const [state, action, pending] = useActionState(uploadPhotoAction, EMPTY_PHOTO_STATE);
-  const [filename, setFilename] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [itemId, setItemId] = useState("");
+  const [preparing, setPreparing] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
 
   if (!dishes.length) {
     return (
@@ -55,11 +118,50 @@ export function UploadForm({ dishes }: { dishes: DishOption[] }) {
     );
   }
 
+  const submit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setLocalError(null);
+    if (!itemId) {
+      setLocalError("Pick a dish for the photo");
+      return;
+    }
+    if (!file) {
+      setLocalError("Choose a photo to upload");
+      return;
+    }
+
+    setPreparing(true);
+    const prepared = await prepareForUpload(file);
+    setPreparing(false);
+
+    if (prepared.size > MAX_POST_BYTES) {
+      setLocalError(
+        `That file is still ${(prepared.size / 1_048_576).toFixed(1)}MB after resizing — we can't send more than ${
+          MAX_POST_BYTES / 1_048_576
+        }MB. Shoot it as JPEG rather than HEIC and try again.`,
+      );
+      return;
+    }
+
+    const payload = new FormData();
+    payload.set("itemId", itemId);
+    payload.set("photo", prepared, prepared.name);
+    action(payload);
+  };
+
+  const busy = pending || preparing;
+
   return (
-    <form action={action} style={{ display: "grid", gap: 12 }}>
+    <form onSubmit={submit} style={{ display: "grid", gap: 12 }}>
       <label style={{ display: "grid", gap: 6 }}>
         <span className="t-label">Dish</span>
-        <select className="select" name="itemId" required defaultValue="">
+        <select
+          className="select"
+          name="itemId"
+          required
+          value={itemId}
+          onChange={(event) => setItemId(event.currentTarget.value)}
+        >
           <option value="" disabled>
             Pick a dish
           </option>
@@ -73,25 +175,34 @@ export function UploadForm({ dishes }: { dishes: DishOption[] }) {
 
       <label className="btn btn-secondary btn-block" style={{ cursor: "pointer" }}>
         <IconCamera size={20} />
-        {filename ? filename : "Take or choose a photo"}
+        {file ? file.name : "Take or choose a photo"}
         <input
           type="file"
           name="photo"
           accept="image/jpeg,image/png,image/webp,image/heic"
           capture="environment"
-          required
-          onChange={(event) => setFilename(event.currentTarget.files?.[0]?.name ?? null)}
+          onChange={(event) => {
+            setFile(event.currentTarget.files?.[0] ?? null);
+            setLocalError(null);
+          }}
           style={{ display: "none" }}
         />
       </label>
 
-      <Feedback state={state} />
+      {localError ? (
+        <p className="t-secondary" role="alert" style={{ margin: 0, color: "#c05a3e" }}>
+          {localError}
+        </p>
+      ) : (
+        <Feedback state={state} />
+      )}
 
-      <button className="btn btn-primary btn-block" type="submit" disabled={pending}>
-        {pending ? "Enhancing…" : "Enhance it"}
+      <button className="btn btn-primary btn-block" type="submit" disabled={busy}>
+        {preparing ? "Resizing…" : pending ? "Enhancing…" : "Enhance it"}
       </button>
       <p className="t-secondary" style={{ margin: 0 }}>
-        Nothing goes on the guest menu until you approve it.
+        Big photos are resized in your browser before upload. Nothing goes on the guest menu until you
+        approve it.
       </p>
     </form>
   );

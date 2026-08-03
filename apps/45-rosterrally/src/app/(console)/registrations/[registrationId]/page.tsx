@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
+  CancelRegistrationForm,
   RecordPaymentForm,
   RefundForm,
   ResendLinkForm,
   RevokeLinkForm,
 } from "../RegistrationForms";
 import {
+  cancelRegistrationAction,
   recordPaymentAction,
   refundAction,
   resendLinkAction,
@@ -224,6 +226,13 @@ export default async function RegistrationDetailPage({
               action={refundAction}
               registrationId={detail.reg.id}
               maxCents={detail.allocatedCents}
+            />
+          ) : null}
+          {detail.reg.status === "active" || detail.reg.status === "waitlisted" ? (
+            <CancelRegistrationForm
+              action={cancelRegistrationAction}
+              registrationId={detail.reg.id}
+              settledCents={detail.allocatedCents}
             />
           ) : null}
         </>

@@ -26,8 +26,15 @@ export function storageDriver(): StorageDriver {
   return r2.accountId && r2.accessKeyId && r2.secretAccessKey && r2.bucket ? "r2" : "db";
 }
 
-/** 20MB — a phone photo is 2-8MB; anything larger is not a dish snap. */
-export const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
+/**
+ * Server-side ceiling for an uploaded original.
+ *
+ * Matched to `serverActions.bodySizeLimit` in next.config.ts and to Vercel's own
+ * 4.5MB request-body limit — a larger number here would just be a promise the
+ * platform breaks. The browser downscales a phone photo to a few hundred KB
+ * before it ever gets here.
+ */
+export const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 
 export const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic"] as const;
 

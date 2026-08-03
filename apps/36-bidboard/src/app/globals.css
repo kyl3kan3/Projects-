@@ -112,6 +112,13 @@
 }
 
 html {
+  /**
+   * Sticky bottom bars are the thumb-zone pattern DESIGN.md asks for, and they cover
+   * a strip of the page at rest. This keeps focus out from under them: a field the
+   * sub tabs or taps into is scrolled clear of the bar rather than behind it.
+   */
+  scroll-padding-block-end: 104px;
+
   /* The leveling grid scrolls inside its own track; overflow that escapes it must
      not become a page-level sideways scroll. `clip` (not `hidden`) keeps the page
      vertically scrollable while refusing to scroll sideways — body alone was not

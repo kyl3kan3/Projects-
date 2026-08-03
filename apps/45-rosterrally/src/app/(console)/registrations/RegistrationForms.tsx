@@ -122,6 +122,56 @@ export function RefundForm({
   );
 }
 
+/**
+ * Withdraw a place, whatever it cost.
+ *
+ * Separate from the refund form on purpose: a full-scholarship child has nothing
+ * to refund, and burying "cancel" inside a money form left no way to withdraw
+ * them at all. This hands back anything that was actually settled and frees the
+ * place for the waitlist either way.
+ */
+export function CancelRegistrationForm({
+  action,
+  registrationId,
+  settledCents,
+}: {
+  action: Action;
+  registrationId: string;
+  settledCents: number;
+}) {
+  return (
+    <details className="disclosure panel mt-3 p-4">
+      <summary className="t-title" style={{ color: "var(--bad)" }}>
+        Withdraw this registration
+      </summary>
+      <div className="pt-4">
+        <p className="t-secondary">
+          {settledCents > 0
+            ? `Frees the place for the waitlist and refunds the ${(settledCents / 100).toLocaleString(
+                "en-US",
+                { style: "currency", currency: "USD" },
+              )} already paid.`
+            : "Nothing has been paid on this place, so there is nothing to refund. It frees the place for the waitlist."}
+        </p>
+        <ActionForm action={action} submitLabel="Withdraw" variant="danger" full confirmHold>
+          <input type="hidden" name="registrationId" value={registrationId} />
+          <div className="field">
+            <label className="t-label" htmlFor={`cancel-reason-${registrationId}`}>
+              Reason
+            </label>
+            <input
+              id={`cancel-reason-${registrationId}`}
+              name="reason"
+              className="input"
+              placeholder="Moved out of town"
+            />
+          </div>
+        </ActionForm>
+      </div>
+    </details>
+  );
+}
+
 export function ResendLinkForm({
   action,
   householdId,

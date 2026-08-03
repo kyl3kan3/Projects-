@@ -13,8 +13,11 @@ import { MAX_IMPORT_ROWS } from "@/lib/pos-import";
 import { featureAllowed, planRequiredFor } from "@/lib/plans";
 import type { ImportState, SimpleState } from "./state";
 
-/** 8MB of CSV is roughly 100k rows — far past what we will read. */
-const MAX_CSV_BYTES = 8 * 1024 * 1024;
+/**
+ * 3MB of CSV is roughly 40k rows — well past the 20k the importer reads, and
+ * inside what a server action's body limit allows (see next.config.ts).
+ */
+const MAX_CSV_BYTES = 3 * 1024 * 1024;
 
 export async function importCsvAction(
   _prev: ImportState,

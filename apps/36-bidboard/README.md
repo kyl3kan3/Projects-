@@ -41,6 +41,40 @@ Notes on the model:
 - **14-day trial runs a real bid package** -- the product is only provable on a live project, so onboarding drives straight to "invite three subs on the job you're bidding this week."
 - **No free tier.** A GC not actively bidding has no use for the tool; the trial covers evaluation.
 
+## Setup
+
+Requires Node 20+ and a Postgres database. Nothing else is needed to run the whole
+product locally: file storage defaults to Postgres, and email is logged to the console
+until you add a Resend key.
+
+```bash
+npm install
+cp .env.example .env.local          # then fill in DATABASE_URL, AUTH_SECRET, PORTAL_TOKEN_SECRET
+npm run db:migrate                  # creates the schema
+npm run dev                         # http://localhost:3000
+```
+
+The three variables that must be real are `DATABASE_URL`, `AUTH_SECRET` and
+`PORTAL_TOKEN_SECRET` (`openssl rand -base64 32` for the latter two). Everything else
+degrades honestly:
+
+| Left unset | What happens |
+|---|---|
+| `RESEND_API_KEY`, or `DRY_RUN=1` | Invites, reminders and award notices are logged in full to the console and recorded as `logged` — never silently treated as delivered. |
+| `STRIPE_SECRET_KEY` | The billing screen says so and checkout is disabled. Plan limits are still enforced. |
+| `R2_*` (with `STORAGE_DRIVER` unset) | Plans and attachments are stored in Postgres. Set `STORAGE_DRIVER=r2` plus the R2 keys to use Cloudflare R2 instead. |
+| `CRON_SECRET` | `/api/cron/tick` refuses to run rather than defaulting to open. Reminders will not send. |
+
+Then: sign up, paste your sub list into **Subs**, create a project, add a trade
+package, and send yourself an invite — the link in the console log opens the sub portal
+exactly as a subcontractor would see it.
+
+```bash
+npm run typecheck
+npm test                      # add DATABASE_URL to also run the database-backed suites
+npm run build
+```
+
 ## MVP Feature List
 
 - [ ] Auth + company setup (Auth.js); seats with estimator/viewer roles
