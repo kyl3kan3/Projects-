@@ -59,6 +59,53 @@ structurally impossible.
 14-day free trial, no card. Deposits ride the operator's own Stripe
 account — customer money never touches RigRent.
 
+## Setup
+
+```bash
+cp .env.example .env.local          # fill in DATABASE_URL and the two secrets
+npm install
+npm run db:migrate                  # uses the DIRECT (non-pooled) Neon string
+npm run db:seed                     # optional: a full demo yard, see below
+npm run dev                         # http://localhost:3060
+```
+
+Three variables are enough to boot: `DATABASE_URL`, `SESSION_SECRET` and
+`LINK_TOKEN_SECRET`. Everything else degrades honestly and the app says
+which mode it is in — with no Stripe key deposit holds are **simulated**
+and labelled as simulated on every screen that shows one; with no R2
+credentials photos and PDFs go to the local filesystem; with no Resend key
+email is logged. `npm run db:seed` builds *Whitcomb Party Rentals*: eight
+real items with real counts, six customers, and orders at every stage —
+including two confirmed for the same Saturday, which is what makes a third
+quote for the same chairs block with the first one's order number.
+
+Seeded sign-in: `dale@whitcombrentals.com` / `yardyard1` (owner),
+`ray@whitcombrentals.com` (driver), `nita@whitcombrentals.com` (staff).
+
+### Background work
+
+The nightly pass re-authorises deposit holds that would lapse mid-rental and
+sends the return-reminder ladder. It runs two ways, from the same functions:
+
+```bash
+npm run worker      # BullMQ, when REDIS_URL is set (needs a host to run on)
+```
+
+…or, with no Redis, `GET /api/cron/tick` with
+`Authorization: Bearer $CRON_SECRET` — the Vercel shape, since Vercel has no
+always-on process. The route **refuses to run when `CRON_SECRET` is unset**
+rather than defaulting to open. `vercel.json` schedules it daily; the ladder
+is day-grained, so that is enough on Hobby.
+
+### Checks
+
+```bash
+npm run typecheck
+npm test            # 139 unit tests over the domain logic
+npm run craft        # the 14 design/defect rules a type-checker cannot see
+npm run build
+```
+
 ## Competitive landscape
 
 The incumbent stack is either legacy desktop rental software (Point of

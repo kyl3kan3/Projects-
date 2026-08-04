@@ -14,7 +14,7 @@ run, a referral queue that deadlocked under launch-day load, magic-link login
 broken outright, certificate-expiry alerts that fired once and then went quiet
 forever. All were found by running the thing.
 
-## Verified working (39 of 74)
+## Verified working (40 of 74)
 
 Each was re-checked here after its build agent reported: line count, absence of
 unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
@@ -57,6 +57,7 @@ unimplemented stubs, `tsc --noEmit`, `npm test`, and a production build.
 | 55 | sessionscribe | 10,389 | 82 | 108 |
 | 56 | recalldesk | 12,693 | 92 | 95 |
 | 58 | chairflow | 14,970 | 108 | 111 |
+| 60 | rigrent | 14,834 | 110 | 141 |
 | 62 | certshield | 12,947 | 94 | 115 |
 | 65 | listingloop | 10,475 | 77 | 80 |
 | 69 | unitkeeper | 10,891 | 97 | 55 |

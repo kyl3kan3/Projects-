@@ -1,97 +1,1009 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   RigRent — design tokens. Generated from DESIGN.md; edit DESIGN.md first.
-   Obeys DESIGN_LANGUAGE.md: one rationed accent, hairlines not boxes,
-   no gradients or glow on controls, 4px spacing scale, fonts must load.
+   RigRent — "The Yard Manifest". The redline implementation of DESIGN.md:
+   kraft manifest paper, chalk quantities, canvas olive in the gauges and
+   nowhere else. Quantities are the heroes.
+
+   Obeys DESIGN_LANGUAGE.md v2.1: no emoji, no gradient or glow on controls,
+   hairlines not borders, space before boxes, the 4px scale, exactly three
+   radii, one accent rationed to <=10% of a screen. Light only, on purpose —
+   yards work in daylight (DESIGN.md).
+
+   ---------------------------------------------------------------------------
+   CONTRAST, measured against the `kraft` ground (#F4F1E9, relative luminance
+   0.880) and the `sheet` panel (#FCFBF7, 0.964). Three of DESIGN.md's values
+   needed a decision under the brief's documented exception — where a specified
+   colour fails WCAG AA at the size it is actually used, DESIGN_LANGUAGE's AA
+   floor wins, the token is raised, and the ratio is recorded here:
+
+     ink       #23241F  13.85 : 1  AAA. Body, headings, primary button fill.
+     dim       #6E6D62   4.62 : 1  AA at 13px. Secondary text, labels. Kept.
+     faint     #A5A395   2.25 : 1  FAILS. Kept ONLY for disabled controls and
+                                   decorative rules — never for text that
+                                   carries meaning. Tertiary text uses `dim`.
+     canvas    #7A8248   3.64 : 1  Passes 3:1 for non-text: the gauge fill, the
+                                   focus ring, active marks. FAILS as text.
+     canvas-strong #5F6636  5.41 : 1  RAISED, hue held at 68deg. Any accent
+                                   TEXT and the active-tab label use this.
+     rust      #B0603F   4.05 : 1  Passes 3:1 as the gauge overrun fill. FAILS
+                                   as text at 13px, which is exactly where the
+                                   overbooked sentence lives.
+     rust-strong  #9A4E30  5.31 : 1  RAISED, hue held at 17deg. The overbooked
+                                   sentence, overdue placards, damage amounts.
+     pine      #4E7A5A   4.37 : 1  FAILS as text at 13px (4.5 needed).
+     pine-strong  #3F6549  5.87 : 1  RAISED, hue held at 136deg. Released /
+                                   returned-clean text.
+
+   No hue anywhere in this file sits between 250deg and 310deg.
    ========================================================================== */
 
 @theme {
-  /* Palette — exact values from DESIGN.md */
+  /* Palette — DESIGN.md's table, with the three AA corrections noted above. */
   --color-kraft: #f4f1e9; /* App ground (manifest paper) */
-  --color-sheet: #fcfbf7; /* Cards, panels */
+  --color-sheet: #fcfbf7; /* Cards, panels, documents */
   --color-line: #ddd8ca; /* Hairlines only */
   --color-ink: #23241f; /* Primary text; primary button fill */
-  --color-dim: #6e6d62; /* Secondary text */
-  --color-faint: #a5a395; /* Tertiary, disabled */
-  --color-canvas: #7a8248; /* THE accent: availability gauges, active states, focus (≤10%) */
-  --color-rust: #b0603f; /* Semantic: overbooked / damaged / overdue only */
-  --color-pine: #4e7a5a; /* Semantic: returned-clean / released only */
+  --color-dim: #6e6d62; /* Secondary text and labels */
+  --color-faint: #a5a395; /* Disabled controls and decorative rules only */
+  --color-canvas: #7a8248; /* THE accent: gauge fill, focus ring, active marks */
+  --color-canvas-strong: #5f6636; /* Accent text (AA) */
+  --color-rust: #b0603f; /* Overbooked / damaged fills */
+  --color-rust-strong: #9a4e30; /* Overbooked / overdue / damage text (AA) */
+  --color-pine: #4e7a5a; /* Returned-clean / released marks */
+  --color-pine-strong: #3f6549; /* Returned-clean / released text (AA) */
 
-  /* Semantic aliases, so components never hardcode a hue name */
-  --color-bg: #f4f1e9;
-  --color-surface: #fcfbf7;
-  --color-line: #ddd8ca;
-  --color-fg: #23241f;
-  --color-fg-2: #6e6d62;
-  --color-fg-3: #a5a395;
-  --color-accent: #7a8248;
-  --color-action: #23241f;
+  /* Press and disabled states, so no component mixes its own. */
+  --color-ink-press: #34352f;
+  --color-line-press: #cbc5b4;
+  --color-disabled: #e6e2d6;
 
   --font-display: "Public Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-sans: "Public Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Exactly three radii (DESIGN.md): cards + inputs, chips, gauges. */
+  --radius-card: 8px;
+  --radius-chip: 6px;
+  --radius-gauge: 2px;
 
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 :root {
-  color-scheme: light;
+  color-scheme: light; /* one visual world; there is no dark theme */
+  --gutter: 20px;
   --tabbar-h: 56px;
 }
 
 html,
 body {
-  background: var(--color-bg);
-  color: var(--color-fg);
+  background: var(--color-kraft);
+  color: var(--color-ink);
   font-family: var(--font-sans);
   font-size: 16px;
-  line-height: 1.55;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
 }
 
-* { border-color: var(--color-line); }
+body {
+  min-height: 100dvh;
+}
 
-/* ---- Type roles (see the specimen table in DESIGN.md) ---- */
-.t-hero { font-family: var(--font-display); font-size: clamp(2rem, 8.5vw, 3.375rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 600; }
-.t-stat { font-family: var(--font-mono); font-size: clamp(2.125rem, 9.5vw, 3.25rem); line-height: 1.05; letter-spacing: -0.01em; font-weight: 500; font-variant-numeric: tabular-nums; }
-.t-h2 { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.01em; font-weight: 600; }
-.t-title { font-size: 1rem; line-height: 1.3; font-weight: 600; }
-.t-body { font-size: 1rem; line-height: 1.55; }
-.t-secondary { font-size: 0.8125rem; line-height: 1.45; color: var(--color-fg-2); }
-.t-label { font-size: 0.6875rem; line-height: 1.2; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-fg-3); }
-.t-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+* {
+  border-color: var(--color-line);
+}
 
-/* ---- Hairline construction: space and rules, never nested boxes ---- */
+::selection {
+  background: color-mix(in srgb, var(--color-canvas) 24%, transparent);
+  color: var(--color-ink);
+}
+
+/* ---- Type roles: DESIGN.md's specimen table, exactly ------------------- */
+
+/* Display (counts): Public Sans 700, 30/34 on mobile. */
+.t-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(30px, 7.5vw, 40px);
+  line-height: 1.133;
+  letter-spacing: -0.012em;
+}
+/* The count itself is always the mono face (DESIGN.md: "digits via Plex Mono"). */
+.t-count {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: clamp(30px, 7.5vw, 40px);
+  line-height: 1.133;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.t-h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1.273;
+  letter-spacing: -0.01em;
+}
+.t-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.375;
+}
+.t-body {
+  font-size: 16px;
+  line-height: 1.5;
+}
+.t-secondary {
+  font-size: 13px;
+  line-height: 1.385;
+  color: var(--color-dim);
+}
+/* Placard: the stencilled status word. 11/14, +0.08em, uppercase. */
+.t-placard {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 11px;
+  line-height: 1.273;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.t-label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 11px;
+  line-height: 1.273;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-dim);
+}
+/* Every quantity, rate, date and serial. No exceptions. */
+.t-mono {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1.385;
+  font-variant-numeric: tabular-nums;
+}
+.t-mono-lg {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+
+.tone-dim { color: var(--color-dim); }
+.tone-accent { color: var(--color-canvas-strong); }
+.tone-warn { color: var(--color-rust-strong); }
+.tone-good { color: var(--color-pine-strong); }
+
+/* ---- Structure: space and hairlines first, boxes only for framed things -- */
+
 .hairline-t { border-top: 1px solid var(--color-line); }
 .hairline-b { border-bottom: 1px solid var(--color-line); }
 
-.card {
-  background: var(--color-surface);
+.panel {
+  background: var(--color-sheet);
   border: 1px solid var(--color-line);
-  border-radius: 12px;
+  border-radius: var(--radius-card);
 }
 
-/* ---- Controls ---- */
+/* A list is hairline-divided rows, never a stack of boxes. */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-line);
+  background: none;
+  text-align: left;
+  text-decoration: none;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+}
+.row-tall {
+  /* Driver check-off rows. 56px, for gloves. */
+  min-height: 56px;
+  padding: 16px 0;
+}
+.row:last-child { border-bottom: none; }
+a.row, button.row { cursor: pointer; }
+a.row:hover, button.row:hover { background: var(--color-sheet); }
+.row-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.stack { display: flex; flex-direction: column; }
+.between { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+/* ---- Controls ---------------------------------------------------------- */
+
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 48px; padding: 0 20px; border-radius: 10px;
-  font-weight: 600; font-size: 0.9375rem; line-height: 1;
-  transition: transform 120ms var(--ease-out-quart), background-color 120ms linear;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: var(--radius-card);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  transition:
+    transform 120ms var(--ease-out-quart),
+    background-color 120ms linear,
+    border-color 120ms linear;
 }
-.btn:active { transform: scale(0.98); }
-.btn-primary { background: var(--color-action); color: var(--color-bg); }
-.btn-secondary { background: transparent; color: var(--color-fg); border: 1px solid var(--color-line); }
+.btn:active:not(:disabled) { transform: scale(0.98); }
+/* Ink fill with kraft text. The accent never fills a button (DESIGN.md). */
+.btn-primary { background: var(--color-ink); color: var(--color-kraft); }
+.btn-primary:active:not(:disabled) { background: var(--color-ink-press); }
+.btn-primary:disabled {
+  background: var(--color-disabled);
+  color: var(--color-dim);
+  cursor: not-allowed;
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--color-ink);
+  border-color: var(--color-line);
+}
+.btn-secondary:active:not(:disabled) { border-color: var(--color-line-press); }
+.btn-secondary:disabled {
+  color: var(--color-dim);
+  border-color: var(--color-disabled);
+  cursor: not-allowed;
+}
+.btn-danger {
+  background: transparent;
+  color: var(--color-rust-strong);
+  border-color: var(--color-line);
+}
+.btn-full { width: 100%; }
 
-.focus-ring:focus-visible,
-a:focus-visible,
-button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+/**
+ * Quiet action: text only, in canvas-strong so it reaches AA on its own. A 15px
+ * line is 18px tall, so the 44px touch target comes from a pseudo-element and
+ * the text stays exactly where the layout put it.
+ */
+.btn-quiet {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-canvas-strong);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1.2;
+  cursor: pointer;
+  text-decoration: none;
 }
+.btn-quiet::after { content: ""; position: absolute; inset: -13px -8px; }
+.btn-quiet:active { opacity: 0.75; }
+.btn-quiet:disabled { color: var(--color-faint); cursor: not-allowed; }
+
+.chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: var(--radius-chip);
+  border: 1px solid var(--color-line);
+  background: transparent;
+  color: var(--color-dim);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: color 120ms linear, border-color 120ms linear;
+}
+.chip::after { content: ""; position: absolute; inset: -4px 0; }
+.chip[data-active="true"] {
+  border-color: var(--color-canvas);
+  color: var(--color-ink);
+}
+.chip-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.chip-row::-webkit-scrollbar { display: none; }
+
+/* ---- Inputs ----------------------------------------------------------- */
+
+.input {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px;
+  background: var(--color-sheet);
+  color: var(--color-ink);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  font-family: inherit;
+  font-size: 16px; /* 16px prevents iOS zoom-on-focus */
+  line-height: 1.5;
+}
+.input::placeholder { color: var(--color-dim); opacity: 0.8; }
+.input:focus,
+.input:focus-visible {
+  outline: none;
+  border-color: var(--color-canvas);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-canvas) 30%, transparent);
+}
+textarea.input { min-height: 96px; }
+select.input {
+  appearance: none;
+  padding-right: 36px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none' stroke='%236E6D62' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+.input-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.input-narrow { width: 88px; min-width: 88px; text-align: center; }
+
+.field { display: block; margin-bottom: 16px; }
+.field-label {
+  display: block;
+  margin-bottom: 8px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-dim);
+}
+.field-help { margin-top: 6px; font-size: 13px; line-height: 1.385; color: var(--color-dim); }
+.field-error {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.385;
+  color: var(--color-rust-strong);
+  /* Some messages carry a quote link, and a 200-character URL will push the page
+     sideways at 390px unless it is allowed to break anywhere. */
+  overflow-wrap: anywhere;
+}
+/* The confirmation line beside it, same wrapping rule, same reason. */
+.form-status {
+  font-size: 13px;
+  line-height: 1.385;
+  color: var(--color-pine-strong);
+  overflow-wrap: anywhere;
+}
+.field-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.field-row > .field { flex: 1 1 140px; margin-bottom: 16px; }
+
+.checkline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  cursor: pointer;
+}
+.checkline input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  accent-color: var(--color-canvas-strong);
+}
+
+/* ---- Focus: 2px ring in the accent, offset (DESIGN_LANGUAGE) ---------- */
+
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-canvas);
+  outline-offset: 2px;
+  border-radius: var(--radius-gauge);
+}
+
+/* ---- Placards: the stencilled status word ----------------------------- */
+
+.placard {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 11px;
+  line-height: 1.273;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.placard[data-tone="ink"] { color: var(--color-ink); }
+.placard[data-tone="dim"] { color: var(--color-dim); }
+.placard[data-tone="accent"] { color: var(--color-canvas-strong); }
+.placard[data-tone="warn"] { color: var(--color-rust-strong); }
+.placard[data-tone="good"] { color: var(--color-pine-strong); }
+
+.mark {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-gauge);
+  flex: none;
+  display: inline-block;
+}
+
+/* ======================================================================
+   THE CHALK GAUGE — the signature detail (DESIGN.md).
+
+   A 4px track in `line`, filled in `canvas` to booked/owned for the quote's
+   window, with the fraction beside it in Plex Mono. The overrun segment
+   renders `rust` and the line names the conflicting order.
+   ====================================================================== */
+
+.gauge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+.gauge-track {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 64px;
+  height: 4px;
+  border-radius: var(--radius-gauge);
+  background: var(--color-line);
+  overflow: hidden;
+}
+.gauge-seg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  /* THE signature motion: 180ms on a quantity change. */
+  transition: width 180ms var(--ease-out-quart), left 180ms var(--ease-out-quart);
+}
+/* Already committed: other orders plus maintenance holds. */
+.gauge-booked { left: 0; background: var(--color-canvas); opacity: 0.55; }
+/* What this line is asking for, and fits. */
+.gauge-requested { background: var(--color-canvas); }
+/* What does not fit. A conflict should feel abrupt, so it snaps (DESIGN.md). */
+.gauge-overrun {
+  background: var(--color-rust);
+  transition: none;
+}
+.gauge-fraction {
+  flex: none;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1.385;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-dim);
+  min-width: 56px;
+  text-align: right;
+}
+.gauge[data-overbooked="true"] .gauge-fraction { color: var(--color-rust-strong); }
+
+/* The overbooked block: inline, never a toast (DESIGN.md screen 2). */
+.overbooked {
+  margin-top: 8px;
+  padding: 12px;
+  border: 1px solid var(--color-rust);
+  border-radius: var(--radius-card);
+  background: color-mix(in srgb, var(--color-rust) 6%, var(--color-sheet));
+  color: var(--color-rust-strong);
+  font-size: 13px;
+  line-height: 1.385;
+  /* No entrance animation on purpose. DESIGN.md: the overbooked state snaps, no
+     ease — a conflict should feel abrupt. In the product this block arrives on a
+     server re-render, which is already instantaneous; fading it in would soften
+     the one moment the interface is meant to raise its voice. */
+}
+
+/* The 30-day strip on an inventory row: one 2px bar per day. */
+.strip {
+  display: flex;
+  gap: 1px;
+  align-items: flex-end;
+  height: 16px;
+}
+.strip-day {
+  width: 3px;
+  border-radius: var(--radius-gauge);
+  background: var(--color-line);
+  align-self: flex-end;
+}
+.strip-day[data-load="some"] { background: var(--color-canvas); opacity: 0.55; }
+.strip-day[data-load="most"] { background: var(--color-canvas); }
+.strip-day[data-load="full"] { background: var(--color-rust); }
+
+/* ---- Steppers: the driver's check-off control -------------------------- */
+
+.stepper { display: flex; align-items: center; gap: 8px; }
+
+/**
+ * The three check-off counters. A grid that wraps, not a horizontal scroller:
+ * three 128px steppers do not fit in 350px, and inside `overflow-x: auto` the
+ * third one — Missing — sat off-screen with nothing to say it was there. A driver
+ * checking a load in without ever seeing the missing counter is the failure this
+ * screen exists to prevent.
+ */
+.counters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  gap: 12px 16px;
+  width: 100%;
+}
+.stepper-btn {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  background: var(--color-sheet);
+  color: var(--color-ink);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  line-height: 1;
+}
+.stepper-btn:active { background: var(--color-disabled); }
+.stepper-value {
+  min-width: 40px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+}
+/* The settle tick when a row completes (DESIGN.md motion). */
+.row[data-settled="true"] {
+  animation: settle-tick 120ms var(--ease-out-quart) both;
+}
+@keyframes settle-tick {
+  from { background: color-mix(in srgb, var(--color-canvas) 14%, transparent); }
+  to { background: transparent; }
+}
+
+/* ---- Photo pairs ------------------------------------------------------- */
+
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.pair-side { min-width: 0; }
+/**
+ * `auto-fit` rather than a fixed two columns: with one photo per side — the normal
+ * case — a two-column grid halved an already-narrow tile and the caption ended up
+ * taller than the image it was captioning. The evidence has to be legible at
+ * 390px, because that is the width it gets looked at.
+ */
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+  gap: 8px;
+}
+.photo {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-line);
+  background: var(--color-sheet);
+}
+.photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 3px 6px;
+  background: color-mix(in srgb, var(--color-ink) 82%, transparent);
+  color: var(--color-kraft);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.273;
+  /* One line, always. A wrapping caption covers the photograph. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.photo-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 12px;
+  border: 1px dashed var(--color-faint);
+  border-radius: var(--radius-card);
+  color: var(--color-dim);
+  font-size: 13px;
+  line-height: 1.385;
+  text-align: center;
+}
+
+/* ---- The customer document (/q/[token]) ------------------------------- */
+
+.doc {
+  background: var(--color-sheet);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  padding: 20px;
+}
+.doc-rule { border-top: 1px solid var(--color-line); margin: 20px 0; }
+.sig-pad {
+  width: 100%;
+  height: 140px;
+  background: var(--color-kraft);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  touch-action: none;
+  display: block;
+}
+
+/* ---- Calendar --------------------------------------------------------- */
+
+/**
+ * The month grid fits 390px. It used to be 640px wide inside a horizontal
+ * scroller, which put the busiest Saturday — the entire point of the screen —
+ * off-screen with nothing to say it was there. So: seven columns that fit, cells
+ * carrying the density (date, units off the shelf, one mark per event), and the
+ * named chips in the agenda list underneath, which is what a thumb taps anyway.
+ * From 768px the cells are wide enough for the chips themselves.
+ */
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--color-line);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+.cal-head {
+  background: var(--color-kraft);
+  padding: 6px 2px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-dim);
+}
+.cal-cell {
+  background: var(--color-sheet);
+  min-height: 56px;
+  padding: 4px 3px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+/* The density marks: one 6px square per event on that day. */
+.cal-marks { display: flex; flex-wrap: wrap; gap: 2px; }
+.cal-mark {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-gauge);
+  flex: none;
+}
+.cal-mark[data-kind="out"] { background: var(--color-canvas); }
+.cal-mark[data-kind="back"] { background: var(--color-ink); }
+.cal-mark[data-kind="overdue"] { background: var(--color-rust); }
+.cal-mark[data-kind="run"] { border: 1px solid var(--color-dim); }
+/* Chips live in the agenda on a phone; the cells get them back when there is room. */
+.cal-cell .cal-chip { display: none; }
+@media (min-width: 768px) {
+  .cal-cell { min-height: 80px; padding: 4px; }
+  .cal-cell .cal-chip { display: block; }
+  .cal-marks { display: none; }
+}
+.cal-cell[data-in-month="false"] { background: var(--color-kraft); }
+.cal-cell[data-weekend="true"] { background: color-mix(in srgb, var(--color-canvas) 4%, var(--color-sheet)); }
+.cal-date {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-dim);
+}
+.cal-cell[data-today="true"] .cal-date {
+  color: var(--color-canvas-strong);
+  font-weight: 500;
+}
+.cal-chip {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.3;
+  padding: 1px 3px;
+  border-radius: var(--radius-gauge);
+  background: color-mix(in srgb, var(--color-canvas) 18%, transparent);
+  color: var(--color-ink);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cal-chip[data-kind="back"] { background: color-mix(in srgb, var(--color-ink) 10%, transparent); }
+.cal-chip[data-kind="overdue"] {
+  background: color-mix(in srgb, var(--color-rust) 20%, transparent);
+  color: var(--color-rust-strong);
+}
+.cal-chip[data-kind="run"] {
+  background: transparent;
+  border: 1px solid var(--color-line);
+  color: var(--color-dim);
+}
+
+/* ---- App shell: tab bar on a phone, left rail from 1024px ------------- */
+
+/**
+ * The shell's grid lives here rather than in an inline style, and that is not
+ * a preference: an inline `grid-template-columns` outranks any media query in
+ * the cascade, so the desktop two-column rule loses and the rail takes the
+ * whole width.
+ */
+.shell {
+  min-height: 100dvh;
+  padding-bottom: calc(var(--tabbar-h) + 24px);
+}
+.shell-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 1180px;
+  margin: 0 auto;
+}
+.shell-rail {
+  display: none;
+  padding: 24px 12px;
+  position: sticky;
+  top: 0;
+  align-self: start;
+}
+.shell-main { min-width: 0; padding: 0 var(--gutter); }
+
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  align-items: stretch;
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--color-sheet);
+  border-top: 1px solid var(--color-line);
+}
+.tabbar-item {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 44px;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  color: var(--color-dim);
+}
+.tabbar-item[data-active="true"] { color: var(--color-ink); }
+.tabbar-item[data-active="true"]::before {
+  content: "";
+  position: absolute;
+  top: 5px;
+  width: 4px;
+  height: 4px;
+  border-radius: var(--radius-gauge);
+  background: var(--color-canvas);
+}
+
+.rail-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: var(--radius-chip);
+  color: var(--color-dim);
+  text-decoration: none;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 500;
+}
+.rail-item[data-active="true"] {
+  color: var(--color-ink);
+  background: var(--color-sheet);
+  font-weight: 700;
+}
+
+@media (min-width: 1024px) {
+  .tabbar { display: none; }
+  .shell { padding-bottom: 0; }
+  .shell-grid { grid-template-columns: 216px minmax(0, 1fr); gap: 24px; }
+  .shell-rail {
+    display: block;
+    border-right: 1px solid var(--color-line);
+    min-height: 100dvh;
+  }
+  .shell-signout { display: none; }
+}
+
+/* ---- Banners ---------------------------------------------------------- */
+
+.banner {
+  padding: 12px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  background: var(--color-sheet);
+  font-size: 13px;
+  line-height: 1.385;
+}
+.banner[data-tone="warn"] {
+  border-color: var(--color-rust);
+  color: var(--color-rust-strong);
+  background: color-mix(in srgb, var(--color-rust) 6%, var(--color-sheet));
+}
+.banner[data-tone="accent"] {
+  border-color: var(--color-canvas);
+  color: var(--color-ink);
+}
+
+/* ---- Skeletons -------------------------------------------------------- */
+
+.skeleton {
+  background: var(--color-line);
+  border-radius: var(--radius-gauge);
+  animation: skeleton-pulse 1200ms var(--ease-in-out-soft) infinite;
+}
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.5 }
+  50% { opacity: 0.25 }
+}
+
+/* ---- Wide content scrolls inside itself, never the page ---------------- */
+
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+}
+
+/* ======================================================================
+   MARKETING — the gauge device, four beats. Product-UI motion rules still
+   apply; this is the one place with staged animation.
+   ====================================================================== */
+
+.beat { animation: beat-in 320ms var(--ease-out-quart) both; }
+@keyframes beat-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+.beat-2 { animation-delay: 700ms; }
+.beat-3 { animation-delay: 1500ms; }
+.beat-4 { animation-delay: 2400ms; }
+
+/* Beat 1: the quantity types in. */
+.device-type {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: 2px solid var(--color-canvas);
+  animation: device-type 900ms steps(22, end) both, device-caret 700ms step-end 3 both;
+  vertical-align: bottom;
+}
+@keyframes device-type { from { width: 0 } to { width: 22ch } }
+@keyframes device-caret { 0%, 100% { border-color: var(--color-canvas) } 50% { border-color: transparent } }
+
+/* Beat 2: the gauge fills to 32/40. */
+.device-fill { animation: device-fill 180ms var(--ease-out-quart) 900ms both; }
+@keyframes device-fill { from { width: 0 } to { width: 80% } }
+
+/**
+ * Beat 3: the overrun snaps in. No ease — DESIGN.md: a conflict should feel
+ * abrupt.
+ *
+ * `steps(1, jump-start)`, not `step-end`. With `step-end` the output stays on the
+ * `from` keyframe for the whole interval, and a `forwards` fill then holds *that*
+ * value — so the rust segment sat at width 0 for ever and the device's third beat
+ * simply never appeared. Measured in Chromium, not read off the spec.
+ */
+.device-overrun { animation: device-overrun 1ms steps(1, jump-start) 1700ms both; }
+@keyframes device-overrun { from { width: 0 } to { width: 20% } }
+
+/* The block that names the conflicting order snaps in with it, for the same reason. */
+.beat-snap { animation: beat-snap 1ms steps(1, jump-start) 1700ms both; }
+@keyframes beat-snap {
+  from { opacity: 0; visibility: hidden }
+  to { opacity: 1; visibility: visible }
+}
+
+/* Beat 4: the resolved line settles at 40/40. */
+.device-resolve { animation: device-resolve 180ms var(--ease-out-quart) 2600ms both; }
+@keyframes device-resolve { from { opacity: 0 } to { opacity: 1 } }
+
+.hero-rule { border-top: 1px solid var(--color-line); }
+
+/**
+ * The landing page's sticky CTA. It cannot borrow `.tabbar`'s fixed 56px height:
+ * a 48px button plus 8px of padding is 64px, so the bar's background stopped
+ * short of its own button. Height is content-driven here, plus the home indicator.
+ */
+.cta-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  padding: 8px 20px calc(8px + env(safe-area-inset-bottom));
+  background: var(--color-sheet);
+  border-top: 1px solid var(--color-line);
+}
+
+.price-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+@media (min-width: 768px) {
+  .price-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .pair { grid-template-columns: 1fr 1fr; }
+}
+
+/* ---- Reduced motion: final states, feature-complete ------------------- */
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    /**
+     * The delay has to be zeroed too, and this is not pedantry: the landing
+     * device staggers its beats with `animation-delay` and `fill-mode: both`,
+     * so during the delay the element is pinned to the keyframe's `from`
+     * state — opacity 0, width 0. Without this line reduced motion shows a
+     * blank device instead of the finished one.
+     */
+    animation-delay: 0s !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .beat { opacity: 1; transform: none; }
+  .beat-snap { opacity: 1; visibility: visible; }
+  .device-type { border-right-color: transparent; width: 22ch; }
+  .device-fill { width: 80%; }
+  .device-overrun { width: 20%; }
+  .device-resolve { opacity: 1; }
+  .skeleton { opacity: 0.45; }
+}
+
+/* ---- Print: a contract and a run sheet are documents ------------------ */
+
+@media print {
+  .tabbar,
+  .no-print { display: none !important; }
+  body { background: #ffffff; }
 }
