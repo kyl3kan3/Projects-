@@ -274,7 +274,7 @@ export function Banner({
       role="status"
       style={{
         display: "flex",
-        gap: 10,
+        gap: 12,
         alignItems: "flex-start",
         padding: "12px 0",
         borderTop: "1px solid var(--color-hairline)",

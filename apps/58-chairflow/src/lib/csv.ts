@@ -151,8 +151,22 @@ export function parseLooseDate(raw: string): string | null {
   return null;
 }
 
-function splitName(raw: string): { firstName: string; lastName: string | null } {
-  const parts = raw.trim().split(/\s+/).filter(Boolean);
+/**
+ * Split a single name column into first and last.
+ *
+ * A comma means the export is in "Last, First" order, which is what a lot of scheduling apps
+ * produce and what a quoted CSV field usually contains. Taking the first token regardless
+ * yields a client called "Okafor," — a comma in a name that then goes out in a text message.
+ */
+export function splitName(raw: string): { firstName: string; lastName: string | null } {
+  const trimmed = raw.trim();
+  const comma = trimmed.indexOf(",");
+  if (comma > 0) {
+    const last = trimmed.slice(0, comma).trim();
+    const first = trimmed.slice(comma + 1).trim();
+    if (first && last) return { firstName: first, lastName: last };
+  }
+  const parts = trimmed.replace(/,/g, " ").split(/\s+/).filter(Boolean);
   if (parts.length === 0) return { firstName: "", lastName: null };
   if (parts.length === 1) return { firstName: parts[0], lastName: null };
   return { firstName: parts[0], lastName: parts.slice(1).join(" ") };

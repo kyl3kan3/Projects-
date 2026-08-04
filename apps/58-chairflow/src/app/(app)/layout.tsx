@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { Icon } from "@/components/icons";
 import { TabBar } from "@/components/TabBar";
-import { ownedShop, requireStylist } from "@/lib/auth";
-import { entitlement, trialDaysLeft, type Billable } from "@/lib/plans";
+import { requireAccount } from "@/lib/auth";
+import { entitlement, type Billable } from "@/lib/plans";
 
 /**
  * The stylist's shell: the tab bar, and one honest line about the account's state.
@@ -13,9 +13,17 @@ import { entitlement, trialDaysLeft, type Billable } from "@/lib/plans";
  * list over a card failure would be a growth tactic this product does not run.
  */
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, stylist } = await requireStylist();
-  const shop = await ownedShop(user.id);
-  const ent = entitlement(stylist as Billable);
+  const { stylist, shop } = await requireAccount();
+  // A shop owner with no chair of their own gets the rent ledger and nothing else; there is no
+  // "today" for somebody who does not cut hair.
+  const ent = stylist
+    ? entitlement(stylist as Billable)
+    : entitlement({
+        plan: "chair",
+        stripeSubscriptionId: shop?.stripeSubscriptionId ?? null,
+        subscriptionStatus: shop?.subscriptionStatus ?? null,
+        trialEndsAt: shop?.trialEndsAt ?? null,
+      });
 
   return (
     <>
@@ -25,7 +33,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             role="status"
             style={{
               display: "flex",
-              gap: 10,
+              gap: 12,
               alignItems: "flex-start",
               padding: "12px 0",
               borderBottom: "1px solid var(--color-hairline)",
@@ -47,7 +55,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             role="status"
             style={{
               display: "flex",
-              gap: 10,
+              gap: 12,
               alignItems: "flex-start",
               padding: "12px 0",
               borderBottom: "1px solid var(--color-hairline)",
@@ -68,12 +76,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             </p>
           </div>
         )}
-        {ent.state === "trial" && trialDaysLeft(stylist.trialEndsAt) <= 5 && (
+        {ent.state === "trial" && ent.daysLeft <= 5 && (
           <div
             role="status"
             style={{
               display: "flex",
-              gap: 10,
+              gap: 12,
               alignItems: "flex-start",
               padding: "12px 0",
               borderBottom: "1px solid var(--color-hairline)",
@@ -91,7 +99,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         )}
         {children}
       </div>
-      <TabBar showRent={Boolean(shop)} />
+      <TabBar showRent={Boolean(shop)} showChair={Boolean(stylist)} />
     </>
   );
 }

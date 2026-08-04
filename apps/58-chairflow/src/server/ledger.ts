@@ -8,6 +8,11 @@
  * "protected this month" has to mean the month the stylist is living in. The window is
  * widened by a day at each end and then narrowed in JS, which is cheaper than teaching
  * Postgres about the tenant's clock and avoids interpolating a timezone into raw SQL.
+ *
+ * Deposits that went towards a service the client actually turned up for are **not** listed.
+ * A `deposit` row with status `charged` is service money: real, but not protection. Showing it
+ * as a "deposit kept · +$10.00" line would read as money the policy saved, which is exactly
+ * the overstatement the ledger exists to avoid.
  */
 
 import { and, desc, eq, gte, inArray, lte } from "drizzle-orm";
@@ -49,7 +54,7 @@ export async function ledgerRows(query: LedgerQuery): Promise<LedgerRow[]> {
   return rows
     .filter((r) => {
       const day = dayOfInstant(query.timezone, r.charge.occurredAt);
-      return day >= from && day < to;
+      return day >= from && day < to && isProtectionEvent(r.charge);
     })
     .map((r) => toLedgerRow(r, query.timezone));
 }
@@ -65,7 +70,19 @@ export async function allLedgerRows(stylistId: string, timezone: string): Promis
     .innerJoin(services, eq(services.id, appointments.serviceId))
     .where(eq(appointments.stylistId, stylistId))
     .orderBy(desc(charges.occurredAt));
-  return rows.map((r) => toLedgerRow(r, timezone));
+  return rows.filter((r) => isProtectionEvent(r.charge)).map((r) => toLedgerRow(r, timezone));
+}
+
+/**
+ * Is this charge row a protection event?
+ *
+ * A deposit only becomes one when the appointment did not happen and it was kept
+ * (`captured`) or handed back (`refunded`). `charged` and `held` deposits belong to services,
+ * not to the policy.
+ */
+function isProtectionEvent(charge: typeof charges.$inferSelect): boolean {
+  if (charge.kind !== "deposit") return true;
+  return charge.status === "captured" || charge.status === "refunded";
 }
 
 function toLedgerRow(

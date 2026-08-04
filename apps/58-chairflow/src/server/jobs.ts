@@ -43,11 +43,18 @@ import {
 import {
   currentPolicy,
   dayAppointments,
+  finalizeHostedBooking,
   policyTerms,
 } from "@/server/appointments";
 import { activeShops, rolloverShop } from "@/server/rent";
 import { activeStylists, sendDueNudges, recomputeStylistCadences } from "@/server/cadence";
-import { applySubscription, markWebhookProcessed, refreshConnectStatus, stylistForStripe } from "@/server/billing";
+import {
+  applySubscription,
+  markWebhookProcessed,
+  refreshConnectStatus,
+  resolveHostedCard,
+  stylistForStripe,
+} from "@/server/billing";
 import { expireAndCascade } from "@/server/waitlist";
 import { reminderBody, sendMessage } from "@/server/notify";
 import { MARK_PROMPT_AFTER_MINUTES } from "@/lib/appointments";
@@ -379,7 +386,57 @@ export async function applyStripeEvent(
   };
 
   switch (type) {
-    case "checkout.session.completed":
+    case "checkout.session.completed": {
+      // A client finishing card collection on the stylist's own Connect account: create the
+      // appointment the session's metadata describes. Everything else about a completed session
+      // is ChairFlow's own subscription, handled below.
+      const accountId = str("accountId");
+      const bookingStylistId = str("bookingStylistId");
+      if (accountId && bookingStylistId) {
+        const card = await resolveHostedCard({
+          accountId,
+          setupIntentId: str("setupIntentId"),
+          paymentIntentId: str("paymentIntentId"),
+        });
+        const clientId = str("bookingClientId");
+        const serviceId = str("bookingServiceId");
+        const startsAt = str("bookingStartsAt");
+        const customerId = str("customerId");
+        if (!card || !clientId || !serviceId || !startsAt || !customerId) {
+          throw new Error("A hosted booking session is missing the metadata it needs");
+        }
+        const booked = await finalizeHostedBooking({
+          stylistId: bookingStylistId,
+          clientId,
+          serviceId,
+          startsAtIso: startsAt,
+          customerId,
+          paymentMethodId: card.paymentMethodId,
+          last4: card.last4,
+          depositPaymentIntentId: str("paymentIntentId"),
+        });
+        if (!booked.ok) {
+          // The slot went while the client was on Stripe. Their card is saved and the deposit is
+          // refundable; nothing here can conjure the hour back.
+          console.log(`[jobs] hosted booking not claimed: ${booked.message}`);
+        }
+        return;
+      }
+      const stylist = await stylistForStripe({
+        stylistId: str("stylistId"),
+        customerId: str("customerId"),
+      });
+      if (!stylist) return;
+      await applySubscription({
+        stylistId: stylist.id,
+        subscriptionId: str("subscriptionId"),
+        status: str("status") ?? "active",
+        priceId: str("priceId"),
+        planHint: str("plan"),
+        customerId: str("customerId"),
+      });
+      return;
+    }
     case "customer.subscription.created":
     case "customer.subscription.updated": {
       const stylist = await stylistForStripe({

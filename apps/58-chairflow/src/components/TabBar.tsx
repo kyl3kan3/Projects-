@@ -18,11 +18,19 @@ const BASE_TABS: Array<{ href: string; label: string; icon: IconName }> = [
   { href: "/page", label: "Your page", icon: "link-bio" },
 ];
 
-export function TabBar({ showRent }: { showRent: boolean }) {
+export function TabBar({
+  showRent,
+  showChair,
+}: {
+  showRent: boolean;
+  showChair: boolean;
+}) {
   const pathname = usePathname();
-  const tabs = showRent
-    ? [...BASE_TABS, { href: "/rent", label: "Rent", icon: "key-rent" as IconName }]
-    : BASE_TABS;
+  const tabs = [
+    ...(showChair ? BASE_TABS : []),
+    ...(showRent ? [{ href: "/rent", label: "Rent", icon: "key-rent" as IconName }] : []),
+  ];
+  if (tabs.length === 0) return null;
 
   return (
     <nav className="tabbar" aria-label="Main">

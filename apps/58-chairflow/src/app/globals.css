@@ -823,6 +823,16 @@ select.input {
   width: 100%;
 }
 
+/* While a sheet is open the fixed thumb-zone CTA is hidden.
+   Without this, the sheet's own primary can sit *underneath* the fixed bar and a tap
+   aimed at "Hold to charge per policy" activates "Add appointment" instead — the wrong
+   action, at the one moment in the product where the wrong action costs money. The page
+   already reserves 144px at its foot so content can scroll clear of the bar; this covers
+   the case where it has not been scrolled clear yet. */
+body[data-sheet-open="true"] .thumb-bar {
+  display: none;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -838,6 +848,67 @@ select.input {
 @media (min-width: 768px) {
   :root {
     --gutter: 32px;
+  }
+}
+
+/* ---- Marketing surfaces ----
+   The product UI stays quiet; the landing page is allowed a wider measure and a
+   larger rhythm, and nothing else. Four animated moments, all of them the
+   signature's own beats, all of them collapsing under reduced motion. */
+
+.marketing {
+  padding: 0 var(--gutter);
+  max-width: 720px;
+  margin: 0 auto;
+  padding-bottom: calc(72px + env(safe-area-inset-bottom));
+}
+
+.marketing section {
+  padding: 40px 0;
+  border-top: 1px solid var(--color-hairline);
+}
+
+.marketing section:first-of-type {
+  border-top: 0;
+}
+
+.eyebrow {
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-cobalt);
+  margin: 0 0 8px;
+}
+
+.lede {
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  color: var(--color-ink-2);
+  max-width: 56ch;
+}
+
+/* The sticky mobile CTA. One phrase, the same phrase, always reachable. */
+.sticky-cta {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  padding: 8px var(--gutter) calc(8px + env(safe-area-inset-bottom));
+  background: color-mix(in srgb, var(--color-card) 96%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-hairline);
+}
+
+.sticky-cta .btn {
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .sticky-cta {
+    display: none;
   }
 }
 

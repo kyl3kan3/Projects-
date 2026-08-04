@@ -11,7 +11,8 @@ import {
   WaiveRentForm,
 } from "@/app/(app)/rent/RentForms";
 import { DetailRow, EmptyState, Figure, ScreenHeader } from "@/components/ui";
-import { getSession, ownedShop, requireStylist } from "@/lib/auth";
+import { ownedShop, requireAccount } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import { formatDayShort } from "@/lib/dates";
 import { money, moneyShort } from "@/lib/format";
 import { daysLate, displayRentStatus, rentStatusLabel, rentTotals } from "@/lib/rent";
@@ -34,12 +35,13 @@ export default async function RentPage({
 }: {
   searchParams: Promise<{ cell?: string }>;
 }) {
-  const { stylist } = await requireStylist();
-  const session = await getSession();
-  const shop = session ? await ownedShop(session.userId) : null;
+  const { user, stylist } = await requireAccount();
+  const shop = await ownedShop(user.id);
   const params = await searchParams;
 
   if (!shop) {
+    // No shop owned: this is a renter's own view of the same rows the owner reads.
+    if (!stylist) redirect("/login");
     const mine = await renterPeriods(stylist.id);
     return (
       <>

@@ -198,6 +198,16 @@ check for them early rather than rediscovering them.
     app a single unreadable price emptied a 14-field form. Echo submitted values back
     through `defaultValue` on every form that can be rejected. No unit test sees this;
     you have to submit a bad value in a browser and look at what survived.
+    **A `<select>` needs more than that, and this one is nasty.** `defaultValue` is
+    applied at mount, so the reset restores whichever option was selected when the
+    component *first* mounted — the first one. Making it controlled does not help
+    either: the reset changes the DOM value while React's `value` prop is unchanged,
+    so React sees no difference and never writes it back. The observed cost was a
+    rejected form silently un-picking "seed cadences against …", after which the next
+    submit imported the whole list with no cadences while reporting "cadences seeded:
+    0" as though that were the answer. Fix: bump a key when the action returns and
+    give the `<select>` that key plus a `defaultValue`, so it remounts onto the
+    echoed value. `apps/58-chairflow/src/lib/reset-key.ts` is the worked version.
 18. **`startTransition` inside a `setState` updater** throws in React 19, surfacing as
     "Application error: a client-side exception has occurred" — which is what the user
     sees instead of your feature. Hold-to-confirm controls are where this appears.

@@ -13,6 +13,7 @@ import {
 import { FormError } from "@/components/ui";
 import { emptyState, type FormState } from "@/lib/forms";
 import { WEEKDAY_NAMES } from "@/lib/availability";
+import { useResetKey } from "@/lib/reset-key";
 
 /**
  * The interactive parts of a client's card, each its own top-level `<form>`.
@@ -118,13 +119,21 @@ export function WaitlistForm({
   allowed: boolean;
 }) {
   const [state, action, pending] = useActionState(addWaitlistAction, BLANK);
+  // A `<select>` does not survive React 19's post-action form reset; a remount key is what
+  // re-applies the choice. See lib/reset-key.ts.
+  const selectKey = useResetKey(state);
   return (
     <form action={action} className="stack" style={{ gap: 12 }}>
       <input type="hidden" name="clientId" value={clientId} />
       <FormError message={state.error} />
       <label className="field">
         <span className="t-label">Waiting for</span>
-        <select className="input" name="serviceId" defaultValue={services[0]?.id ?? ""}>
+        <select
+          key={`service-${selectKey}`}
+          className="input"
+          name="serviceId"
+          defaultValue={services[0]?.id ?? ""}
+        >
           {services.map((s) => (
             <option key={s.id} value={s.id}>
               {s.name}
@@ -157,7 +166,12 @@ export function WaitlistForm({
       </fieldset>
       <label className="field">
         <span className="t-label">Time of day</span>
-        <select className="input" name="partOfDay" defaultValue="">
+        <select
+          key={`part-${selectKey}`}
+          className="input"
+          name="partOfDay"
+          defaultValue=""
+        >
           <option value="">Any time</option>
           <option value="morning">Mornings</option>
           <option value="afternoon">Afternoons</option>

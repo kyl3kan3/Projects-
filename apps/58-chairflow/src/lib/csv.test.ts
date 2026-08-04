@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
-import { parseImport, parseLooseDate, splitCsvLine } from "@/lib/csv";
+import { parseImport, parseLooseDate, splitCsvLine, splitName } from "@/lib/csv";
 
 test("quoted fields survive commas and doubled quotes", () => {
   assert.deepEqual(splitCsvLine('Marcus,+15125550147,marcus@example.com'), [
@@ -38,6 +38,19 @@ test("a Square-shaped export imports with cadences seeded", () => {
   assert.equal(parsed.rows[1].lastName, "Raman");
   assert.equal(parsed.rows[2].lastName, null);
   assert.equal(parsed.rows[2].email, null);
+});
+
+test("a quoted \"Last, First\" name is not read as a first name with a comma in it", () => {
+  assert.deepEqual(splitName("Okafor, Nia"), { firstName: "Nia", lastName: "Okafor" });
+  assert.deepEqual(splitName("Marcus Ollet"), { firstName: "Marcus", lastName: "Ollet" });
+  assert.deepEqual(splitName("Dee"), { firstName: "Dee", lastName: null });
+  assert.deepEqual(splitName("  Priya  Raman  "), { firstName: "Priya", lastName: "Raman" });
+  assert.deepEqual(splitName("Ollet,"), { firstName: "Ollet", lastName: null });
+  assert.deepEqual(splitName(""), { firstName: "", lastName: null });
+
+  const parsed = parseImport('Name,Phone\n"Okafor, Nia",5125550211');
+  assert.equal(parsed.rows[0].firstName, "Nia");
+  assert.equal(parsed.rows[0].lastName, "Okafor");
 });
 
 test("separate first/last name columns are honoured over a combined one", () => {

@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { importAction, type ImportState } from "@/app/(app)/clients/import/actions";
 import { DetailRow, FormError } from "@/components/ui";
+import { useResetKey } from "@/lib/reset-key";
 
 const INITIAL: ImportState = {
   error: null,
@@ -28,6 +29,9 @@ export function ImportForm({
   services: Array<{ id: string; name: string }>;
 }) {
   const [state, action, pending] = useActionState(importAction, INITIAL);
+  // Remount the picker whenever the action returns, so the echoed choice is re-applied. See
+  // lib/reset-key.ts for why neither defaultValue nor a controlled value survives on its own.
+  const selectKey = useResetKey(state);
 
   return (
     <>
@@ -53,6 +57,7 @@ export function ImportForm({
         <label className="field">
           <span className="t-label">Seed cadences against</span>
           <select
+            key={selectKey}
             className="input"
             name="seedServiceId"
             defaultValue={state.values.seedServiceId}

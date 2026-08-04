@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CancelRow } from "@/app/(app)/today/CancelRow";
 import { ResolveCard, type FeeMath } from "@/app/(app)/today/ResolveCard";
 import { Icon } from "@/components/icons";
 import {
@@ -200,6 +201,7 @@ function AppointmentSlot({
   const state = derivedState(row.appointment, now);
   const deposit = parseDepositRule(row.service.depositRule);
   return (
+    <div>
     <Link
       href={`/clients/${row.client.id}`}
       className="slot enter"
@@ -233,5 +235,12 @@ function AppointmentSlot({
         <span className="slot-price">{moneyShort(row.appointment.priceCents)}</span>
       </span>
     </Link>
+      {state === "upcoming" && (
+        <CancelRow
+          appointmentId={row.appointment.id}
+          label={`${formatClock(timezone, row.appointment.startsAt)} ${row.client.firstName}`}
+        />
+      )}
+    </div>
   );
 }

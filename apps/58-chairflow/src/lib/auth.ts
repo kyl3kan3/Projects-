@@ -195,6 +195,21 @@ export interface StylistContext {
   shop: Shop | null;
 }
 
+/**
+ * Who is signed in, without insisting they are a stylist.
+ *
+ * ARCHITECTURE.md's `users` table holds "stylists and shop owners", and a shop owner who rents
+ * out five chairs without cutting hair has no `stylists` row at all. Requiring one to get past
+ * the shell locked those owners out of the product they pay for — the Shop plan's whole
+ * surface. This is the guard the shell uses; `requireStylist` is for the screens that genuinely
+ * need a chair.
+ */
+export interface AccountContext {
+  user: User;
+  stylist: Stylist | null;
+  shop: Shop | null;
+}
+
 export async function currentContext(): Promise<StylistContext | null> {
   const session = await getSession();
   if (!session) return null;
@@ -211,10 +226,42 @@ export async function currentContext(): Promise<StylistContext | null> {
   return { user, stylist, shop };
 }
 
-/** Server-component guard: the stylist, or a redirect to /login. */
+export async function currentAccount(): Promise<AccountContext | null> {
+  const session = await getSession();
+  if (!session) return null;
+  const db = getDb();
+  const [user] = await db.select().from(users).where(eq(users.id, session.userId));
+  if (!user) return null;
+  const [stylist] = await db.select().from(stylists).where(eq(stylists.userId, user.id));
+  const owned = await ownedShop(user.id);
+  let shop: Shop | null = owned;
+  if (!shop && stylist?.shopId) {
+    const [found] = await db.select().from(shops).where(eq(shops.id, stylist.shopId));
+    shop = found ?? null;
+  }
+  return { user, stylist: stylist ?? null, shop };
+}
+
+export async function requireAccount(): Promise<AccountContext> {
+  const ctx = await currentAccount();
+  if (!ctx) redirect("/login");
+  return ctx;
+}
+
+/**
+ * Server-component guard for the screens that need a chair.
+ *
+ * A signed-in shop owner with no chair of their own is sent to the rent ledger rather than to
+ * /login — being bounced to a sign-in page while already signed in is the most confusing
+ * failure an app can hand somebody.
+ */
 export async function requireStylist(): Promise<StylistContext> {
   const ctx = await currentContext();
-  if (!ctx) redirect("/login");
+  if (!ctx) {
+    const account = await currentAccount();
+    if (account?.shop) redirect("/rent");
+    redirect("/login");
+  }
   return ctx;
 }
 

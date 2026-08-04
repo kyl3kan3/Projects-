@@ -76,11 +76,20 @@ function project(event: Stripe.Event): Record<string, unknown> {
       const session = event.data.object as Stripe.Checkout.Session;
       return {
         ...base,
+        // ChairFlow's own subscription (platform account).
         stylistId: session.metadata?.stylistId ?? session.client_reference_id ?? null,
         customerId: typeof session.customer === "string" ? session.customer : null,
         subscriptionId: typeof session.subscription === "string" ? session.subscription : null,
         plan: session.metadata?.plan ?? null,
         status: "active",
+        // A client saving a card / paying a deposit on the stylist's Connect account. The
+        // metadata is the whole booking intent; the appointment is created when this is applied.
+        bookingStylistId: session.metadata?.chairflow_stylist_id ?? null,
+        bookingClientId: session.metadata?.chairflow_client_id ?? null,
+        bookingServiceId: session.metadata?.chairflow_service_id ?? null,
+        bookingStartsAt: session.metadata?.chairflow_starts_at ?? null,
+        setupIntentId: typeof session.setup_intent === "string" ? session.setup_intent : null,
+        paymentIntentId: typeof session.payment_intent === "string" ? session.payment_intent : null,
       };
     }
     case "customer.subscription.created":

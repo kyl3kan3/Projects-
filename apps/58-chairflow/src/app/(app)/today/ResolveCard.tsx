@@ -1,9 +1,10 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { markAppointment, type MarkState } from "@/app/(app)/today/actions";
 import { Icon } from "@/components/icons";
-import { DetailRow, FormError } from "@/components/ui";
+import { DetailRow, FormError, ProtectedStat, StatePill } from "@/components/ui";
 import { money, moneyShort } from "@/lib/format";
 
 /**
@@ -32,7 +33,13 @@ export interface FeeMath {
   cardLast4: string | null;
 }
 
-const INITIAL: MarkState = { error: null, appointmentId: null, result: null };
+const INITIAL: MarkState = {
+  error: null,
+  appointmentId: null,
+  result: null,
+  protectedCents: null,
+  protectedHint: null,
+};
 
 export function ResolveCard({
   appointmentId,
@@ -47,11 +54,13 @@ export function ResolveCard({
   timeLabel: string;
   math: FeeMath;
 }) {
+  const router = useRouter();
   const [state, action, pending] = useActionState(markAppointment, INITIAL);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [holding, setHolding] = useState(false);
   const [verdict, setVerdict] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -60,32 +69,90 @@ export function ResolveCard({
     };
   }, []);
 
+  /**
+   * While the fee sheet is open, suppress the screen's fixed "Add appointment" bar (see
+   * globals.css) and scroll the sheet into view.
+   *
+   * The bar is fixed to the bottom of the viewport, so it can sit on top of the sheet's own
+   * primary button — and a tap aimed at "Hold to charge per policy" then activates "Add
+   * appointment". Wrong action, worst possible moment.
+   */
+  useEffect(() => {
+    if (!sheetOpen) return;
+    document.body.dataset.sheetOpen = "true";
+    sheetRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+    return () => {
+      delete document.body.dataset.sheetOpen;
+    };
+  }, [sheetOpen]);
+
   const result = state.result;
 
   if (result) {
+    // The signature, in the order DESIGN.md sets it: the slot flips to its NO-SHOW face, the
+    // arithmetic wipes in beneath it, the finished ledger line rises into place, and the
+    // protected counter settles once. Every one of those states is also plain text and a pill,
+    // so `prefers-reduced-motion` loses nothing but the movement.
+    const waived = result.chargeStatus === "waived";
     return (
-      <div className="card flip" style={{ padding: 16, display: "grid", gap: 8 }}>
-        <p className="t-label" style={{ margin: 0 }}>
-          {result.status === "no_show" ? "Marked no-show" : "Marked completed"}
-        </p>
-        <p className="t-title" style={{ margin: 0 }}>
-          {timeLabel} · {clientName}
-        </p>
+      <div className="card" style={{ padding: 16, display: "grid", gap: 12 }}>
+        <div className="slot flip" data-state={result.status}>
+          <span className="slot-time">{timeLabel}</span>
+          <span style={{ minWidth: 0, display: "grid", gap: 2 }}>
+            <span className="t-title">{clientName}</span>
+            <StatePill state={result.status === "no_show" ? "no_show" : "completed"} />
+          </span>
+          <span className="slot-price">{moneyShort(math.priceCents)}</span>
+        </div>
+
         {result.status === "no_show" && result.feeCents > 0 && (
           <p className="t-mono math-wipe" style={{ margin: 0, color: "var(--color-ink-2)" }}>
-            {result.chargeStatus === "waived"
+            {waived
               ? `${math.percent}% of ${moneyShort(math.priceCents)} · waived`
               : `${math.percent}% of ${moneyShort(math.priceCents)}${
                   result.depositAppliedCents > 0
                     ? ` · deposit kept ${money(result.depositAppliedCents)}`
                     : ""
-                } · charged ${money(result.chargedCents)}`}
+                }`}
           </p>
         )}
+
+        {result.chargeStatus && result.feeCents > 0 && (
+          <div className="ledger-line ledger-land">
+            <span>
+              no-show fee ·{" "}
+              <span style={{ color: "var(--color-ink-2)" }}>policy v{math.policyVersion}</span>
+            </span>
+            <span
+              className={`ledger-amount${waived ? " ledger-amount-waived" : ""}`}
+              style={result.chargeStatus === "failed" ? { color: "var(--color-red)" } : undefined}
+            >
+              {waived
+                ? `${money(result.feeCents)} waived`
+                : result.chargeStatus === "failed"
+                  ? `${money(result.chargedCents)} declined`
+                  : `+${money(result.chargedCents)}`}
+            </span>
+          </div>
+        )}
+
+        {state.protectedCents !== null && (
+          <div>
+            <p className="t-label" style={{ margin: 0 }}>
+              Protected this month
+            </p>
+            <ProtectedStat
+              cents={state.protectedCents}
+              hint={state.protectedHint ?? ""}
+              settle
+            />
+          </div>
+        )}
+
         {result.chargeStatus === "failed" && (
           <p className="t-secondary" style={{ margin: 0, color: "var(--color-red)" }}>
-            The card refused it: {result.failureReason}. It is on the ledger as declined —
-            you decide how hard to chase it.
+            The card refused it: {result.failureReason}. It is on the ledger as declined — you
+            decide how hard to chase it, and you can waive it from there.
           </p>
         )}
         {result.failureReason && result.chargeStatus === null && (
@@ -98,6 +165,15 @@ export function ResolveCard({
             Recorded, not charged — Stripe is not configured in this environment.
           </p>
         )}
+
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={() => router.refresh()}
+          style={{ justifySelf: "start" }}
+        >
+          Done
+        </button>
       </div>
     );
   }
@@ -154,7 +230,7 @@ export function ResolveCard({
           </button>
         </div>
       ) : (
-        <div className="sheet" style={{ padding: 16, display: "grid", gap: 4 }}>
+        <div ref={sheetRef} className="sheet" style={{ padding: 16, display: "grid", gap: 4 }}>
           <p className="t-label" style={{ margin: "0 0 4px" }}>
             The policy, v{math.policyVersion}
           </p>

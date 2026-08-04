@@ -19,7 +19,7 @@ import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { stylists, webhookEvents, type Stylist } from "@/db/schema";
 import { audit } from "@/server/audit";
-import { gateway } from "@/server/payments";
+import { gateway, stripe } from "@/server/payments";
 import { env } from "@/lib/env";
 import type { BillablePlan, Plan } from "@/lib/plans";
 
@@ -232,6 +232,35 @@ export async function startConnectOnboarding(stylist: Stylist, email: string): P
   }
 
   return { url: link.url, simulated: false, message: "" };
+}
+
+/**
+ * Which card did a hosted Checkout session end up saving, and what are its last four?
+ *
+ * `mode: "setup"` leaves it on the SetupIntent; `mode: "payment"` with
+ * `setup_future_usage: "off_session"` leaves it on the PaymentIntent. Both live on the stylist's
+ * own Connect account, so every call carries `{ stripeAccount }`.
+ *
+ * Unexercised: there is no Stripe key in this environment, so no hosted session has ever
+ * completed here.
+ */
+export async function resolveHostedCard(input: {
+  accountId: string;
+  setupIntentId: string | null;
+  paymentIntentId: string | null;
+}): Promise<{ paymentMethodId: string; last4: string } | null> {
+  const options = { stripeAccount: input.accountId };
+  let paymentMethodId: string | null = null;
+  if (input.setupIntentId) {
+    const intent = await stripe().setupIntents.retrieve(input.setupIntentId, options);
+    paymentMethodId = typeof intent.payment_method === "string" ? intent.payment_method : null;
+  } else if (input.paymentIntentId) {
+    const intent = await stripe().paymentIntents.retrieve(input.paymentIntentId, options);
+    paymentMethodId = typeof intent.payment_method === "string" ? intent.payment_method : null;
+  }
+  if (!paymentMethodId) return null;
+  const method = await stripe().paymentMethods.retrieve(paymentMethodId, options);
+  return { paymentMethodId, last4: method.card?.last4 ?? "----" };
 }
 
 /** Refresh `connect_status` from Stripe — called by the account.updated webhook. */

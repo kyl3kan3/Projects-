@@ -56,6 +56,45 @@ Priced for a solo operator's wallet; the shop plan is the multi-chair umbrella.
 
 Post-MVP (explicitly cut from v1): POS/checkout for services, retail/inventory, payroll/commissions, marketing campaigns/blasts, Google Reserve integration, marketplace discovery, multi-location shop chains, native apps (the web app is installable).
 
+## Running it locally
+
+```bash
+cp .env.example .env.local          # fill in DATABASE_URL, AUTH_SECRET, LINK_TOKEN_SECRET
+npm install
+npm run db:migrate                  # creates the schema
+npm run db:seed                     # optional: a demo chair with real-looking data
+npm run dev                         # http://localhost:3058
+```
+
+The seed prints its logins. The stylist is `dee@foundrybarber.example`, the shop owner is
+`ray@foundrybarber.example`, and the booking page is `/b/deecuts`.
+
+Only `DATABASE_URL`, `AUTH_SECRET` and `LINK_TOKEN_SECRET` are needed to run. Without Stripe,
+Resend or Twilio keys the app still works end to end: deposits, fees, texts and emails are
+**recorded rather than sent or charged**, and every screen that shows one of those rows says so.
+That is deliberate — a ledger that quietly counts imaginary money is worse than no ledger.
+
+Background work (reminders, the cadence scan and its nudges, waitlist expiry and cascade, the
+weekly rent rollover, applying persisted Stripe events) runs in two interchangeable shapes:
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" localhost:3058/api/cron/tick   # Vercel-shaped
+npm run worker                                                             # long-lived host
+```
+
+Both call the same `runTick`, and each step takes a `job_leases` row first, so running both at
+once is safe rather than a double-send. The cron route **refuses every request when
+`CRON_SECRET` is unset** rather than defaulting to open.
+
+Checks:
+
+```bash
+npm run typecheck
+npm test          # domain logic: policy maths, cadence, availability, plans, rent, CSV
+npm run craft     # the design and defect rules a type-checker cannot see
+npm run build
+```
+
 ## Differentiation
 
 1. **The policy is the product.** Competitors have deposit *settings*; ChairFlow has a policy *engine* — the stylist's rules rendered as a page clients agree to at booking, referenced on every charge, versioned when it changes. The awkward conversation is replaced by "it's the policy you agreed to when you booked" — which is the actual job to be done.

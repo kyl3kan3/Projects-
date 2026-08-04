@@ -52,11 +52,7 @@ import {
   slotsForDay,
   type Interval,
 } from "@/lib/availability";
-import {
-  addDaysToDay,
-  dayOfInstant,
-  todayInTimezone,
-} from "@/lib/dates";
+import { addDaysToDay, dayOfInstant, formatWhen, todayInTimezone } from "@/lib/dates";
 import { env } from "@/lib/env";
 import { fullName, normalizePhone } from "@/lib/format";
 import { bookingPageLive, type Billable } from "@/lib/plans";
@@ -381,6 +377,18 @@ export interface BookInput {
   source?: "booking_page" | "manual" | "nudge" | "waitlist";
   /** Set when this booking came from a nudge link, so the receipt can be stamped. */
   nudgeId?: string | null;
+  /**
+   * A card already collected somewhere else — Stripe's hosted Checkout page. When this is
+   * present the gateway is not called again: the money has already moved, and the only thing
+   * left is to claim the slot. This is how `finalizeHostedBooking` reuses one implementation of
+   * the lock, the re-check and the policy stamp instead of growing a second, looser one.
+   */
+  preCollected?: {
+    customerId: string;
+    paymentMethodId: string;
+    last4: string;
+    depositPaymentIntentId: string | null;
+  } | null;
   now?: Date;
 }
 
@@ -437,7 +445,19 @@ export async function bookAppointment(input: BookInput): Promise<BookResult> {
   let depositPaymentIntentId: string | null = null;
   let simulatedCard = false;
 
-  const connectLive = stylist.connectStatus === "active" && Boolean(stylist.stripeAccountId);
+  if (input.preCollected) {
+    savedCard = {
+      customerId: input.preCollected.customerId,
+      paymentMethodId: input.preCollected.paymentMethodId,
+      last4: input.preCollected.last4,
+    };
+    depositPaymentIntentId = input.preCollected.depositPaymentIntentId;
+  }
+
+  const connectLive =
+    !input.preCollected &&
+    stylist.connectStatus === "active" &&
+    Boolean(stylist.stripeAccountId);
   if (connectLive) {
     const gw = gateway();
     try {
@@ -604,6 +624,62 @@ export async function bookAppointment(input: BookInput): Promise<BookResult> {
   return { ok: true, appointmentId, manageToken: claimed.token, simulatedCard };
 }
 
+/**
+ * Finish a booking that was paused on Stripe's hosted Checkout page.
+ *
+ * With real Stripe keys, `bookAppointment` hands the client to Stripe rather than holding the
+ * slot — so a client who abandons checkout leaves no phantom booking, and the appointment is
+ * created here, from the `checkout.session.completed` event on the stylist's Connect account.
+ * The metadata the session carried is the whole booking intent.
+ *
+ * It goes through `bookAppointment` with `preCollected`, so the slot is re-checked under the same
+ * advisory lock and stamped with the same policy version. If somebody took the slot while the
+ * client was on Stripe, this returns the ordinary "just missed it" and the caller logs it — the
+ * client's card is saved and the deposit refundable, which is the honest end of a race nobody
+ * can win twice.
+ *
+ * Unexercised: this environment has no Stripe key, so no such event has ever arrived.
+ */
+export async function finalizeHostedBooking(input: {
+  stylistId: string;
+  clientId: string;
+  serviceId: string;
+  startsAtIso: string;
+  customerId: string;
+  paymentMethodId: string;
+  last4: string;
+  depositPaymentIntentId: string | null;
+}): Promise<BookResult> {
+  const db = getDb();
+  const [stylist] = await db.select().from(stylists).where(eq(stylists.id, input.stylistId));
+  if (!stylist) {
+    return { ok: false, error: "invalid", message: "That chair no longer exists." };
+  }
+  const [client] = await db.select().from(clients).where(eq(clients.id, input.clientId));
+  if (!client) {
+    return { ok: false, error: "invalid", message: "That client no longer exists." };
+  }
+  return bookAppointment({
+    stylist,
+    serviceId: input.serviceId,
+    startsAtIso: input.startsAtIso,
+    client: {
+      firstName: client.firstName,
+      lastName: client.lastName,
+      phone: client.phone,
+      email: client.email,
+      smsConsent: client.smsConsent,
+    },
+    preCollected: {
+      customerId: input.customerId,
+      paymentMethodId: input.paymentMethodId,
+      last4: input.last4,
+      depositPaymentIntentId: input.depositPaymentIntentId,
+    },
+    source: "booking_page",
+  });
+}
+
 /* ------------------------------------------------------------------ */
 /* Moving and cancelling                                               */
 /* ------------------------------------------------------------------ */
@@ -712,15 +788,15 @@ export async function rescheduleAppointment(input: {
     manageUrl: manageUrl(env.appUrl, result.token),
     policySummary: bundle.policy ? policySummary(policyTerms(bundle.policy)) : undefined,
   });
-  // A reschedule confirmation is its own kind of message, and the unique index is on
-  // (appointment, kind, channel) — so it is written against the freed slot's
-  // cancellation kind rather than colliding with the original confirmation.
+  // Written with no appointment id on purpose. The unique index is on
+  // (appointment, kind, channel), and an appointment can be moved more than once — pinning the
+  // notice to the appointment would silently swallow the second move's confirmation.
   await sendMessage({
     stylistId: bundle.stylist.id,
     clientId: bundle.client.id,
     appointmentId: null,
     kind: "confirmation",
-    subject: `Moved: ${confirmation.subject}`,
+    subject: `Moved: ${bundle.service.name} is now ${formatWhen(bundle.stylist.timezone, startsAt)}`,
     body: confirmation.body,
   });
 
