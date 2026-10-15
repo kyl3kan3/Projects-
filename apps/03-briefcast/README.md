@@ -117,3 +117,13 @@ This is a product scaffold: documentation plus stub source files. Nothing here r
 - `ROADMAP.md` -- phased plan with acceptance criteria
 - `package.json`, `.env.example`, `.gitignore` -- project skeleton
 - `src/` -- stub modules mirroring the intended structure
+
+## Provider webhook security
+
+Before deployment, apply `migrations/20261015-provider-webhook-receipts.sql` (or update the schema with the existing Drizzle workflow). Configure the signing-secret variable(s) listed in `.env.example`. Missing configuration fails closed. The handler validates the exact raw request bytes and a five-minute timestamp window before parsing/processing, and commits a unique provider event receipt in the same database transaction as business changes. Failed transactions remain retryable. Keep the server clock synchronized.
+
+Recall uses `RECALL_WORKSPACE_VERIFICATION_SECRET` with `webhook-*` headers for current accounts. Legacy dashboard webhook endpoints use `RECALL_SVIX_WEBHOOK_SECRET` and `svix-*` headers; configure the appropriate regional endpoint secret. The handler accepts multiple v1 signatures during rotation. Transcription jobs use stable, retained IDs to avoid duplicate enqueue after a database commit failure. Do not delete those retained jobs unless the corresponding committed receipt exists; retain receipts durably. Reference: https://docs.recall.ai/docs/authenticating-requests-from-recallai
+
+Protocol and replay reference: https://docs.svix.com/receiving/verifying-payloads/why
+
+Regression tests: `node --test test/webhook-security.test.mjs` (Node 24+). The handler tests execute actual route logic with database/queue boundaries mocked; no live provider requests are made.

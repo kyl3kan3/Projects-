@@ -301,3 +301,9 @@ export const auditLog = pgTable(
   },
   (t) => [index("audit_org_idx").on(t.organizationId, t.createdAt)],
 );
+
+// Provider event IDs are durable replay guards, committed with side effects.
+export const providerWebhookReceipts = pgTable("provider_webhook_receipts", {
+  id: text("id").primaryKey(),
+  receivedAt: timestamp("received_at").notNull().defaultNow(),
+});

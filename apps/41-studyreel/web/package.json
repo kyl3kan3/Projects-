@@ -2,7 +2,7 @@
   "name": "studyreel-web",
   "version": "0.1.0",
   "private": true,
-  "description": "StudyReel companion web — laptop uploads, big-screen review, practice exams",
+  "description": "StudyReel companion web \u2014 laptop uploads, big-screen review, practice exams",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -11,9 +11,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "next": "^15.3.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
+    "next": "15.5.28",
+    "react": "19.2.9",
+    "react-dom": "19.2.9",
     "zod": "^3.24.0"
   },
   "devDependencies": {
@@ -22,7 +22,7 @@
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "eslint": "^9.24.0",
-    "eslint-config-next": "^15.3.0",
+    "eslint-config-next": "15.5.28",
     "tailwindcss": "^4.1.0",
     "typescript": "^5.8.0"
   },
