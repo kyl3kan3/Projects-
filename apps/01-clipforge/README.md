@@ -143,3 +143,9 @@ Active-speaker crop is also future work — the current cut is a center-crop.
 ```bash
 npm run typecheck && npm run build
 ```
+
+## Secure media import
+
+Direct HTTP(S) media imports now reject non-public addresses, pin a validated DNS answer for each socket, and revalidate redirects. Downloads stop at 3 GiB or 120 seconds, with partial files removed on failure. YouTube URL import is temporarily unavailable because yt-dlp's independent network/extractor requests cannot be constrained by this HTTP transport. Upload a media file or use a direct public media URL; do not re-enable yt-dlp without enforced public-only network egress.
+
+Regression tests: `node --test test/public-media.test.mjs` (Node 24+). All network responses/DNS in these tests are mocks.

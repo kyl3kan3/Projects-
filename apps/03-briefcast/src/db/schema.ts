@@ -286,3 +286,9 @@ export const subscriptions = pgTable("subscriptions", {
   recordingHoursUsedPeriod: integer("recording_hours_used_period").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+// Provider event IDs are durable replay guards, committed with side effects.
+export const providerWebhookReceipts = pgTable("provider_webhook_receipts", {
+  id: text("id").primaryKey(),
+  receivedAt: timestamp("received_at").notNull().defaultNow(),
+});

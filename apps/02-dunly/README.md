@@ -105,3 +105,13 @@ In priority order:
 4. **Attribution disputes.** Our invoice is justified by "we recovered $X." If customers doubt the number, churn follows. Mitigation: the conservative attribution model above, with per-invoice drill-down showing exactly which retry/message preceded payment.
 5. **Small-market gravity.** The honest ceiling (~$80k MRR realistic best case) means a few lost quarters of distribution effort matter. This is a focused-execution business, not a spray-and-pray one.
 6. **Double-charge/compliance hazards.** A retry bug that double-charges an end customer, or SMS sent without consent (TCPA), damages the *customer's* brand, not just ours. Mitigation: idempotency keys everywhere, retry suppression when Stripe retries are active, per-recipient SMS opt-in state, and an audit log of every action taken on a customer's Stripe account.
+
+## Provider webhook security
+
+Before deployment, apply `migrations/20261015-provider-webhook-receipts.sql` (or update the schema with the existing Drizzle workflow). Configure the signing-secret variable(s) listed in `.env.example`. Missing configuration fails closed. The handler validates the exact raw request bytes and a five-minute timestamp window before parsing/processing, and commits a unique provider event receipt in the same database transaction as business changes. Failed transactions remain retryable. Keep the server clock synchronized.
+
+Resend uses the endpoint `RESEND_WEBHOOK_SECRET` and `svix-*` headers. Reference: https://resend.com/docs/dashboard/webhooks/verify-webhooks-requests
+
+Protocol and replay reference: https://docs.svix.com/receiving/verifying-payloads/why
+
+Regression tests: `node --test test/webhook-security.test.mjs` (Node 24+). The handler tests execute actual route logic with database/queue boundaries mocked; no live provider requests are made.

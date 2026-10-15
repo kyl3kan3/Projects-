@@ -20,12 +20,12 @@
     "date-fns": "^4.1.0",
     "drizzle-orm": "^0.41.0",
     "jose": "^6.0.0",
-    "next": "^15.3.0",
+    "next": "15.5.28",
     "next-auth": "^5.0.0-beta.25",
     "pdf-lib": "^1.17.1",
     "postgres": "^3.4.5",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
+    "react": "19.2.9",
+    "react-dom": "19.2.9",
     "resend": "^4.2.0",
     "stripe": "^18.0.0",
     "twilio": "^5.5.0",
@@ -38,12 +38,17 @@
     "@types/react-dom": "^19.1.0",
     "drizzle-kit": "^0.30.0",
     "eslint": "^9.24.0",
-    "eslint-config-next": "^15.3.0",
+    "eslint-config-next": "15.5.28",
     "tailwindcss": "^4.1.0",
     "tsx": "^4.19.0",
     "typescript": "^5.8.0"
   },
   "engines": {
     "node": ">=20"
+  },
+  "overrides": {
+    "next": {
+      "sharp": "0.35.5"
+    }
   }
 }

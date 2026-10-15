@@ -38,6 +38,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
+  if (parsed.data.sourceType === "youtube") {
+    return NextResponse.json({ error: "youtube_import_unavailable", message: "Upload a file or import a direct public media URL." }, { status: 422 });
+  }
+
   const quota = await checkQuota(ctx.workspace.id);
   if (!quota.allowed) {
     return NextResponse.json({ error: "over_limit", quota }, { status: 402 });
